@@ -7,7 +7,9 @@ import {
   listDocuments,
   getDocument,
   deleteDocument,
+  importFileToStore,
 } from '../services/fileStoreService';
+import { listFiles } from '../services/filesService';
 import './FileStoreDetail.css';
 
 function FileStoreDetail() {
@@ -28,6 +30,11 @@ function FileStoreDetail() {
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [deletingDoc, setDeletingDoc] = useState(null);
   const [nextPageToken, setNextPageToken] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [availableFiles, setAvailableFiles] = useState([]);
+  const [loadingFiles, setLoadingFiles] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [filesNextPageToken, setFilesNextPageToken] = useState(null);
 
   useEffect(() => {
     loadStoreDetails();
@@ -214,6 +221,66 @@ function FileStoreDetail() {
     }
   };
 
+  const handleOpenImportModal = async () => {
+    setShowImportModal(true);
+    setLoadingFiles(true);
+    try {
+      const response = await listFiles(50);
+      setAvailableFiles(response.files || []);
+      setFilesNextPageToken(response.nextPageToken || null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
+  const loadMoreFiles = async () => {
+    if (!filesNextPageToken) return;
+    try {
+      setLoadingFiles(true);
+      const response = await listFiles(50, filesNextPageToken);
+      setAvailableFiles(prev => [...prev, ...(response.files || [])]);
+      setFilesNextPageToken(response.nextPageToken || null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingFiles(false);
+    }
+  };
+
+  const handleImportFile = async (fileName) => {
+    try {
+      setImporting(true);
+      setError(null);
+      const decodedStoreName = decodeURIComponent(storeName);
+      const response = await importFileToStore(
+        decodedStoreName,
+        fileName
+      );
+
+      // Check if it's a long-running operation
+      if (response.name) {
+        setSuccess('File import started! The file is being processed.');
+        setOperationStatus(response);
+        const interval = setInterval(() => {
+          pollOperationStatus(response.name);
+        }, 2000);
+        setPollingInterval(interval);
+      } else {
+        setSuccess('File imported successfully!');
+        await loadStoreDetails();
+        await loadDocuments();
+      }
+      
+      setShowImportModal(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString();
@@ -233,6 +300,17 @@ function FileStoreDetail() {
       'STATE_ACTIVE': { label: 'Active', className: 'badge-success' },
       'STATE_PENDING': { label: 'Pending', className: 'badge-warning' },
       'STATE_FAILED': { label: 'Failed', className: 'badge-error' },
+      'STATE_UNSPECIFIED': { label: 'Unknown', className: 'badge-secondary' },
+    };
+    const stateInfo = stateMap[state] || stateMap['STATE_UNSPECIFIED'];
+    return <span className={`badge ${stateInfo.className}`}>{stateInfo.label}</span>;
+  };
+
+  const getFileStateBadge = (state) => {
+    const stateMap = {
+      'ACTIVE': { label: 'Active', className: 'badge-success' },
+      'PROCESSING': { label: 'Processing', className: 'badge-warning' },
+      'FAILED': { label: 'Failed', className: 'badge-error' },
       'STATE_UNSPECIFIED': { label: 'Unknown', className: 'badge-secondary' },
     };
     const stateInfo = stateMap[state] || stateMap['STATE_UNSPECIFIED'];
@@ -306,7 +384,16 @@ function FileStoreDetail() {
       </div>
 
       <div style={{ marginTop: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Upload File</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ color: '#374151', margin: 0 }}>Upload File</h3>
+          <button
+            className="btn btn-secondary"
+            onClick={handleOpenImportModal}
+            disabled={importing}
+          >
+            Import from Files
+          </button>
+        </div>
         
         <div
           className="file-upload-area"
@@ -523,6 +610,94 @@ function FileStoreDetail() {
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowDocumentModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showImportModal && (
+        <div className="modal" onClick={() => setShowImportModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Import File from Files List</h3>
+              <button className="close-btn" onClick={() => setShowImportModal(false)}>
+                ×
+              </button>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ marginBottom: '1rem', color: '#6b7280' }}>
+                Select a file to import into this store:
+              </p>
+              
+              {loadingFiles && availableFiles.length === 0 ? (
+                <div className="loading">Loading files...</div>
+              ) : availableFiles.length === 0 ? (
+                <div className="empty-state">
+                  <p>No files available. Upload files first.</p>
+                </div>
+              ) : (
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {availableFiles.map((file) => (
+                    <div
+                      key={file.name}
+                      style={{
+                        padding: '1rem',
+                        marginBottom: '0.5rem',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                          {file.displayName || file.name}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span>{formatBytes(file.sizeBytes)}</span>
+                          <span>•</span>
+                          <span>{file.mimeType || 'Unknown type'}</span>
+                          {file.state && (
+                            <>
+                              <span>•</span>
+                              {getFileStateBadge(file.state)}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleImportFile(file.name)}
+                        disabled={importing || file.state !== 'ACTIVE'}
+                        style={{ marginLeft: '1rem' }}
+                      >
+                        {importing ? 'Importing...' : 'Import'}
+                      </button>
+                    </div>
+                  ))}
+                  {filesNextPageToken && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={loadMoreFiles}
+                        disabled={loadingFiles}
+                      >
+                        {loadingFiles ? 'Loading...' : 'Load More'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', padding: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowImportModal(false)}
+                disabled={importing}
               >
                 Close
               </button>

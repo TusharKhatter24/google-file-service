@@ -9,6 +9,7 @@ import {
   extractTextContent,
   extractTextFromFileUsingGemini,
 } from '../services/filesService';
+import { listFileStores, importFileToStore } from '../services/fileStoreService';
 import './Files.css';
 
 function Files() {
@@ -24,6 +25,12 @@ function Files() {
   const [showContentModal, setShowContentModal] = useState(false);
   const [deletingFile, setDeletingFile] = useState(null);
   const [nextPageToken, setNextPageToken] = useState(null);
+  const [showAttachModal, setShowAttachModal] = useState(false);
+  const [selectedFileForAttach, setSelectedFileForAttach] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [loadingStores, setLoadingStores] = useState(false);
+  const [attaching, setAttaching] = useState(false);
+  const [storesNextPageToken, setStoresNextPageToken] = useState(null);
 
   useEffect(() => {
     loadFiles();
@@ -191,6 +198,62 @@ function Files() {
       setError(err.message);
     } finally {
       setDeletingFile(null);
+    }
+  };
+
+  const handleAttachToStore = async (file) => {
+    setSelectedFileForAttach(file);
+    setShowAttachModal(true);
+    setLoadingStores(true);
+    try {
+      const response = await listFileStores(20); // Maximum page size is 20
+      setStores(response.fileSearchStores || []);
+      setStoresNextPageToken(response.nextPageToken || null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingStores(false);
+    }
+  };
+
+  const loadMoreStores = async () => {
+    if (!storesNextPageToken) return;
+    try {
+      setLoadingStores(true);
+      const response = await listFileStores(20, storesNextPageToken);
+      setStores(prev => [...prev, ...(response.fileSearchStores || [])]);
+      setStoresNextPageToken(response.nextPageToken || null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingStores(false);
+    }
+  };
+
+  const handleImportToStore = async (storeName) => {
+    if (!selectedFileForAttach) return;
+
+    try {
+      setAttaching(true);
+      setError(null);
+      const response = await importFileToStore(
+        storeName,
+        selectedFileForAttach.name
+      );
+      
+      // Check if it's a long-running operation
+      if (response.name) {
+        setSuccess('File import started! The file is being processed.');
+      } else {
+        setSuccess('File imported successfully!');
+      }
+      
+      setShowAttachModal(false);
+      setSelectedFileForAttach(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAttaching(false);
     }
   };
 
@@ -387,6 +450,13 @@ function Files() {
                       {extracting === file.name ? 'Extracting...' : 'Extract Content'}
                     </button>
                     <button
+                      className="btn btn-secondary"
+                      onClick={() => handleAttachToStore(file)}
+                      disabled={file.state !== 'ACTIVE'}
+                    >
+                      Attach to Store
+                    </button>
+                    <button
                       className="btn btn-danger"
                       onClick={() => handleDeleteFile(file.name, file.displayName)}
                       disabled={deletingFile === file.name}
@@ -450,6 +520,84 @@ function Files() {
                 }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAttachModal && selectedFileForAttach && (
+        <div className="modal" onClick={() => setShowAttachModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Attach File to Store</h3>
+              <button className="close-btn" onClick={() => setShowAttachModal(false)}>
+                ×
+              </button>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ marginBottom: '1rem', color: '#6b7280' }}>
+                Select a store to attach <strong>{selectedFileForAttach.displayName || selectedFileForAttach.name}</strong> to:
+              </p>
+              
+              {loadingStores ? (
+                <div className="loading">Loading stores...</div>
+              ) : stores.length === 0 ? (
+                <div className="empty-state">
+                  <p>No stores available. Create a store first.</p>
+                  <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                    Go to Stores
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                  {stores.map((store) => (
+                    <div
+                      key={store.name}
+                      style={{
+                        padding: '1rem',
+                        marginBottom: '0.5rem',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={() => handleImportToStore(store.name)}
+                    >
+                      <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                        {store.displayName || store.name}
+                      </div>
+                      <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                        {store.name}
+                      </div>
+                    </div>
+                  ))}
+                  {storesNextPageToken && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={loadMoreStores}
+                        disabled={loadingStores}
+                      >
+                        {loadingStores ? 'Loading...' : 'Load More'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', padding: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowAttachModal(false);
+                  setSelectedFileForAttach(null);
+                }}
+                disabled={attaching}
+              >
+                Cancel
               </button>
             </div>
           </div>

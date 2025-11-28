@@ -67,10 +67,40 @@ export const listFiles = async (pageSize = 20, pageToken = null) => {
 
 /**
  * Get a specific file
+ * Based on: https://ai.google.dev/api/files#method:-files.get
+ *
+ * Endpoint: GET https://generativelanguage.googleapis.com/v1beta/{name=files/*}
+ *
+ * @param {string} fileName - The file resource name (e.g., "files/{file_id}")
+ * @returns {Promise<Object>} File object containing:
+ *   - name: Resource name
+ *   - displayName: Display name
+ *   - mimeType: MIME type
+ *   - sizeBytes: Size in bytes
+ *   - createTime: Creation timestamp
+ *   - updateTime: Update timestamp
+ *   - expirationTime: Expiration timestamp (if scheduled)
+ *   - sha256Hash: SHA-256 hash
+ *   - uri: File URI
+ *   - downloadUri: Download URI
+ *   - state: Processing state (STATE_UNSPECIFIED, PROCESSING, ACTIVE, FAILED)
+ *   - source: Source of the file (SOURCE_UNSPECIFIED, UPLOADED, GENERATED, REGISTERED)
+ *   - error: Error status if processing failed
+ *   - metadata: File metadata (videoMetadata for videos)
  */
 export const getFile = async (fileName) => {
   try {
-    const response = await apiClient.get(`${API_BASE_URL}/${fileName}`);
+    // Ensure fileName is in the correct format (files/{file_id})
+    // Files from listFiles API already have the "files/" prefix
+    const fileResourceName = fileName.startsWith("files/")
+      ? fileName
+      : `files/${fileName}`;
+
+    // Endpoint: GET https://generativelanguage.googleapis.com/v1beta/files/{file_id}
+    const response = await apiClient.get(`${API_BASE_URL}/${fileResourceName}`);
+
+    // The API returns the File object directly in response.data
+    // Response contains: name, displayName, mimeType, sizeBytes, uri, downloadUri, state, etc.
     return response.data;
   } catch (error) {
     throw new Error(
