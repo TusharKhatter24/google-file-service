@@ -73,6 +73,9 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   }, [isOpen]);
 
   const loadFileStores = async () => {
+    // Prevent multiple simultaneous calls
+    if (!isOpen) return;
+    
     try {
       const response = await listFileStores(20);
       setAvailableStores(response.fileSearchStores || []);

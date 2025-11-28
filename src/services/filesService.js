@@ -21,8 +21,9 @@ export const uploadFile = async (file, displayName = null) => {
 
     // Add metadata as JSON string
     const metadata = {
-      file: {
-        displayName: displayName || file.name,
+      displayName: displayName || file.name,
+      indexingConfig: {
+        fileContentType: file.type || "application/octet-stream",
       },
     };
 

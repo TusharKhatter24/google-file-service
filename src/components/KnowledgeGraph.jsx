@@ -12,13 +12,17 @@ function KnowledgeGraph() {
   const [error, setError] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const canvasRef = useRef(null);
+  const isLoadingRelationshipsRef = useRef(false);
+  const lastSelectedStoreRef = useRef(null);
 
   useEffect(() => {
     loadStores();
   }, []);
 
   useEffect(() => {
-    if (selectedStore) {
+    // Only load if store changed and we're not already loading
+    if (selectedStore && selectedStore !== lastSelectedStoreRef.current && !isLoadingRelationshipsRef.current) {
+      lastSelectedStoreRef.current = selectedStore;
       loadRelationships();
     }
   }, [selectedStore]);
@@ -43,9 +47,10 @@ function KnowledgeGraph() {
   };
 
   const loadRelationships = async () => {
-    if (!selectedStore) return;
+    if (!selectedStore || isLoadingRelationshipsRef.current) return;
 
     try {
+      isLoadingRelationshipsRef.current = true;
       setAnalyzing(true);
       setError(null);
       
@@ -64,6 +69,7 @@ function KnowledgeGraph() {
       setError(err.message || 'Failed to load relationships');
     } finally {
       setAnalyzing(false);
+      isLoadingRelationshipsRef.current = false;
     }
   };
 

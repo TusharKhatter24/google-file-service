@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   getFileStore,
@@ -29,7 +29,8 @@ function FileStoreDetail() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileDisplayName, setFileDisplayName] = useState('');
   const [operationStatus, setOperationStatus] = useState(null);
-  const [pollingInterval, setPollingInterval] = useState(null);
+  const pollingIntervalRef = useRef(null);
+  const isProcessingDoneRef = useRef(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [deletingDoc, setDeletingDoc] = useState(null);
@@ -50,19 +51,29 @@ function FileStoreDetail() {
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [synthesisMode, setSynthesisMode] = useState(false);
   const [relatedDocuments, setRelatedDocuments] = useState([]);
+  const isLoadingStoreDetailsRef = useRef(false);
+  const isLoadingDocumentsRef = useRef(false);
 
   useEffect(() => {
     loadStoreDetails();
     loadDocuments();
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
+      isProcessingDoneRef.current = false;
+      isLoadingStoreDetailsRef.current = false;
+      isLoadingDocumentsRef.current = false;
     };
   }, [storeName]);
 
   const loadStoreDetails = async () => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingStoreDetailsRef.current) return;
+    
     try {
+      isLoadingStoreDetailsRef.current = true;
       setLoading(true);
       setError(null);
       const storeData = await getFileStore(decodeURIComponent(storeName));
@@ -71,11 +82,16 @@ function FileStoreDetail() {
       setError(err.message);
     } finally {
       setLoading(false);
+      isLoadingStoreDetailsRef.current = false;
     }
   };
 
   const loadDocuments = async (pageToken = null) => {
+    // Prevent multiple simultaneous calls (unless it's pagination)
+    if (isLoadingDocumentsRef.current && !pageToken) return;
+    
     try {
+      isLoadingDocumentsRef.current = true;
       setDocumentsLoading(true);
       setError(null);
       const decodedStoreName = decodeURIComponent(storeName);
@@ -92,6 +108,7 @@ function FileStoreDetail() {
       setError(err.message);
     } finally {
       setDocumentsLoading(false);
+      isLoadingDocumentsRef.current = false;
     }
   };
 
@@ -130,15 +147,25 @@ function FileStoreDetail() {
   };
 
   const pollOperationStatus = async (operationName) => {
+    // Prevent multiple simultaneous calls when operation is done
+    if (isProcessingDoneRef.current) {
+      return;
+    }
+
     try {
       const status = await getOperationStatus(operationName);
       setOperationStatus(status);
 
       if (status.done) {
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
+        // Mark as processing to prevent duplicate calls
+        isProcessingDoneRef.current = true;
+        
+        // Clear interval immediately
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
         }
+        
         if (status.error) {
           setError(status.error.message || 'Upload failed');
         } else {
@@ -151,9 +178,12 @@ function FileStoreDetail() {
         setUploading(false);
       }
     } catch (err) {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        setPollingInterval(null);
+      // Mark as processing to prevent duplicate calls
+      isProcessingDoneRef.current = true;
+      
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
       setError(err.message);
       setUploading(false);
@@ -216,11 +246,13 @@ function FileStoreDetail() {
 
       // If response contains an operation, poll for status
       if (response.name) {
+        // Reset processing flag
+        isProcessingDoneRef.current = false;
         setOperationStatus(response);
         const interval = setInterval(() => {
           pollOperationStatus(response.name);
         }, 2000);
-        setPollingInterval(interval);
+        pollingIntervalRef.current = interval;
       } else {
         // Immediate success
         setSuccess('File uploaded successfully!');
@@ -276,12 +308,14 @@ function FileStoreDetail() {
 
       // Check if it's a long-running operation
       if (response.name) {
+        // Reset processing flag
+        isProcessingDoneRef.current = false;
         setSuccess('File import started! The file is being processed.');
         setOperationStatus(response);
         const interval = setInterval(() => {
           pollOperationStatus(response.name);
         }, 2000);
-        setPollingInterval(interval);
+        pollingIntervalRef.current = interval;
       } else {
         setSuccess('File imported successfully!');
         await loadStoreDetails();

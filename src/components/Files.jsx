@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   uploadFile,
@@ -31,13 +31,18 @@ function Files() {
   const [loadingStores, setLoadingStores] = useState(false);
   const [attaching, setAttaching] = useState(false);
   const [storesNextPageToken, setStoresNextPageToken] = useState(null);
+  const isLoadingFilesRef = useRef(false);
 
   useEffect(() => {
     loadFiles();
   }, []);
 
   const loadFiles = async (pageToken = null) => {
+    // Prevent multiple simultaneous calls (unless it's pagination)
+    if (isLoadingFilesRef.current && !pageToken) return;
+    
     try {
+      isLoadingFilesRef.current = true;
       setLoading(true);
       setError(null);
       const response = await listFiles(20, pageToken);
@@ -51,6 +56,7 @@ function Files() {
       setError(err.message);
     } finally {
       setLoading(false);
+      isLoadingFilesRef.current = false;
     }
   };
 

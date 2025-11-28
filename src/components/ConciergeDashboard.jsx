@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { listFileStores } from '../services/fileStoreService';
 import { generateInsights, generateRecommendations, detectPatterns } from '../services/conciergeService';
@@ -12,6 +12,8 @@ function ConciergeDashboard() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState(null);
+  const isAnalyzingRef = useRef(false);
+  const lastSelectedStoresRef = useRef([]);
   
   // Dashboard data
   const [insights, setInsights] = useState(null);
@@ -30,7 +32,10 @@ function ConciergeDashboard() {
   }, []);
 
   useEffect(() => {
-    if (selectedStores.length > 0) {
+    // Only analyze if stores changed and we're not already analyzing
+    const storesChanged = JSON.stringify(selectedStores) !== JSON.stringify(lastSelectedStoresRef.current);
+    if (selectedStores.length > 0 && storesChanged && !isAnalyzingRef.current) {
+      lastSelectedStoresRef.current = [...selectedStores];
       analyzeKnowledge();
     }
   }, [selectedStores]);
@@ -42,9 +47,11 @@ function ConciergeDashboard() {
       const response = await listFileStores(20);
       setStores(response.fileSearchStores || []);
       
-      // Auto-select all stores by default
-      if (response.fileSearchStores && response.fileSearchStores.length > 0) {
-        setSelectedStores(response.fileSearchStores.map(s => s.name));
+      // Auto-select all stores by default (only if not already set)
+      if (response.fileSearchStores && response.fileSearchStores.length > 0 && selectedStores.length === 0) {
+        const storeNames = response.fileSearchStores.map(s => s.name);
+        setSelectedStores(storeNames);
+        lastSelectedStoresRef.current = storeNames;
       }
     } catch (err) {
       setError(err.message);
@@ -59,14 +66,17 @@ function ConciergeDashboard() {
     setStyleProfile(profile);
     setWorkPatterns(patterns);
     
-    // Load personalized recommendations
-    getPersonalizedRecommendations(selectedStores).then(setPersonalizedRecs).catch(console.error);
+    // Load personalized recommendations only if stores are selected
+    if (selectedStores.length > 0) {
+      getPersonalizedRecommendations(selectedStores).then(setPersonalizedRecs).catch(console.error);
+    }
   };
 
   const analyzeKnowledge = async () => {
-    if (selectedStores.length === 0) return;
+    if (selectedStores.length === 0 || isAnalyzingRef.current) return;
 
     try {
+      isAnalyzingRef.current = true;
       setAnalyzing(true);
       setError(null);
 
@@ -97,6 +107,7 @@ function ConciergeDashboard() {
       setError(err.message || 'Failed to analyze knowledge');
     } finally {
       setAnalyzing(false);
+      isAnalyzingRef.current = false;
     }
   };
 
