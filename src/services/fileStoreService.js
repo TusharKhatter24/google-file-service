@@ -235,3 +235,63 @@ export const importFileToStore = async (
     );
   }
 };
+
+/**
+ * Generate content using Gemini API with FileSearchStore context
+ * Based on: https://ai.google.dev/api/file-search/file-search-stores
+ *
+ * @param {string} storeName - The FileSearchStore name (e.g., "fileSearchStores/my-store")
+ * @param {string} query - User's query/question
+ * @param {Array} conversationHistory - Optional conversation history for context
+ * @param {string} model - Model to use (default: "gemini-2.5-flash")
+ * @returns {Promise<Object>} Generated content response
+ */
+export const generateContentWithStore = async (
+  storeName,
+  query,
+  conversationHistory = [],
+  model = "gemini-2.5-flash"
+) => {
+  try {
+    // Build contents array with conversation history and current query
+    const contents = [];
+
+    // Add conversation history
+    conversationHistory.forEach((msg) => {
+      // Map 'assistant' to 'model' for API compatibility
+      const role = msg.role === "assistant" ? "model" : msg.role || "user";
+      contents.push({
+        role: role,
+        parts: [{ text: msg.text }],
+      });
+    });
+
+    // Add current user query
+    contents.push({
+      role: "user",
+      parts: [{ text: query }],
+    });
+
+    const requestBody = {
+      contents: contents,
+      tools: [
+        {
+          file_search: {
+            file_search_store_names: [storeName],
+          },
+        },
+      ],
+    };
+
+    const response = await apiClient.post(
+      `${API_BASE_URL}/models/${model}:generateContent`,
+      requestBody
+    );
+
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error?.message || "Failed to generate content"
+    );
+  }
+};

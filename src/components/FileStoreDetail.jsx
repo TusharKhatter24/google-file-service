@@ -8,6 +8,7 @@ import {
   getDocument,
   deleteDocument,
   importFileToStore,
+  generateContentWithStore,
 } from '../services/fileStoreService';
 import { listFiles } from '../services/filesService';
 import './FileStoreDetail.css';
@@ -35,6 +36,10 @@ function FileStoreDetail() {
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [importing, setImporting] = useState(false);
   const [filesNextPageToken, setFilesNextPageToken] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   useEffect(() => {
     loadStoreDetails();
@@ -279,6 +284,58 @@ function FileStoreDetail() {
     } finally {
       setImporting(false);
     }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    
+    // Add user message to chat
+    const newUserMessage = { role: 'user', text: userMessage };
+    setChatMessages(prev => [...prev, newUserMessage]);
+    setChatLoading(true);
+    setError(null);
+
+    try {
+      const decodedStoreName = decodeURIComponent(storeName);
+      
+      // Build conversation history (last 10 messages for context)
+      const conversationHistory = chatMessages.slice(-10).map(msg => ({
+        role: msg.role,
+        text: msg.text,
+      }));
+
+      const response = await generateContentWithStore(
+        decodedStoreName,
+        userMessage,
+        conversationHistory
+      );
+
+      // Extract response text
+      const textParts = response.candidates?.[0]?.content?.parts || [];
+      const responseText = textParts
+        .filter((part) => part.text)
+        .map((part) => part.text)
+        .join('\n') || 'No response generated.';
+
+      // Add model response to chat (use 'model' role for API compatibility)
+      const modelMessage = { role: 'model', text: responseText };
+      setChatMessages(prev => [...prev, modelMessage]);
+    } catch (err) {
+      setError(err.message);
+      // Add error message to chat
+      const errorMessage = { role: 'model', text: `Error: ${err.message}`, isError: true };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleClearChat = () => {
+    setChatMessages([]);
   };
 
   const formatDate = (dateString) => {
@@ -533,6 +590,169 @@ function FileStoreDetail() {
               </div>
             )}
           </>
+        )}
+      </div>
+
+      {/* Chatbot Section */}
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ color: '#374151' }}>Chat with Store</h3>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {chatMessages.length > 0 && (
+              <button
+                className="btn btn-secondary"
+                onClick={handleClearChat}
+                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+              >
+                Clear Chat
+              </button>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowChatbot(!showChatbot)}
+            >
+              {showChatbot ? 'Hide Chat' : 'Show Chat'}
+            </button>
+          </div>
+        </div>
+
+        {showChatbot && (
+          <div style={{
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            backgroundColor: '#ffffff',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '600px',
+            maxHeight: '80vh'
+          }}>
+            {/* Chat Messages Area */}
+            <div 
+              className="chat-messages-container"
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}
+            >
+              {chatMessages.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  padding: '2rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%'
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+                  <h4>Start a conversation</h4>
+                  <p>Ask questions about the documents in this store. The AI will search through your documents to provide answers.</p>
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className="chat-message"
+                    style={{
+                      display: 'flex',
+                      justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '75%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '12px',
+                      backgroundColor: msg.role === 'user' 
+                        ? '#3b82f6' 
+                        : msg.isError 
+                        ? '#fee2e2' 
+                        : '#f3f4f6',
+                      color: msg.role === 'user' 
+                        ? '#ffffff' 
+                        : msg.isError 
+                        ? '#dc2626' 
+                        : '#1f2937',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap'
+                    }}>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        marginBottom: '0.25rem',
+                        opacity: 0.8
+                      }}>
+                        {msg.role === 'user' ? 'You' : 'Assistant'}
+                      </div>
+                      <div>{msg.text}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+              {chatLoading && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  width: '100%'
+                }}>
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#f3f4f6',
+                    color: '#6b7280'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>Thinking</span>
+                      <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input Area */}
+            <div style={{
+              borderTop: '1px solid #e5e7eb',
+              padding: '1rem'
+            }}>
+              <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder="Ask a question about your documents..."
+                  disabled={chatLoading}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    outline: 'none'
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage(e);
+                    }
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!chatInput.trim() || chatLoading}
+                  style={{ padding: '0.75rem 1.5rem' }}
+                >
+                  {chatLoading ? 'Sending...' : 'Send'}
+                </button>
+              </form>
+            </div>
+          </div>
         )}
       </div>
 
