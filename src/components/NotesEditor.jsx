@@ -11,7 +11,10 @@ import {
   improveText,
   autoComplete,
   startSpeechRecognition,
+  generateDocument,
 } from '../services/aiNotesService';
+import { analyzeWritingStyle, getContextAwareSuggestions } from '../services/conciergeService';
+import { trackInteraction } from '../services/personalizationService';
 import './NotesEditor.css';
 
 function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
@@ -34,6 +37,14 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   const [showAIPanel, setShowAIPanel] = useState(true);
   const [recognition, setRecognition] = useState(null);
   const [transcriptionText, setTranscriptionText] = useState('');
+  const [styleAnalysis, setStyleAnalysis] = useState(null);
+  const [contextSuggestions, setContextSuggestions] = useState([]);
+  const [showStyleCheck, setShowStyleCheck] = useState(false);
+  const [conciergeMode, setConciergeMode] = useState(true);
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
+  const [documentPrompt, setDocumentPrompt] = useState('');
+  const [documentType, setDocumentType] = useState('document');
+  const [uploadOption, setUploadOption] = useState('store');
 
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +56,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
       setSelectedRange(null);
       setAiSuggestions(null);
       setTranscriptionText('');
+      setUploadOption('store'); // Reset to default
       loadFileStores();
     }
     
@@ -62,7 +74,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
 
   const loadFileStores = async () => {
     try {
-      const response = await listFileStores(50);
+      const response = await listFileStores(20);
       setAvailableStores(response.fileSearchStores || []);
       // Pre-select the current store if provided
       if (storeName) {
@@ -238,8 +250,80 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
       } else {
         handleInsertAIText(improved, false);
       }
+      
+      // Track interaction
+      trackInteraction('writing', { type: 'improve', style: 'improved' });
     } catch (err) {
       setError(err.message || 'Failed to improve text.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleCheckStyleConsistency = async () => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const textToCheck = quill.getText().trim();
+    
+    if (!textToCheck) {
+      setError('Please enter some text to check style consistency.');
+      return;
+    }
+
+    if (selectedStores.length === 0) {
+      setError('Please select at least one store for style comparison.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('style');
+      setError(null);
+      setShowStyleCheck(true);
+
+      const analysis = await analyzeWritingStyle(selectedStores, textToCheck);
+      setStyleAnalysis(analysis);
+      
+      // Track interaction
+      trackInteraction('writing', { type: 'style_check' });
+    } catch (err) {
+      setError(err.message || 'Failed to check style consistency.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleGetContextSuggestions = async () => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const currentText = quill.getText().trim();
+    
+    if (!currentText) {
+      setError('Please enter some text to get context suggestions.');
+      return;
+    }
+
+    if (selectedStores.length === 0) {
+      setError('Please select at least one store for context.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('context');
+      setError(null);
+
+      const suggestions = await getContextAwareSuggestions(selectedStores, currentText);
+      setContextSuggestions(Array.isArray(suggestions) ? suggestions : []);
+      
+      // Track interaction
+      trackInteraction('concierge', { type: 'context_suggestions' });
+    } catch (err) {
+      setError(err.message || 'Failed to get context suggestions.');
     } finally {
       setAiLoading(false);
       setAiLoadingType(null);
@@ -332,6 +416,40 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     }
   };
 
+  const handleGenerateDocument = async () => {
+    if (!documentPrompt.trim()) {
+      setError('Please enter requirements for the document.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('document');
+      setError(null);
+
+      const storeNames = selectedStores.length > 0 ? selectedStores : null;
+      const document = await generateDocument(documentPrompt, documentType, storeNames);
+      
+      // Replace current content with generated document
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        quill.root.innerHTML = document;
+      }
+      
+      // Close dialog and clear prompt
+      setShowDocumentDialog(false);
+      setDocumentPrompt('');
+      
+      // Track interaction
+      trackInteraction('document', { type: 'generate', documentType });
+    } catch (err) {
+      setError(err.message || 'Failed to generate document.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
   const handleSave = async () => {
     if (!content.trim()) {
       setError('Please enter some content before saving.');
@@ -382,15 +500,9 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
 
       const uploadedFileName = uploadedFile.name;
 
-      // Step 3: Import file to store
-      const decodedStoreName = decodeURIComponent(storeName);
-      const importResponse = await importFileToStore(decodedStoreName, uploadedFileName);
-
-      // Check if it's a long-running operation (has a name property)
-      // If so, it will complete in the background
-      if (importResponse.name) {
-        // Long-running operation - it will complete in the background
-        // Show success message and close
+      // Step 3: Upload based on selected option
+      if (uploadOption === 'files' || !storeName) {
+        // Just upload to files, don't import to store
         setShowFileNameDialog(false);
         setContent('');
         setFileName('');
@@ -401,16 +513,36 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
         
         onClose();
       } else {
-        // Immediate success
-        setShowFileNameDialog(false);
-        setContent('');
-        setFileName('');
-        
-        if (onSuccess) {
-          onSuccess();
+        // Import file to store
+        const decodedStoreName = decodeURIComponent(storeName);
+        const importResponse = await importFileToStore(decodedStoreName, uploadedFileName);
+
+        // Check if it's a long-running operation (has a name property)
+        // If so, it will complete in the background
+        if (importResponse.name) {
+          // Long-running operation - it will complete in the background
+          // Show success message and close
+          setShowFileNameDialog(false);
+          setContent('');
+          setFileName('');
+          
+          if (onSuccess) {
+            onSuccess();
+          }
+          
+          onClose();
+        } else {
+          // Immediate success
+          setShowFileNameDialog(false);
+          setContent('');
+          setFileName('');
+          
+          if (onSuccess) {
+            onSuccess();
+          }
+          
+          onClose();
         }
-        
-        onClose();
       }
     } catch (err) {
       setError(err.message || 'Failed to save notes. Please try again.');
@@ -579,6 +711,115 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                   </button>
                 </div>
               )}
+
+              {/* AI Document Tools */}
+              <div className="ai-notes-section">
+                <div className="concierge-section-title">AI Documents</div>
+                <div className="ai-actions">
+                  <button
+                    className="ai-btn ai-document-btn"
+                    onClick={() => setShowDocumentDialog(true)}
+                    disabled={aiLoading}
+                    title="Generate a complete document with AI"
+                  >
+                    📄 Generate Document
+                  </button>
+                </div>
+              </div>
+
+              {/* Concierge Features */}
+              {conciergeMode && selectedStores.length > 0 && (
+                <div className="concierge-actions">
+                  <div className="concierge-section-title">Concierge Features</div>
+                  <div className="ai-actions">
+                    <button
+                      className="ai-btn concierge-btn"
+                      onClick={handleCheckStyleConsistency}
+                      disabled={aiLoading || !content.trim()}
+                      title="Check style consistency with knowledge base"
+                    >
+                      {aiLoadingType === 'style' ? '⏳' : '🎨'} Check Style
+                    </button>
+                    <button
+                      className="ai-btn concierge-btn"
+                      onClick={handleGetContextSuggestions}
+                      disabled={aiLoading || !content.trim()}
+                      title="Get context-aware suggestions from knowledge base"
+                    >
+                      {aiLoadingType === 'context' ? '⏳' : '💡'} Context Suggestions
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Style Analysis Results */}
+              {showStyleCheck && styleAnalysis && (
+                <div className="style-analysis-panel">
+                  <div className="style-analysis-header">
+                    <span>Style Analysis</span>
+                    <button
+                      className="btn-close-suggestions"
+                      onClick={() => {
+                        setShowStyleCheck(false);
+                        setStyleAnalysis(null);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="style-analysis-content">
+                    <div className="style-metric">
+                      <strong>Consistency:</strong> {styleAnalysis.consistent ? '✓ Consistent' : '⚠ Needs improvement'}
+                    </div>
+                    {styleAnalysis.suggestions && (
+                      <div className="style-suggestions">
+                        <strong>Suggestions:</strong>
+                        <ul>
+                          {Array.isArray(styleAnalysis.suggestions) ? (
+                            styleAnalysis.suggestions.map((suggestion, idx) => (
+                              <li key={idx}>{suggestion}</li>
+                            ))
+                          ) : (
+                            <li>{styleAnalysis.suggestions}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    {styleAnalysis.tone && (
+                      <div className="style-tone">
+                        <strong>Tone:</strong> {styleAnalysis.tone}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Context Suggestions */}
+              {contextSuggestions.length > 0 && (
+                <div className="context-suggestions-panel">
+                  <div className="suggestions-header">
+                    <span>Context Suggestions</span>
+                    <button
+                      className="btn-close-suggestions"
+                      onClick={() => setContextSuggestions([])}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="context-suggestions-list">
+                    {contextSuggestions.map((suggestion, idx) => (
+                      <div key={idx} className="context-suggestion-item">
+                        <div className="suggestion-type">{suggestion.type || 'general'}</div>
+                        <h4>{suggestion.title || 'Suggestion'}</h4>
+                        <p>{suggestion.description || suggestion}</p>
+                        {suggestion.source && (
+                          <span className="suggestion-source">Source: {suggestion.source}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -667,6 +908,33 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                   The file will be saved as a PDF. You can omit the .pdf extension.
                 </small>
               </div>
+              {storeName && (
+                <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <label>Upload To:</label>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="uploadOption"
+                        value="store"
+                        checked={uploadOption === 'store'}
+                        onChange={(e) => setUploadOption(e.target.value)}
+                      />
+                      <span>File Store ({decodeURIComponent(storeName).split('/').pop()})</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="uploadOption"
+                        value="files"
+                        checked={uploadOption === 'files'}
+                        onChange={(e) => setUploadOption(e.target.value)}
+                      />
+                      <span>Files Only</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="notes-editor-dialog-footer">
               <button
@@ -682,6 +950,86 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                 disabled={saving || !fileName.trim()}
               >
                 {saving ? 'Saving...' : 'Save & Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Generation Dialog */}
+      {showDocumentDialog && (
+        <div className="notes-editor-modal-overlay">
+          <div className="notes-editor-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="notes-editor-dialog-header">
+              <h4>Generate Document</h4>
+            </div>
+            <div className="notes-editor-dialog-body">
+              <div className="form-group">
+                <label htmlFor="documentType">Document Type</label>
+                <select
+                  id="documentType"
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    marginBottom: '1rem'
+                  }}
+                >
+                  <option value="document">General Document</option>
+                  <option value="meeting notes">Meeting Notes</option>
+                  <option value="report">Report</option>
+                  <option value="summary">Summary</option>
+                  <option value="proposal">Proposal</option>
+                  <option value="memo">Memo</option>
+                  <option value="article">Article</option>
+                  <option value="essay">Essay</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="documentPrompt">Requirements or Topic</label>
+                <textarea
+                  id="documentPrompt"
+                  value={documentPrompt}
+                  onChange={(e) => setDocumentPrompt(e.target.value)}
+                  placeholder="e.g., Write a report on Q4 sales performance, Create meeting notes for the team standup, Generate a proposal for the new project..."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                  autoFocus
+                />
+                <small style={{ color: '#6b7280', marginTop: '0.25rem', display: 'block' }}>
+                  Describe what you want the document to contain. The AI will generate a complete, well-structured document.
+                </small>
+              </div>
+            </div>
+            <div className="notes-editor-dialog-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDocumentDialog(false);
+                  setDocumentPrompt('');
+                }}
+                disabled={aiLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleGenerateDocument}
+                disabled={aiLoading || !documentPrompt.trim()}
+              >
+                {aiLoadingType === 'document' ? 'Generating...' : 'Generate Document'}
               </button>
             </div>
           </div>

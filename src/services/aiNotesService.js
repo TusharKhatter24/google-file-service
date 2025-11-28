@@ -141,6 +141,30 @@ export const autoComplete = async (partialText, storeNames = null, maxLength = 1
 };
 
 /**
+ * Generate a document from a prompt with AI assistance
+ * @param {string} prompt - Document topic or requirements
+ * @param {string} documentType - Type of document (e.g., "meeting notes", "report", "summary")
+ * @param {Array<string>} storeNames - Optional file store names for context
+ * @returns {Promise<string>} Generated document content
+ */
+export const generateDocument = async (prompt, documentType = "document", storeNames = null) => {
+  const docPrompt = `Generate a complete ${documentType} based on the following requirements:
+
+${prompt}
+
+The document should:
+1. Be well-structured and professional
+2. Include all relevant sections for a ${documentType}
+3. Be comprehensive and detailed
+4. Follow best practices for ${documentType} writing
+5. Be ready for use
+
+Return the complete document content.`;
+  
+  return await generateContent(docPrompt, "", storeNames);
+};
+
+/**
  * Transcribe audio using Web Speech API
  * @param {Blob} audioBlob - Audio blob to transcribe
  * @returns {Promise<string>} Transcribed text

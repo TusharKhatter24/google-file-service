@@ -12,6 +12,7 @@ import {
   generateAudioWithStore,
 } from '../services/fileStoreService';
 import { listFiles } from '../services/filesService';
+import { synthesizeKnowledge } from '../services/documentAnalysisService';
 import NotesEditor from './NotesEditor';
 import './FileStoreDetail.css';
 
@@ -47,6 +48,8 @@ function FileStoreDetail() {
   const [outputMode, setOutputMode] = useState('text'); // 'text' or 'audio'
   const [isRecording, setIsRecording] = useState(false);
   const [showNotesEditor, setShowNotesEditor] = useState(false);
+  const [synthesisMode, setSynthesisMode] = useState(false);
+  const [relatedDocuments, setRelatedDocuments] = useState([]);
 
   useEffect(() => {
     loadStoreDetails();
@@ -382,6 +385,30 @@ function FileStoreDetail() {
         text: msg.text,
       }));
 
+      // Enhanced search: Use knowledge synthesis if enabled
+      if (synthesisMode) {
+        try {
+          const synthesized = await synthesizeKnowledge(decodedStoreName, userMessage);
+          
+          // Add synthesized response
+          const synthesizedMessage = {
+            id: Date.now(),
+            role: 'model',
+            text: synthesized,
+            outputType: 'text',
+            sources: [],
+            synthesized: true,
+          };
+          setChatMessages(prev => [...prev, synthesizedMessage]);
+          setChatLoading(false);
+          return;
+        } catch (err) {
+          console.error('Synthesis failed, falling back to regular search:', err);
+          setError('Synthesis failed: ' + err.message + '. Using regular search.');
+          // Fall through to regular search
+        }
+      }
+      
       let response;
       
       if (outputMode === 'audio') {
@@ -530,9 +557,20 @@ function FileStoreDetail() {
           role: 'model', 
           text: responseText,
           sources: sources,
-          outputType: 'text'
+          outputType: 'text',
+          synthesized: false
         };
         setChatMessages(prev => [...prev, modelMessage]);
+        
+        // Extract related documents from sources
+        if (sources.length > 0) {
+          setRelatedDocuments(sources.map(s => s.title || s.fileSearchStore).filter(Boolean));
+        }
+        
+        // Extract related documents from sources
+        if (sources.length > 0) {
+          setRelatedDocuments(sources.map(s => s.title || s.fileSearchStore).filter(Boolean));
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -976,6 +1014,11 @@ function FileStoreDetail() {
                           Audio generation failed: {msg.audioError}
                         </div>
                       )}
+                      {msg.synthesized && (
+                        <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f0f9ff', borderRadius: '4px', fontSize: '0.75rem', color: '#1e40af' }}>
+                          ✨ Synthesized from multiple documents
+                        </div>
+                      )}
                       {showSources === idx && msg.sources && msg.sources.length > 0 && (
                         <div style={{
                           marginTop: '0.75rem',
@@ -1042,6 +1085,23 @@ function FileStoreDetail() {
               borderTop: '1px solid #e5e7eb',
               padding: '1rem'
             }}>
+              {/* Knowledge Synthesis Toggle */}
+              <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', color: '#4b5563' }}>
+                  <input
+                    type="checkbox"
+                    checked={synthesisMode}
+                    onChange={(e) => setSynthesisMode(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <span>Knowledge Synthesis Mode</span>
+                </label>
+                {synthesisMode && (
+                  <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontStyle: 'italic' }}>
+                    (Combining information from multiple documents)
+                  </span>
+                )}
+              </div>
               {/* Mode Toggles */}
               <div style={{ 
                 display: 'flex', 
@@ -1123,7 +1183,7 @@ function FileStoreDetail() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Ask a question about your documents..."
+                    placeholder={synthesisMode ? "Ask a question - I'll synthesize information from all documents..." : "Ask a question about your documents..."}
                     disabled={chatLoading}
                     style={{
                       flex: 1,

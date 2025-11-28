@@ -505,3 +505,195 @@
   cursor: not-allowed;
 }
 
+/* Concierge Features */
+.concierge-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.concierge-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.concierge-btn {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.concierge-btn:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* Style Analysis Panel */
+.style-analysis-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+}
+
+.style-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.style-analysis-content {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.style-metric {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.style-suggestions {
+  margin-bottom: 0.75rem;
+}
+
+.style-suggestions ul {
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
+  list-style: disc;
+}
+
+.style-suggestions li {
+  margin-bottom: 0.25rem;
+}
+
+.style-tone {
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+/* Context Suggestions Panel */
+.context-suggestions-panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  border-left: 3px solid #10b981;
+}
+
+.context-suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.context-suggestion-item {
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 4px;
+  border-left: 2px solid #10b981;
+}
+
+.suggestion-type {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.context-suggestion-item h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.context-suggestion-item p {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.suggestion-source {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* AI Notes & Document Section */
+.ai-notes-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.ai-notes-btn,
+.ai-document-btn {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.ai-notes-btn:hover:not(:disabled),
+.ai-document-btn:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* Form Group Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input[type="radio"] {
+  cursor: pointer;
+}
+
+.form-group label[for] {
+  cursor: pointer;
+}
+
