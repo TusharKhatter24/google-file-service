@@ -27,9 +27,29 @@ function FileStoreList() {
       setLoading(true);
       setError(null);
       const response = await listFileStores();
-      setStores(response.fileSearchStores || []);
+      console.log("loadStores response:", response);
+      
+      // Ensure we have an array - handle all possible response formats
+      let storesArray = [];
+      
+      if (Array.isArray(response)) {
+        storesArray = response;
+      } else if (response && typeof response === 'object') {
+        storesArray = response.fileSearchStores || [];
+      }
+      
+      // Final safety check - ensure it's an array
+      if (!Array.isArray(storesArray)) {
+        console.warn("storesArray is not an array:", storesArray);
+        storesArray = [];
+      }
+      
+      console.log("storesArray:", storesArray, "isArray:", Array.isArray(storesArray), "length:", storesArray.length);
+      setStores(storesArray);
     } catch (err) {
+      console.error("Error loading stores:", err);
       setError(err.message);
+      setStores([]); // Reset to empty array on error
     } finally {
       setLoading(false);
     }
@@ -89,7 +109,7 @@ function FileStoreList() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!chatInput.trim() || chatLoading || stores.length === 0) return;
+    if (!chatInput.trim() || chatLoading || !Array.isArray(stores) || stores.length === 0) return;
 
     const userMessage = chatInput.trim();
     setChatInput('');
@@ -101,7 +121,10 @@ function FileStoreList() {
     setError(null);
 
     try {
-      // Get all store names
+      // Get all store names - ensure stores is an array
+      if (!Array.isArray(stores) || stores.length === 0) {
+        throw new Error('No stores available');
+      }
       const allStoreNames = stores.map(store => store.name);
       
       // Build conversation history (last 10 messages for context)
@@ -189,7 +212,7 @@ function FileStoreList() {
             <button
               className="btn btn-primary"
               onClick={() => setShowChatbot(!showChatbot)}
-              disabled={stores.length === 0}
+              disabled={!Array.isArray(stores) || stores.length === 0}
             >
               {showChatbot ? 'Hide Chat' : 'Show Chat'}
             </button>
@@ -372,8 +395,8 @@ function FileStoreList() {
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
-                  disabled={chatLoading || stores.length === 0}
+                  placeholder={!Array.isArray(stores) || stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
+                  disabled={chatLoading || !Array.isArray(stores) || stores.length === 0}
                   style={{
                     flex: 1,
                     padding: '0.75rem',
@@ -381,7 +404,7 @@ function FileStoreList() {
                     borderRadius: '8px',
                     fontSize: '0.875rem',
                     outline: 'none',
-                    opacity: stores.length === 0 ? 0.6 : 1
+                    opacity: (!Array.isArray(stores) || stores.length === 0) ? 0.6 : 1
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -393,7 +416,7 @@ function FileStoreList() {
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={!chatInput.trim() || chatLoading || stores.length === 0}
+                  disabled={!chatInput.trim() || chatLoading || !Array.isArray(stores) || stores.length === 0}
                   style={{ padding: '0.75rem 1.5rem' }}
                 >
                   {chatLoading ? 'Sending...' : 'Send'}
@@ -404,14 +427,14 @@ function FileStoreList() {
         )}
       </div>
 
-      {stores.length === 0 ? (
+      {!Array.isArray(stores) || stores.length === 0 ? (
         <div className="empty-state">
           <h3>No file stores found</h3>
           <p>Create your first file search store to get started.</p>
         </div>
       ) : (
         <div className="store-list">
-          {stores.map((store) => (
+          {Array.isArray(stores) && stores.map((store) => (
             <div key={store.name} className="store-card">
               <div className="store-info">
                 <div className="store-name">{store.displayName || store.name}</div>

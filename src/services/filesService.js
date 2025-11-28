@@ -1,49 +1,24 @@
 import axios from "axios";
-import { API_KEY, API_BASE_URL, UPLOAD_API_BASE_URL } from "../config";
-
-// Create axios instance with default config
-const apiClient = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-  },
-  params: {
-    key: API_KEY,
-  },
-});
+import { API_KEY } from "../config";
+import genaiClient from "./genaiClient";
 
 /**
- * Upload a file using media.upload
- * Based on: https://ai.google.dev/api/files
+ * Upload a file using @google/genai SDK
  */
 export const uploadFile = async (file, displayName = null) => {
   try {
-    const formData = new FormData();
-
-    // Add metadata as JSON string
-    const metadata = {
-      file: {
-        displayName: displayName || file.name,
-      },
+    const config = {
+      displayName: displayName || file.name,
     };
 
-    formData.append("metadata", JSON.stringify(metadata));
-    formData.append("file", file);
+    const response = await genaiClient.files.upload({
+      file: file,
+      config: config,
+    });
 
-    const response = await axios.post(
-      `${UPLOAD_API_BASE_URL}/files?key=${API_KEY}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    return response.data;
+    return response;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.error?.message || "Failed to upload file"
-    );
+    throw new Error(error.message || "Failed to upload file");
   }
 };
 
@@ -56,12 +31,46 @@ export const listFiles = async (pageSize = 20, pageToken = null) => {
     if (pageToken) {
       params.pageToken = pageToken;
     }
-    const response = await apiClient.get(`${API_BASE_URL}/files`, { params });
-    return response.data;
+    const response = await genaiClient.files.list(params);
+
+    // SDK returns array directly based on user's example: [{...}, {...}]
+    // Normalize to expected format: { files: [...], nextPageToken: ... }
+
+    let files = [];
+    let nextPageToken = null;
+
+    if (Array.isArray(response)) {
+      // SDK returns array directly
+      files = response;
+    } else if (response && typeof response === "object") {
+      if (response.files) {
+        files = response.files;
+        nextPageToken = response.nextPageToken || null;
+      } else if (response.data?.files) {
+        files = response.data.files;
+        nextPageToken = response.data.nextPageToken || null;
+      } else if (response.results) {
+        files = response.results;
+        nextPageToken = response.nextPageToken || null;
+      }
+    }
+
+    // Ensure we always return an array
+    if (!Array.isArray(files)) {
+      console.warn("Unexpected response format from SDK:", response);
+      files = [];
+    }
+
+    const result = {
+      files,
+      nextPageToken,
+    };
+
+    console.log("listFiles response:", result);
+    return result;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.error?.message || "Failed to list files"
-    );
+    console.error("Error listing files:", error);
+    throw new Error(error.message || "Failed to list files");
   }
 };
 
@@ -96,16 +105,13 @@ export const getFile = async (fileName) => {
       ? fileName
       : `files/${fileName}`;
 
-    // Endpoint: GET https://generativelanguage.googleapis.com/v1beta/files/{file_id}
-    const response = await apiClient.get(`${API_BASE_URL}/${fileResourceName}`);
+    const response = await genaiClient.files.get({
+      name: fileResourceName,
+    });
 
-    // The API returns the File object directly in response.data
-    // Response contains: name, displayName, mimeType, sizeBytes, uri, downloadUri, state, etc.
-    return response.data;
+    return response;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.error?.message || "Failed to get file"
-    );
+    throw new Error(error.message || "Failed to get file");
   }
 };
 
@@ -114,12 +120,17 @@ export const getFile = async (fileName) => {
  */
 export const deleteFile = async (fileName) => {
   try {
-    const response = await apiClient.delete(`${API_BASE_URL}/${fileName}`);
-    return response.data;
+    const fileResourceName = fileName.startsWith("files/")
+      ? fileName
+      : `files/${fileName}`;
+
+    const response = await genaiClient.files.delete({
+      name: fileResourceName,
+    });
+
+    return response;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.error?.message || "Failed to delete file"
-    );
+    throw new Error(error.message || "Failed to delete file");
   }
 };
 
@@ -232,29 +243,27 @@ export const extractTextContent = async (file) => {
 export const extractTextFromFileUsingGemini = async (fileData) => {
   try {
     // Use Gemini API to extract text from the file
-    const response = await apiClient.post(
-      `${API_BASE_URL}/models/gemini-1.5-flash:generateContent`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                fileData: {
-                  mimeType: fileData.mimeType,
-                  fileUri: fileData.uri,
-                },
+    const response = await genaiClient.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: [
+        {
+          parts: [
+            {
+              fileData: {
+                mimeType: fileData.mimeType,
+                fileUri: fileData.uri,
               },
-              {
-                text: "Extract all text content from this file. Return only the text content without any additional formatting or explanations.",
-              },
-            ],
-          },
-        ],
-      }
-    );
+            },
+            {
+              text: "Extract all text content from this file. Return only the text content without any additional formatting or explanations.",
+            },
+          ],
+        },
+      ],
+    });
 
     // Extract text from the response
-    const textParts = response.data.candidates?.[0]?.content?.parts || [];
+    const textParts = response.candidates?.[0]?.content?.parts || [];
     const extractedText = textParts
       .filter((part) => part.text)
       .map((part) => part.text)
@@ -266,10 +275,6 @@ export const extractTextFromFileUsingGemini = async (fileData) => {
 
     return extractedText;
   } catch (error) {
-    throw new Error(
-      error.response?.data?.error?.message ||
-        error.message ||
-        "Failed to extract text using Gemini API"
-    );
+    throw new Error(error.message || "Failed to extract text using Gemini API");
   }
 };

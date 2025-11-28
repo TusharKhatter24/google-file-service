@@ -41,13 +41,19 @@ function Files() {
       setLoading(true);
       setError(null);
       const response = await listFiles(20, pageToken);
+      console.log("loadFiles response:", response);
+      
+      const filesArray = response.files || [];
+      console.log("filesArray:", filesArray, "isArray:", Array.isArray(filesArray));
+      
       if (pageToken) {
-        setFiles(prev => [...prev, ...(response.files || [])]);
+        setFiles(prev => [...prev, ...filesArray]);
       } else {
-        setFiles(response.files || []);
+        setFiles(filesArray);
       }
       setNextPageToken(response.nextPageToken || null);
     } catch (err) {
+      console.error("Error loading files:", err);
       setError(err.message);
     } finally {
       setLoading(false);
