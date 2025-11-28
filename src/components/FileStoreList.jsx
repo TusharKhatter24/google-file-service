@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore } from '../services/fileStoreService';
+import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
 import './FileStoreList.css';
 
 function FileStoreList() {
@@ -16,6 +16,9 @@ function FileStoreList() {
   const [chatLoading, setChatLoading] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [showSources, setShowSources] = useState(null);
+  const [inputMode, setInputMode] = useState('text');
+  const [outputMode, setOutputMode] = useState('text');
+  const [isRecording, setIsRecording] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,65 +90,248 @@ function FileStoreList() {
     return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   };
 
+  const handleAudioInput = async () => {
+    try {
+      setChatLoading(true);
+      setError(null);
+
+      if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
+        setError('Speech recognition not supported in this browser. Please use text input.');
+        setChatLoading(false);
+        setIsRecording(false);
+        return;
+      }
+
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new Recognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      let hasResult = false;
+      const userMessage = await new Promise((resolve, reject) => {
+        recognition.onresult = (event) => {
+          hasResult = true;
+          const transcript = event.results[0][0].transcript;
+          setIsRecording(false);
+          resolve(transcript);
+        };
+        recognition.onerror = (event) => {
+          setIsRecording(false);
+          reject(new Error('Speech recognition error: ' + event.error));
+        };
+        recognition.onend = () => {
+          setIsRecording(false);
+          if (!hasResult) {
+            reject(new Error('No speech detected'));
+          }
+        };
+        recognition.start();
+      });
+
+      if (userMessage) {
+        await processMessage(userMessage, 'audio');
+      }
+    } catch (err) {
+      setError('Could not transcribe audio: ' + err.message + '. Please try typing your message.');
+      setChatLoading(false);
+      setIsRecording(false);
+    }
+  };
+
+  const processMessage = async (userMessage, inputType = 'text') => {
+    const newUserMessage = { 
+      id: Date.now(),
+      role: 'user', 
+      text: userMessage,
+      inputType: inputType
+    };
+    setChatMessages(prev => [...prev, newUserMessage]);
+    setChatLoading(true);
+    setError(null);
+
+    try {
+      const allStoreNames = stores.map(store => store.name);
+      const conversationHistory = chatMessages.slice(-10).map(msg => ({
+        role: msg.role,
+        text: msg.text,
+      }));
+
+      let response;
+      
+      if (outputMode === 'audio') {
+        // Step 1: Generate text response first (this includes FileSearchStore search)
+        const textResponse = await generateContentWithStore(
+          allStoreNames,
+          userMessage,
+          conversationHistory
+        );
+
+        // Extract text response
+        const candidate = textResponse.candidates?.[0];
+        const textParts = candidate?.content?.parts || [];
+        const responseText = textParts
+          .filter((part) => part.text)
+          .map((part) => part.text)
+          .join('\n') || 'No response generated.';
+
+        // Extract grounding metadata (sources)
+        const groundingMetadata = candidate?.groundingMetadata;
+        const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
+          title: chunk.retrievedContext?.title || 'Unknown',
+          text: chunk.retrievedContext?.text || '',
+          fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
+        })) || [];
+
+        // Step 2: Show text response immediately with "Generating audio..." indicator
+        const textMessageId = Date.now();
+        const textMessage = {
+          id: textMessageId,
+          role: 'model',
+          text: responseText,
+          outputType: 'audio',
+          sources: sources,
+          generatingAudio: true
+        };
+        setChatMessages(prev => [...prev, textMessage]);
+
+        // Step 3: Generate audio from the text response
+        try {
+          response = await generateAudioWithStore(
+            allStoreNames,
+            responseText, // Use the generated text
+            [], // No conversation history for TTS
+            "Kore",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-preview-tts"
+          );
+
+          const audioPart = response.candidates?.[0]?.content?.parts?.find(
+            part => part.inlineData && part.inlineData.mimeType?.startsWith('audio')
+          );
+
+          if (audioPart?.inlineData?.data) {
+            const audioData = audioPart.inlineData.data;
+            const pcmData = Uint8Array.from(atob(audioData), c => c.charCodeAt(0));
+            
+            const sampleRate = 24000;
+            const numChannels = 1;
+            const bitsPerSample = 16;
+            const dataLength = pcmData.length;
+            
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            
+            const writeString = (offset, string) => {
+              for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+              }
+            };
+            
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true);
+            view.setUint16(32, numChannels * bitsPerSample / 8, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataLength, true);
+            
+            const wavBlob = new Blob([wavHeader, pcmData], { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(wavBlob);
+            
+            // Step 4: Update the message with audio URL
+            setChatMessages(prev => prev.map(msg => 
+              msg.id === textMessageId
+                ? {
+                    ...msg,
+                    audioUrl: audioUrl,
+                    generatingAudio: false
+                  }
+                : msg
+            ));
+          } else {
+            throw new Error('No audio data received');
+          }
+        } catch (audioError) {
+          // Update message to show audio generation failed
+          setChatMessages(prev => prev.map(msg => 
+            msg.id === textMessageId
+              ? {
+                  ...msg,
+                  generatingAudio: false,
+                  audioError: audioError.message
+                }
+              : msg
+          ));
+          throw audioError;
+        }
+      } else {
+        response = await generateContentWithStore(
+          allStoreNames,
+          userMessage,
+          conversationHistory
+        );
+
+        const candidate = response.candidates?.[0];
+        const textParts = candidate?.content?.parts || [];
+        const responseText = textParts
+          .filter((part) => part.text)
+          .map((part) => part.text)
+          .join('\n') || 'No response generated.';
+
+        const groundingMetadata = candidate?.groundingMetadata;
+        const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
+          title: chunk.retrievedContext?.title || 'Unknown',
+          text: chunk.retrievedContext?.text || '',
+          fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
+        })) || [];
+
+        const modelMessage = { 
+          id: Date.now(),
+          role: 'model', 
+          text: responseText,
+          sources: sources,
+          outputType: 'text'
+        };
+        setChatMessages(prev => [...prev, modelMessage]);
+      }
+    } catch (err) {
+      setError(err.message);
+      const errorMessage = { 
+        id: Date.now(),
+        role: 'model', 
+        text: `Error: ${err.message}`, 
+        isError: true,
+        outputType: outputMode
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim() || chatLoading || stores.length === 0) return;
 
     const userMessage = chatInput.trim();
     setChatInput('');
-    
-    // Add user message to chat
-    const newUserMessage = { role: 'user', text: userMessage };
-    setChatMessages(prev => [...prev, newUserMessage]);
-    setChatLoading(true);
-    setError(null);
+    await processMessage(userMessage, 'text');
+  };
 
+  const startRecording = async () => {
     try {
-      // Get all store names
-      const allStoreNames = stores.map(store => store.name);
-      
-      // Build conversation history (last 10 messages for context)
-      const conversationHistory = chatMessages.slice(-10).map(msg => ({
-        role: msg.role,
-        text: msg.text,
-      }));
-
-      const response = await generateContentWithStore(
-        allStoreNames,
-        userMessage,
-        conversationHistory
-      );
-
-      // Extract response text
-      const candidate = response.candidates?.[0];
-      const textParts = candidate?.content?.parts || [];
-      const responseText = textParts
-        .filter((part) => part.text)
-        .map((part) => part.text)
-        .join('\n') || 'No response generated.';
-
-      // Extract grounding metadata (sources)
-      const groundingMetadata = candidate?.groundingMetadata;
-      const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
-        title: chunk.retrievedContext?.title || 'Unknown',
-        text: chunk.retrievedContext?.text || '',
-        fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
-      })) || [];
-
-      // Add model response to chat with sources
-      const modelMessage = { 
-        role: 'model', 
-        text: responseText,
-        sources: sources
-      };
-      setChatMessages(prev => [...prev, modelMessage]);
+      setIsRecording(true);
+      await handleAudioInput();
     } catch (err) {
-      setError(err.message);
-      // Add error message to chat
-      const errorMessage = { role: 'model', text: `Error: ${err.message}`, isError: true };
-      setChatMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setChatLoading(false);
+      setError('Failed to start recording: ' + err.message);
+      setIsRecording(false);
     }
   };
 
@@ -301,6 +487,38 @@ function FileStoreList() {
                         )}
                       </div>
                       <div>{msg.text}</div>
+                      {msg.generatingAudio && (
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          opacity: 0.7,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>●</span>
+                          Generating audio...
+                        </div>
+                      )}
+                      {msg.outputType === 'audio' && msg.audioUrl && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <audio
+                            controls
+                            src={msg.audioUrl}
+                            style={{ width: '100%', maxWidth: '300px' }}
+                          />
+                        </div>
+                      )}
+                      {msg.audioError && (
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#dc2626',
+                          opacity: 0.8
+                        }}>
+                          Audio generation failed: {msg.audioError}
+                        </div>
+                      )}
                       {showSources === idx && msg.sources && msg.sources.length > 0 && (
                         <div style={{
                           marginTop: '0.75rem',
@@ -367,38 +585,145 @@ function FileStoreList() {
               borderTop: '1px solid #e5e7eb',
               padding: '1rem'
             }}>
-              <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
-                  disabled={chatLoading || stores.length === 0}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    outline: 'none',
-                    opacity: stores.length === 0 ? 0.6 : 1
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={!chatInput.trim() || chatLoading || stores.length === 0}
-                  style={{ padding: '0.75rem 1.5rem' }}
-                >
-                  {chatLoading ? 'Sending...' : 'Send'}
-                </button>
-              </form>
+              {/* Mode Toggles */}
+              <div style={{ 
+                display: 'flex', 
+                gap: '1rem', 
+                marginBottom: '0.75rem',
+                fontSize: '0.875rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#6b7280' }}>Input:</span>
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('text')}
+                    style={{
+                      padding: '0.25rem 0.75rem',
+                      border: `1px solid ${inputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
+                      borderRadius: '4px',
+                      backgroundColor: inputMode === 'text' ? '#3b82f6' : 'transparent',
+                      color: inputMode === 'text' ? '#ffffff' : '#374151',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('audio')}
+                    style={{
+                      padding: '0.25rem 0.75rem',
+                      border: `1px solid ${inputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
+                      borderRadius: '4px',
+                      backgroundColor: inputMode === 'audio' ? '#3b82f6' : 'transparent',
+                      color: inputMode === 'audio' ? '#ffffff' : '#374151',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Audio
+                  </button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ color: '#6b7280' }}>Output:</span>
+                  <button
+                    type="button"
+                    onClick={() => setOutputMode('text')}
+                    style={{
+                      padding: '0.25rem 0.75rem',
+                      border: `1px solid ${outputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
+                      borderRadius: '4px',
+                      backgroundColor: outputMode === 'text' ? '#3b82f6' : 'transparent',
+                      color: outputMode === 'text' ? '#ffffff' : '#374151',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOutputMode('audio')}
+                    style={{
+                      padding: '0.25rem 0.75rem',
+                      border: `1px solid ${outputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
+                      borderRadius: '4px',
+                      backgroundColor: outputMode === 'audio' ? '#3b82f6' : 'transparent',
+                      color: outputMode === 'audio' ? '#ffffff' : '#374151',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Audio
+                  </button>
+                </div>
+              </div>
+
+              {inputMode === 'text' ? (
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
+                    disabled={chatLoading || stores.length === 0}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '0.875rem',
+                      outline: 'none',
+                      opacity: stores.length === 0 ? 0.6 : 1
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!chatInput.trim() || chatLoading || stores.length === 0}
+                    style={{ padding: '0.75rem 1.5rem' }}
+                  >
+                    {chatLoading ? 'Sending...' : 'Send'}
+                  </button>
+                </form>
+              ) : (
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={startRecording}
+                    className="btn btn-primary"
+                    disabled={chatLoading || stores.length === 0 || isRecording}
+                    style={{ padding: '0.75rem 1.5rem' }}
+                  >
+                    🎤 Speak
+                  </button>
+                  {isRecording && (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.5rem',
+                      color: '#dc2626',
+                      fontSize: '0.875rem'
+                    }}>
+                      <span style={{ 
+                        width: '8px', 
+                        height: '8px', 
+                        borderRadius: '50%', 
+                        backgroundColor: '#dc2626',
+                        animation: 'pulse 1s ease-in-out infinite'
+                      }}></span>
+                      Listening...
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

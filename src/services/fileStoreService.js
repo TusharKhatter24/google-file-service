@@ -300,3 +300,109 @@ export const generateContentWithStore = async (
     );
   }
 };
+
+/**
+ * Generate audio (TTS) using Gemini API with FileSearchStore context
+ * Based on: https://ai.google.dev/gemini-api/docs/speech-generation
+ *
+ * Note: TTS models don't support multiturn chat, so we first generate text response
+ * then convert it to audio
+ *
+ * @param {string|Array<string>} storeNames - Single FileSearchStore name or array of names
+ * @param {string} query - User's query/question
+ * @param {Array} conversationHistory - Optional conversation history for context (used for text generation only)
+ * @param {string} voiceName - Voice name (default: "Kore")
+ * @param {string} textModel - Model for text generation (default: "gemini-2.5-flash")
+ * @param {string} ttsModel - Model for TTS (default: "gemini-2.5-flash-preview-tts")
+ * @returns {Promise<Object>} Generated audio response with base64 audio data
+ */
+export const generateAudioWithStore = async (
+  storeNames,
+  query,
+  conversationHistory = [],
+  voiceName = "Kore",
+  textModel = "gemini-2.5-flash",
+  ttsModel = "gemini-2.5-flash-preview-tts"
+) => {
+  try {
+    // Normalize storeNames to array
+    const storeNamesArray = Array.isArray(storeNames)
+      ? storeNames
+      : [storeNames];
+
+    // Step 1: Generate text response with conversation history
+    const textContents = [];
+    conversationHistory.forEach((msg) => {
+      const role = msg.role === "assistant" ? "model" : msg.role || "user";
+      textContents.push({
+        role: role,
+        parts: [{ text: msg.text }],
+      });
+    });
+    textContents.push({
+      role: "user",
+      parts: [{ text: query }],
+    });
+
+    const textRequestBody = {
+      contents: textContents,
+      tools: [
+        {
+          file_search: {
+            file_search_store_names: storeNamesArray,
+          },
+        },
+      ],
+    };
+
+    const textResponse = await apiClient.post(
+      `${API_BASE_URL}/models/${textModel}:generateContent`,
+      textRequestBody
+    );
+
+    // Extract text response
+    const candidate = textResponse.data.candidates?.[0];
+    const textParts = candidate?.content?.parts || [];
+    const responseText =
+      textParts
+        .filter((part) => part.text)
+        .map((part) => part.text)
+        .join("\n") || "No response generated.";
+
+    // Step 2: Convert text to audio using TTS model (no conversation history, no tools)
+    const audioRequestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: responseText }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: voiceName,
+            },
+          },
+        },
+      },
+    };
+
+    const audioResponse = await apiClient.post(
+      `${API_BASE_URL}/models/${ttsModel}:generateContent`,
+      audioRequestBody
+    );
+
+    // Return audio response with text for display
+    return {
+      ...audioResponse.data,
+      textResponse: responseText, // Include the text response for display
+      groundingMetadata: candidate?.groundingMetadata, // Include sources
+    };
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error?.message || "Failed to generate audio"
+    );
+  }
+};
