@@ -247,12 +247,17 @@ export const importFileToStore = async (
  * @returns {Promise<Object>} Generated content response
  */
 export const generateContentWithStore = async (
-  storeName,
+  storeNames,
   query,
   conversationHistory = [],
   model = "gemini-2.5-flash"
 ) => {
   try {
+    // Normalize storeNames to array
+    const storeNamesArray = Array.isArray(storeNames)
+      ? storeNames
+      : [storeNames];
+
     // Build contents array with conversation history and current query
     const contents = [];
 
@@ -277,7 +282,7 @@ export const generateContentWithStore = async (
       tools: [
         {
           file_search: {
-            file_search_store_names: [storeName],
+            file_search_store_names: storeNamesArray,
           },
         },
       ],

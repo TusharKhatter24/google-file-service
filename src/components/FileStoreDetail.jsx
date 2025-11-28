@@ -40,6 +40,7 @@ function FileStoreDetail() {
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
+  const [showSources, setShowSources] = useState(null);
 
   useEffect(() => {
     loadStoreDetails();
@@ -315,14 +316,27 @@ function FileStoreDetail() {
       );
 
       // Extract response text
-      const textParts = response.candidates?.[0]?.content?.parts || [];
+      const candidate = response.candidates?.[0];
+      const textParts = candidate?.content?.parts || [];
       const responseText = textParts
         .filter((part) => part.text)
         .map((part) => part.text)
         .join('\n') || 'No response generated.';
 
-      // Add model response to chat (use 'model' role for API compatibility)
-      const modelMessage = { role: 'model', text: responseText };
+      // Extract grounding metadata (sources)
+      const groundingMetadata = candidate?.groundingMetadata;
+      const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
+        title: chunk.retrievedContext?.title || 'Unknown',
+        text: chunk.retrievedContext?.text || '',
+        fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
+      })) || [];
+
+      // Add model response to chat with sources
+      const modelMessage = { 
+        role: 'model', 
+        text: responseText,
+        sources: sources
+      };
       setChatMessages(prev => [...prev, modelMessage]);
     } catch (err) {
       setError(err.message);
@@ -679,17 +693,79 @@ function FileStoreDetail() {
                         ? '#dc2626' 
                         : '#1f2937',
                       wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap'
+                      whiteSpace: 'pre-wrap',
+                      position: 'relative'
                     }}>
                       <div style={{
                         fontSize: '0.75rem',
                         fontWeight: '600',
                         marginBottom: '0.25rem',
-                        opacity: 0.8
+                        opacity: 0.8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
                       }}>
-                        {msg.role === 'user' ? 'You' : 'Assistant'}
+                        <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
+                        {msg.role === 'model' && msg.sources && msg.sources.length > 0 && (
+                          <button
+                            onClick={() => setShowSources(showSources === idx ? null : idx)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '0.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: 'inherit',
+                              opacity: 0.7
+                            }}
+                            title="View sources"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                          </button>
+                        )}
                       </div>
                       <div>{msg.text}</div>
+                      {showSources === idx && msg.sources && msg.sources.length > 0 && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          paddingTop: '0.75rem',
+                          borderTop: '1px solid rgba(0,0,0,0.1)',
+                          fontSize: '0.75rem'
+                        }}>
+                          <div style={{ fontWeight: '600', marginBottom: '0.5rem', opacity: 0.8 }}>
+                            Sources ({msg.sources.length}):
+                          </div>
+                          {msg.sources.map((source, sourceIdx) => (
+                            <div 
+                              key={sourceIdx}
+                              style={{
+                                marginBottom: '0.5rem',
+                                padding: '0.5rem',
+                                backgroundColor: 'rgba(0,0,0,0.05)',
+                                borderRadius: '4px',
+                                fontSize: '0.7rem'
+                              }}
+                            >
+                              {/* <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                                {source.title}
+                              </div> */}
+                              <div style={{ 
+                                opacity: 0.7,
+                                maxHeight: '60px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                {source.text.substring(0, 150)}...
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
