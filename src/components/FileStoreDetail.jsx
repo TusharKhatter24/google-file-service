@@ -12,6 +12,7 @@ import {
   generateAudioWithStore,
 } from '../services/fileStoreService';
 import { listFiles } from '../services/filesService';
+import NotesEditor from './NotesEditor';
 import './FileStoreDetail.css';
 
 function FileStoreDetail() {
@@ -45,6 +46,7 @@ function FileStoreDetail() {
   const [inputMode, setInputMode] = useState('text'); // 'text' or 'audio'
   const [outputMode, setOutputMode] = useState('text'); // 'text' or 'audio'
   const [isRecording, setIsRecording] = useState(false);
+  const [showNotesEditor, setShowNotesEditor] = useState(false);
 
   useEffect(() => {
     loadStoreDetails();
@@ -661,13 +663,21 @@ function FileStoreDetail() {
       <div style={{ marginTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h3 style={{ color: '#374151', margin: 0 }}>Upload File</h3>
-          <button
-            className="btn btn-secondary"
-            onClick={handleOpenImportModal}
-            disabled={importing}
-          >
-            Import from Files
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowNotesEditor(true)}
+            >
+              Write Notes
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={handleOpenImportModal}
+              disabled={importing}
+            >
+              Import from Files
+            </button>
+          </div>
         </div>
         
         <div
@@ -1344,6 +1354,17 @@ function FileStoreDetail() {
           </div>
         </div>
       )}
+
+      <NotesEditor
+        isOpen={showNotesEditor}
+        onClose={() => setShowNotesEditor(false)}
+        storeName={storeName}
+        onSuccess={async () => {
+          await loadStoreDetails();
+          await loadDocuments();
+          setSuccess('Notes saved and attached to store successfully!');
+        }}
+      />
     </div>
   );
 }

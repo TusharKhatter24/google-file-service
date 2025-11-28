@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
+import NotesEditor from './NotesEditor';
 import './FileStoreList.css';
 
 function FileStoreList() {
@@ -19,6 +20,8 @@ function FileStoreList() {
   const [inputMode, setInputMode] = useState('text');
   const [outputMode, setOutputMode] = useState('text');
   const [isRecording, setIsRecording] = useState(false);
+  const [showNotesEditor, setShowNotesEditor] = useState(false);
+  const [selectedStoreForNotes, setSelectedStoreForNotes] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -749,6 +752,16 @@ function FileStoreList() {
                 </div>
               </div>
               <div className="store-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setSelectedStoreForNotes(store.name);
+                    setShowNotesEditor(true);
+                  }}
+                  style={{ marginRight: '0.5rem' }}
+                >
+                  Write Notes
+                </button>
                 <Link
                   to={`/store/${encodeURIComponent(store.name)}`}
                   className="btn btn-primary"
@@ -805,6 +818,20 @@ function FileStoreList() {
             </form>
           </div>
         </div>
+      )}
+
+      {selectedStoreForNotes && (
+        <NotesEditor
+          isOpen={showNotesEditor}
+          onClose={() => {
+            setShowNotesEditor(false);
+            setSelectedStoreForNotes(null);
+          }}
+          storeName={selectedStoreForNotes}
+          onSuccess={async () => {
+            await loadStores();
+          }}
+        />
       )}
     </div>
   );

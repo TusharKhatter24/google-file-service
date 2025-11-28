@@ -4,10 +4,14 @@
   "description": "React app for managing Google File Search Stores",
   "private": true,
   "dependencies": {
+    "axios": "^1.6.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
+    "quill": "^2.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "axios": "^1.6.2"
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
