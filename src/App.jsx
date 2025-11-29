@@ -50,6 +50,12 @@ function App() {
               <Link to="/dashboard" className="nav-link">
                 Dashboard
               </Link>
+              <Link to="/workflow" className="nav-link">
+                Workflow Assistant
+              </Link>
+              <Link to="/knowledge-graph" className="nav-link">
+                Knowledge Graph
+              </Link>
               <Link to="/files" className="nav-link nav-link-secondary">
                 Documents
               </Link>
