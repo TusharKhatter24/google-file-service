@@ -381,9 +381,9 @@ function AskInterface() {
                 alt="Donna" 
                 className="donna-logo-empty"
               />
-              <h2>Start a conversation with Donna</h2>
-              <p>Ask Donna questions about your knowledge base. Donna will search through your selected segments to provide accurate answers.</p>
-              <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
+              <h2 className="empty-chat-title">Start a conversation with Donna</h2>
+              <p className="empty-chat-description">Ask Donna questions about your knowledge base. Donna will search through your selected segments to provide accurate answers.</p>
+              <p className="empty-chat-tagline">"Your intelligent assistant, always ready to help"</p>
               {selectedStores.length > 0 && (
                 <div className="selected-segments-preview">
                   <p className="preview-label">Searching in:</p>
