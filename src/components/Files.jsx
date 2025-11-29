@@ -130,6 +130,9 @@ function Files() {
         throw new Error(`File is not ready. Current state: ${fileData.state}. Please wait for processing to complete.`);
       }
       
+      // Check if file has downloadUri
+      const hasDownloadUri = !!fileData.downloadUri;
+      
       // Extract content based on file type
       if (fileData.mimeType?.startsWith('text/') || 
           fileData.mimeType === 'application/json') {
@@ -141,67 +144,103 @@ function Files() {
             type: 'text',
           });
         } catch (textError) {
-          // If text extraction fails, try blob download
-          const result = await extractFileContent(fileData);
-          setExtractedContent({
-            file: fileData,
-            content: result.content,
-            type: result.mimeType.includes('text') ? 'text' : 'blob',
-          });
+          // If text extraction fails and no downloadUri, try Gemini API
+          if (!hasDownloadUri) {
+            try {
+              const geminiContent = await extractTextFromFileUsingGemini(fileData);
+              setExtractedContent({
+                file: fileData,
+                content: geminiContent,
+                type: 'text',
+              });
+            } catch (geminiError) {
+              throw new Error(`Failed to extract content: ${geminiError.message}`);
+            }
+          } else {
+            // If downloadUri exists, try blob download
+            const result = await extractFileContent(fileData);
+            setExtractedContent({
+              file: fileData,
+              content: result.content,
+              type: result.mimeType.includes('text') ? 'text' : 'blob',
+            });
+          }
         }
       } else if (fileData.mimeType === 'application/pdf') {
-        // For PDFs, fetch the blob first for download, then try to extract text for preview
+        // For PDFs, try to extract text using Gemini API first (works even without downloadUri)
         let pdfBlob = null;
         let textContent = null;
         let blobError = null;
         
-        // Always fetch the PDF blob for download
-        try {
-          const blobResult = await extractFileContent(fileData);
-          // Ensure the content is a proper Blob
-          if (blobResult.content instanceof Blob) {
-            pdfBlob = blobResult.content;
-          } else {
-            // If it's not a Blob, try to create one
-            pdfBlob = new Blob([blobResult.content], { type: 'application/pdf' });
-          }
-        } catch (error) {
-          blobError = error;
-          console.warn('Failed to fetch PDF blob:', error);
-          // If blob fetch fails, we'll still try text extraction
-        }
-        
-        // Try to extract text using Gemini API for preview
+        // Try to extract text using Gemini API (works for files without downloadUri)
         try {
           textContent = await extractTextFromFileUsingGemini(fileData);
         } catch (geminiError) {
-          console.warn('Failed to extract PDF text:', geminiError);
+          console.warn('Failed to extract PDF text using Gemini:', geminiError);
+        }
+        
+        // If downloadUri exists, try to fetch the PDF blob for download
+        if (hasDownloadUri) {
+          try {
+            const blobResult = await extractFileContent(fileData);
+            // Ensure the content is a proper Blob
+            if (blobResult.content instanceof Blob) {
+              pdfBlob = blobResult.content;
+            } else {
+              // If it's not a Blob, try to create one
+              pdfBlob = new Blob([blobResult.content], { type: 'application/pdf' });
+            }
+          } catch (error) {
+            blobError = error;
+            console.warn('Failed to fetch PDF blob:', error);
+          }
         }
         
         // If both blob and text extraction failed, throw an error
         if (!pdfBlob && !textContent) {
           throw new Error(
             blobError?.message || 
-            'Failed to extract PDF content. The file may not have a download URI or may not be accessible.'
+            'Failed to extract PDF content. The file may not have a download URI or may not be accessible. ' +
+            'File URI: ' + (fileData.uri || 'N/A') + '. ' +
+            'You can use this file with the Gemini API for content generation.'
           );
         }
         
         // Store both blob and text if available
         setExtractedContent({
           file: fileData,
-          content: pdfBlob || textContent, // Use blob if available, otherwise text
+          content: textContent || pdfBlob, // Prefer text for preview, fallback to blob
           textContent: textContent, // Store text separately for preview
           blob: pdfBlob, // Store blob separately for download
-          type: pdfBlob ? 'blob' : (textContent ? 'text' : 'blob'),
+          type: textContent ? 'text' : (pdfBlob ? 'blob' : 'text'),
         });
       } else {
-        // For other binary files, download as blob
-        const result = await extractFileContent(fileData);
-        setExtractedContent({
-          file: fileData,
-          content: result.content,
-          type: 'blob',
-        });
+        // For other binary files
+        if (hasDownloadUri) {
+          // If downloadUri exists, download as blob
+          const result = await extractFileContent(fileData);
+          setExtractedContent({
+            file: fileData,
+            content: result.content,
+            type: 'blob',
+          });
+        } else {
+          // If no downloadUri, try to extract text using Gemini API
+          try {
+            const geminiContent = await extractTextFromFileUsingGemini(fileData);
+            setExtractedContent({
+              file: fileData,
+              content: geminiContent,
+              type: 'text',
+            });
+          } catch (geminiError) {
+            throw new Error(
+              'File does not have a download URI. This file type may not support direct download. ' +
+              'The file URI is: ' + (fileData.uri || 'N/A') + '. ' +
+              'Failed to extract content using Gemini API: ' + geminiError.message
+            );
+          }
+        }
       }
       
       setShowContentModal(true);
