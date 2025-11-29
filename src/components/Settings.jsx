@@ -51,7 +51,7 @@ function Settings() {
       <div className="settings-header">
         <div>
           <h1>Settings</h1>
-          <p className="settings-subtitle">Configure integrations and manage your AI Concierge</p>
+          <p className="settings-subtitle">Configure integrations and manage Donna</p>
         </div>
       </div>
 

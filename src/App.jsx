@@ -18,11 +18,28 @@ function App() {
         <header className="app-header">
           <div className="header-container">
             <Link to="/ask" className="app-title">
-              <h1>AI Concierge</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <img 
+                  src="https://cdn.prod.website-files.com/68d14433cd550114f9ff7bf6/68dbeba8eee819e51bbce486_donna-full_body.png" 
+                  alt="Donna" 
+                  className="header-logo"
+                  onLoad={(e) => {
+                    // Ensure animation plays even if image loads from cache
+                    e.target.style.animation = 'none';
+                    setTimeout(() => {
+                      e.target.style.animation = '';
+                    }, 10);
+                  }}
+                />
+                <div className="header-title-text">
+                  <h1 style={{ margin: 0, fontSize: '1.75rem' }}>Ask Donna</h1>
+                  <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, fontWeight: 400 }}>Your Intelligent Knowledge Assistant</p>
+                </div>
+              </div>
             </Link>
             <nav className="main-nav">
               <Link to="/ask" className="nav-link nav-link-primary">
-                Ask AI Concierge 
+                Ask Donna 
               </Link>
               <Link to="/notes" className="nav-link nav-link-primary">
                 Notes Taker

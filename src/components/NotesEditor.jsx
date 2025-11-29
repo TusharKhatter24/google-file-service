@@ -521,15 +521,29 @@ function NotesEditor() {
 
       // Step 1: Generate PDF
       const pdfFile = await generatePDFFromHTML(htmlContent, finalFileName);
+      
+      // Ensure the PDF file has a name
+      if (!pdfFile || !pdfFile.name) {
+        throw new Error('Failed to generate PDF: Generated file is missing a name');
+      }
 
       // Step 2: Upload PDF to files
       const uploadedFile = await uploadFile(pdfFile, finalFileName);
       
-      if (!uploadedFile || !uploadedFile.name) {
-        throw new Error('Failed to upload file: No file name returned');
+      // Handle different response structures
+      let uploadedFileName = null;
+      
+      if (uploadedFile?.name) {
+        uploadedFileName = uploadedFile.name;
+      } else if (uploadedFile?.file?.name) {
+        uploadedFileName = uploadedFile.file.name;
+      } else {
+        // Log the actual response for debugging
+        console.error('Upload response structure:', uploadedFile);
+        throw new Error(
+          `Failed to upload file: No file name returned. Response: ${JSON.stringify(uploadedFile)}`
+        );
       }
-
-      const uploadedFileName = uploadedFile.name;
 
       // Step 3: Upload based on selected option
       if (uploadOption === 'store') {

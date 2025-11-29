@@ -284,8 +284,8 @@ function ConciergeDashboard() {
         <div className="quick-actions-grid">
           <Link to="/ask" className="quick-action-card">
             <div className="quick-action-icon">💬</div>
-            <h3>Ask Question</h3>
-            <p>Get instant answers from your knowledge base</p>
+            <h3>Ask Donna</h3>
+            <p>Your intelligent assistant - Get instant, accurate answers</p>
           </Link>
           <Link to="/segments" className="quick-action-card">
             <div className="quick-action-icon">📁</div>
@@ -337,7 +337,7 @@ function ConciergeDashboard() {
                     className="btn btn-primary"
                     style={{ fontSize: '0.8125rem', padding: '0.375rem 0.75rem' }}
                   >
-                    Ask
+                    Ask Donna
                   </Link>
                   <Link
                     to={`/store/${encodeURIComponent(store.name)}`}
@@ -623,7 +623,7 @@ function ConciergeDashboard() {
           <p className="dashboard-subtitle">Knowledge base analytics and insights</p>
         </div>
         <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
-          Ask Question →
+          Ask Donna →
         </Link>
       </div>
 

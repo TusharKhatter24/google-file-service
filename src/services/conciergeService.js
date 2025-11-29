@@ -2,7 +2,7 @@ import { generateContentWithStore } from "./fileStoreService";
 import { listFileStores, listDocuments } from "./fileStoreService";
 
 /**
- * AI Concierge Service
+ * Donna Service
  * Provides proactive suggestions, insights, and recommendations based on stored knowledge
  */
 

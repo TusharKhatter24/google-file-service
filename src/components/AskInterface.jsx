@@ -300,8 +300,25 @@ function AskInterface() {
     <div className="ask-interface">
       <div className="ask-header">
         <div className="ask-header-content">
-          <h1>Ask AI Concierge</h1>
-          <p className="ask-subtitle">Get instant answers from your knowledge base</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <img 
+              src="https://cdn.prod.website-files.com/68d14433cd550114f9ff7bf6/68dbeba8eee819e51bbce486_donna-full_body.png" 
+              alt="Donna" 
+              className="donna-logo-header"
+              onLoad={(e) => {
+                // Ensure animation plays even if image loads from cache
+                e.target.style.animation = 'none';
+                setTimeout(() => {
+                  e.target.style.animation = '';
+                }, 10);
+              }}
+            />
+            <div className="ask-header-text">
+              <h1 style={{ margin: 0 }}>Ask Donna</h1>
+              <p className="ask-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Your Intelligent Knowledge Assistant</p>
+            </div>
+          </div>
+          <p className="ask-slogan">Get instant, accurate answers from your knowledge base. Donna understands context, synthesizes information, and helps you find what you need.</p>
         </div>
         <div className="segment-selector-container">
           <button
@@ -359,9 +376,14 @@ function AskInterface() {
         <div className="chat-messages">
           {chatMessages.length === 0 ? (
             <div className="empty-chat-state">
-              <div className="empty-chat-icon">💬</div>
-              <h2>Start a conversation</h2>
-              <p>Ask questions about your knowledge base. The AI will search through your selected segments to provide accurate answers.</p>
+              <img 
+                src="https://cdn.prod.website-files.com/68d14433cd550114f9ff7bf6/68dbeba8eee819e51bbce486_donna-full_body.png" 
+                alt="Donna" 
+                className="donna-logo-empty"
+              />
+              <h2>Start a conversation with Donna</h2>
+              <p>Ask Donna questions about your knowledge base. Donna will search through your selected segments to provide accurate answers.</p>
+              <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
               {selectedStores.length > 0 && (
                 <div className="selected-segments-preview">
                   <p className="preview-label">Searching in:</p>
@@ -389,7 +411,7 @@ function AskInterface() {
                     <span className="message-role">
                       {msg.role === 'user' ? 'You' : (
                         <>
-                          <span className="ai-badge">🤖 AI</span> Concierge
+                          <span className="ai-badge">🤖</span> Donna
                         </>
                       )}
                     </span>
@@ -444,7 +466,7 @@ function AskInterface() {
               <div className="message-content">
                 <div className="message-header">
                   <span className="message-role">
-                    <span className="ai-badge">🤖 AI</span> Concierge
+                    <span className="ai-badge">🤖</span> Donna
                   </span>
                 </div>
                 <div className="typing-indicator">
@@ -505,7 +527,7 @@ function AskInterface() {
                 placeholder={
                   selectedStores.length === 0
                     ? "Select knowledge segments first..."
-                    : "Ask a question about your knowledge base..."
+                    : "Ask Donna a question about your knowledge base..."
                 }
                 disabled={chatLoading || selectedStores.length === 0}
                 className="chat-input"

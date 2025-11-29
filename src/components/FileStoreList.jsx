@@ -377,14 +377,14 @@ function FileStoreList() {
         }}>
           <div>
             <h3 style={{ color: '#1e40af', margin: '0 0 0.25rem 0', fontSize: '1rem', fontWeight: '600' }}>
-              Ask questions about your knowledge base
+              Ask Donna questions about your knowledge base
             </h3>
             <p style={{ color: '#3b82f6', margin: 0, fontSize: '0.875rem' }}>
-              Use the Ask interface to get instant answers from all your segments
+              Your intelligent assistant - Get instant, accurate answers from all your segments
             </p>
           </div>
           <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
-            Go to Ask →
+            Go to Ask Donna →
           </Link>
         </div>
       )}
@@ -425,7 +425,8 @@ function FileStoreList() {
                 }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
                   <h4>Start a conversation</h4>
-                  <p>Ask questions about documents across all your stores. The AI will search through all stores to provide answers.</p>
+                  <p>Ask Donna questions about documents across all your stores. Donna will search through all stores to provide answers.</p>
+                  <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
                   {stores.length > 0 && (
                     <p style={{ fontSize: '0.875rem', marginTop: '0.5rem', color: '#9ca3af' }}>
                       Searching {stores.length} store{stores.length !== 1 ? 's' : ''}
@@ -674,7 +675,7 @@ function FileStoreList() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
+                    placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask Donna a question across all stores..."}
                     disabled={chatLoading || stores.length === 0}
                     style={{
                       flex: 1,
@@ -773,7 +774,7 @@ function FileStoreList() {
                   className="btn btn-primary"
                   style={{ marginRight: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                 >
-                  Ask About This
+                  Ask Donna About This
                 </Link>
                 <Link
                   to={`/notes/${encodeURIComponent(store.name)}`}

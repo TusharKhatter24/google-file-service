@@ -40,7 +40,26 @@ export const uploadFile = async (file, displayName = null) => {
       }
     );
 
-    return response.data;
+    // Handle different possible response structures
+    // The API might return the file object directly or wrapped
+    const responseData = response.data;
+    
+    // If response has a file property, use it
+    if (responseData.file && responseData.file.name) {
+      return responseData.file;
+    }
+    
+    // If response has a name property directly, return it
+    if (responseData.name) {
+      return responseData;
+    }
+    
+    // If response is wrapped in a different structure, try to find the file object
+    // Log the response structure for debugging
+    console.warn('Unexpected upload response structure:', responseData);
+    
+    // Return the response data as-is and let the caller handle it
+    return responseData;
   } catch (error) {
     throw new Error(
       error.response?.data?.error?.message || "Failed to upload file"

@@ -949,7 +949,8 @@ function FileStoreDetail() {
                 }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
                   <h4>Start a conversation</h4>
-                  <p>Ask questions about the documents in this store. The AI will search through your documents to provide answers.</p>
+                  <p>Ask Donna questions about the documents in this store. Donna will search through your documents to provide answers.</p>
+                  <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
                 </div>
               ) : (
                 chatMessages.map((msg, idx) => (
@@ -1215,7 +1216,7 @@ function FileStoreDetail() {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={synthesisMode ? "Ask a question - I'll synthesize information from all documents..." : "Ask a question about your documents..."}
+                    placeholder={synthesisMode ? "Ask Donna a question - I'll synthesize information from all documents..." : "Ask Donna a question about your documents..."}
                     disabled={chatLoading}
                     style={{
                       flex: 1,
