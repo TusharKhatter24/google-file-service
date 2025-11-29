@@ -12,6 +12,7 @@ import NotesEditor from './components/NotesEditor';
 import './App.css';
 
 function App() {
+  
   return (
     <Router>
       <div className="app">
