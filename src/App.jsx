@@ -22,10 +22,10 @@ function App() {
             </Link>
             <nav className="main-nav">
               <Link to="/ask" className="nav-link nav-link-primary">
-                Ask
+                Ask AI Concierge 
               </Link>
               <Link to="/notes" className="nav-link nav-link-primary">
-                Notes
+                Notes Taker
               </Link>
               <Link to="/segments" className="nav-link">
                 Knowledge Segments
@@ -34,13 +34,7 @@ function App() {
                 Dashboard
               </Link>
               <Link to="/files" className="nav-link nav-link-secondary">
-                Files
-              </Link>
-              <Link to="/workflow" className="nav-link nav-link-secondary">
-                Workflow
-              </Link>
-              <Link to="/knowledge-graph" className="nav-link nav-link-secondary">
-                Knowledge Graph
+                Documents
               </Link>
               <Link to="/settings" className="nav-link nav-link-secondary">
                 Settings

@@ -51,6 +51,7 @@ function NotesEditor() {
   const [uploadOption, setUploadOption] = useState('store');
   const [showSegmentSelector, setShowSegmentSelector] = useState(false);
   const [segmentSearchQuery, setSegmentSearchQuery] = useState('');
+  const [selectedUploadSegment, setSelectedUploadSegment] = useState('');
 
   useEffect(() => {
     setContent('');
@@ -64,6 +65,7 @@ function NotesEditor() {
     setUploadOption('store'); // Reset to default
     setShowSegmentSelector(false);
     setSegmentSearchQuery('');
+    setSelectedUploadSegment('');
     loadFileStores();
     
     // Cleanup on unmount
@@ -103,6 +105,7 @@ function NotesEditor() {
         );
         if (store) {
           setSelectedStores([store.name]);
+          setSelectedUploadSegment(storeName);
         }
       }
     } catch (err) {
@@ -485,6 +488,15 @@ function NotesEditor() {
       return;
     }
 
+    // Validate segment selection if uploading to store
+    if (uploadOption === 'store') {
+      const segmentToUse = storeName || selectedUploadSegment;
+      if (!segmentToUse) {
+        setError('Please select a Knowledge Segment to upload to.');
+        return;
+      }
+    }
+
     try {
       setSaving(true);
       setError(null);
@@ -520,44 +532,27 @@ function NotesEditor() {
       const uploadedFileName = uploadedFile.name;
 
       // Step 3: Upload based on selected option
-      if (uploadOption === 'files' || !storeName) {
+      if (uploadOption === 'store') {
+        // Import file to store - use storeName if available, otherwise use selectedUploadSegment
+        const segmentToUse = storeName || selectedUploadSegment;
+        const decodedStoreName = decodeURIComponent(segmentToUse);
+        await importFileToStore(decodedStoreName, uploadedFileName);
+
+        // Close dialog and navigate
+        setShowFileNameDialog(false);
+        setContent('');
+        setFileName('');
+        setSelectedUploadSegment('');
+        
+        navigate('/segments');
+      } else {
         // Just upload to files, don't import to store
         setShowFileNameDialog(false);
         setContent('');
         setFileName('');
+        setSelectedUploadSegment('');
         
         navigate('/segments');
-      } else {
-        // Import file to store
-        const decodedStoreName = decodeURIComponent(storeName);
-        const importResponse = await importFileToStore(decodedStoreName, uploadedFileName);
-
-        // Check if it's a long-running operation (has a name property)
-        // If so, it will complete in the background
-        if (importResponse.name) {
-          // Long-running operation - it will complete in the background
-          // Show success message and close
-          setShowFileNameDialog(false);
-          setContent('');
-          setFileName('');
-          
-          if (onSuccess) {
-            onSuccess();
-          }
-          
-          onClose();
-        } else {
-          // Immediate success
-          setShowFileNameDialog(false);
-          setContent('');
-          setFileName('');
-          
-          if (onSuccess) {
-            onSuccess();
-          }
-          
-          onClose();
-        }
       }
     } catch (err) {
       setError(err.message || 'Failed to save notes. Please try again.');
@@ -594,7 +589,7 @@ function NotesEditor() {
       <div className="notes-editor-container">
         <div className="notes-editor-header">
           <div>
-            <h3>Smart Notes Taker</h3>
+            <h3>Knowledge Taker</h3>
             {storeName && (
               <p style={{ margin: '0.25rem 0 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
                 Writing notes for: {availableStores.find(s => s.name === storeName)?.displayName || storeName}
@@ -1049,15 +1044,22 @@ function NotesEditor() {
                     }
                   }}
                 />
-                <small style={{ color: '#6b7280', marginTop: '0.25rem', display: 'block' }}>
+                <small style={{ marginTop: '0.25rem', display: 'block' }}>
                   The file will be saved as a PDF. You can omit the .pdf extension.
                 </small>
               </div>
-              {storeName && (
-                <div className="form-group" style={{ marginTop: '1rem' }}>
-                  <label>Upload To:</label>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Upload To:</label>
+                <div className="upload-options-container">
+                  <label 
+                    className={`upload-option-card ${uploadOption === 'store' ? 'selected' : ''}`}
+                    onClick={(e) => {
+                      if (e.target.tagName !== 'SELECT') {
+                        setUploadOption('store');
+                      }
+                    }}
+                  >
+                    <div className="upload-option-header">
                       <input
                         type="radio"
                         name="uploadOption"
@@ -1065,9 +1067,51 @@ function NotesEditor() {
                         checked={uploadOption === 'store'}
                         onChange={(e) => setUploadOption(e.target.value)}
                       />
-                      <span>Knowledge Segment ({storeName.split('/').pop()})</span>
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      <div className="upload-option-content">
+                        <span className="upload-option-title">Knowledge Segment</span>
+                        <span className="upload-option-description">Upload to a knowledge segment for AI context</span>
+                      </div>
+                    </div>
+                    {uploadOption === 'store' && (
+                      <div className="upload-option-details">
+                        {storeName ? (
+                          <div className="selected-segment-display">
+                            <span className="segment-icon">📚</span>
+                            <div className="segment-info">
+                              <span className="segment-name">
+                                {availableStores.find(s => s.name === storeName)?.displayName || storeName.split('/').pop()}
+                              </span>
+                              <span className="segment-meta">
+                                {availableStores.find(s => s.name === storeName)?.activeDocumentsCount || 0} documents
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <select
+                            value={selectedUploadSegment}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setSelectedUploadSegment(e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="segment-select-dropdown"
+                          >
+                            <option value="">Select a Knowledge Segment...</option>
+                            {availableStores.map(store => (
+                              <option key={store.name} value={store.name}>
+                                {store.displayName || store.name.split('/').pop()} ({store.activeDocumentsCount || 0} docs)
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    )}
+                  </label>
+                  <label 
+                    className={`upload-option-card ${uploadOption === 'files' ? 'selected' : ''}`}
+                    onClick={() => setUploadOption('files')}
+                  >
+                    <div className="upload-option-header">
                       <input
                         type="radio"
                         name="uploadOption"
@@ -1075,11 +1119,14 @@ function NotesEditor() {
                         checked={uploadOption === 'files'}
                         onChange={(e) => setUploadOption(e.target.value)}
                       />
-                      <span>Files Only</span>
-                    </label>
-                  </div>
+                      <div className="upload-option-content">
+                        <span className="upload-option-title">Files Only</span>
+                        <span className="upload-option-description">Save to files without adding to knowledge segment</span>
+                      </div>
+                    </div>
+                  </label>
                 </div>
-              )}
+              </div>
             </div>
             <div className="notes-editor-dialog-footer">
               <button
@@ -1092,7 +1139,7 @@ function NotesEditor() {
               <button
                 className="btn btn-primary"
                 onClick={handleConfirmSave}
-                disabled={saving || !fileName.trim()}
+                disabled={saving || !fileName.trim() || (uploadOption === 'store' && !storeName && !selectedUploadSegment)}
               >
                 {saving ? 'Saving...' : 'Save & Upload'}
               </button>

@@ -780,7 +780,7 @@ function FileStoreList() {
                   className="btn btn-secondary"
                   style={{ marginRight: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem', textDecoration: 'none', display: 'inline-block' }}
                 >
-                  Write Notes
+                 Take Notes 
                 </Link>
                 <Link
                   to={`/store/${encodeURIComponent(store.name)}`}

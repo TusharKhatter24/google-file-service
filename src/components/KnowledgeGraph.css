@@ -11,36 +11,48 @@
 
 .graph-header h1 {
   font-size: 2.5rem;
-  color: #1f2937;
+  color: var(--text-primary, #ffffff);
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.graph-header h1::before {
+  content: "🕸️";
+  font-size: 2rem;
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
 }
 
 .graph-subtitle {
   font-size: 1.125rem;
-  color: #6b7280;
+  color: var(--text-tertiary, #a0a0a0);
 }
 
 .graph-error {
-  background-color: #fee2e2;
-  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 2rem;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .graph-section {
-  background: #ffffff;
+  background: var(--surface, #2a2a2a);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md, 0 4px 8px rgba(0, 0, 0, 0.4));
+  border: 1px solid var(--border, #404040);
 }
 
 .graph-section h2 {
   font-size: 1.5rem;
-  color: #1f2937;
+  color: var(--text-primary, #ffffff);
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border, #404040);
   padding-bottom: 0.5rem;
 }
 
@@ -82,9 +94,20 @@
   justify-content: center;
   gap: 1rem;
   padding: 2rem;
-  background: #f0f9ff;
+  background: rgba(99, 102, 241, 0.1);
   border-radius: 8px;
   margin-bottom: 1.5rem;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--text-secondary, #e5e5e5);
+  box-shadow: var(--ai-glow, 0 0 20px rgba(99, 102, 241, 0.2));
+}
+
+.analyzing-indicator::before {
+  content: "🤖 AI is analyzing relationships...";
+  font-size: 0.9375rem;
+  color: var(--accent-primary, #6366f1);
+  margin-right: 0.5rem;
+  font-weight: 500;
 }
 
 .spinner {

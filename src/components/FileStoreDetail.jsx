@@ -738,7 +738,7 @@ function FileStoreDetail() {
               className="btn btn-secondary"
               onClick={() => navigate(`/notes/${encodeURIComponent(storeName)}`)}
             >
-              Write Notes
+              Take Notes
             </button>
             <button
               className="btn btn-secondary"

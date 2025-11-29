@@ -234,7 +234,7 @@ export const extractTextFromFileUsingGemini = async (fileData) => {
   try {
     // Use Gemini API to extract text from the file
     const response = await apiClient.post(
-      `${API_BASE_URL}/models/gemini-2.5-flash:generateContent`,
+      `${API_BASE_URL}/models/gemini-1.5-flash:generateContent`,
       {
         contents: [
           {

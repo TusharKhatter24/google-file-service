@@ -1,24 +1,24 @@
 /* Knowledge Segments Styles */
 
 .segment-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border, #404040);
   border-radius: 12px;
   padding: 1.5rem;
-  background: white;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--surface, #2a2a2a);
+  transition: all 0.3s;
+  box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .segment-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg, 0 8px 16px rgba(0, 0, 0, 0.5));
   transform: translateY(-2px);
-  border-color: #3b82f6;
+  border-color: var(--accent-primary, #6366f1);
 }
 
 .segment-card .store-name {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary, #ffffff);
   margin-bottom: 0;
 }
 
@@ -28,7 +28,7 @@
   flex-wrap: wrap;
   margin-top: 0.75rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-tertiary, #a0a0a0);
 }
 
 .segment-card .store-details span {
@@ -76,15 +76,15 @@
 }
 
 .chat-messages-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--surface, #2a2a2a);
   border-radius: 4px;
 }
 
 .chat-messages-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border, #404040);
   border-radius: 4px;
 }
 
 .chat-messages-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--accent-primary, #6366f1);
 }

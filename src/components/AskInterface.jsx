@@ -387,7 +387,11 @@ function AskInterface() {
                 <div className="message-content">
                   <div className="message-header">
                     <span className="message-role">
-                      {msg.role === 'user' ? 'You' : 'AI Concierge'}
+                      {msg.role === 'user' ? 'You' : (
+                        <>
+                          <span className="ai-badge">🤖 AI</span> Concierge
+                        </>
+                      )}
                     </span>
                     {msg.role === 'model' && msg.sources && msg.sources.length > 0 && (
                       <button
@@ -439,7 +443,9 @@ function AskInterface() {
             <div className="chat-message assistant-message">
               <div className="message-content">
                 <div className="message-header">
-                  <span className="message-role">AI Concierge</span>
+                  <span className="message-role">
+                    <span className="ai-badge">🤖 AI</span> Concierge
+                  </span>
                 </div>
                 <div className="typing-indicator">
                   <span></span>

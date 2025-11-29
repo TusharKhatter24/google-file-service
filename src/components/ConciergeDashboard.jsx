@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { listFileStores } from '../services/fileStoreService';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { listFileStores, listDocuments } from '../services/fileStoreService';
 import { generateInsights, generateRecommendations, detectPatterns } from '../services/conciergeService';
 import { analyzeStoreDocuments, extractTopics, extractActionItems } from '../services/documentAnalysisService';
 import { getPersonalizedRecommendations, getWritingStyleProfile, getTopicPreferences, getWorkPatterns } from '../services/personalizationService';
+import WorkflowAssistant from './WorkflowAssistant';
+import KnowledgeGraph from './KnowledgeGraph';
 import './ConciergeDashboard.css';
 
 function ConciergeDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [stores, setStores] = useState([]);
   const [selectedStores, setSelectedStores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,11 +30,27 @@ function ConciergeDashboard() {
   const [personalizedRecs, setPersonalizedRecs] = useState([]);
   const [styleProfile, setStyleProfile] = useState(null);
   const [workPatterns, setWorkPatterns] = useState(null);
+  const [actualDocumentCount, setActualDocumentCount] = useState(null);
+  const [countingDocuments, setCountingDocuments] = useState(false);
 
   useEffect(() => {
     loadStores();
     loadPersonalization();
-  }, []);
+    
+    // Check URL for tab parameter
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && ['dashboard', 'workflow', 'graph'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    // Count actual documents when stores are loaded
+    if (stores.length > 0) {
+      countActualDocuments();
+    }
+  }, [stores]);
 
   useEffect(() => {
     // Only analyze if stores changed and we're not already analyzing
@@ -57,6 +78,45 @@ function ConciergeDashboard() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const countActualDocuments = async () => {
+    if (countingDocuments || stores.length === 0) return;
+    
+    try {
+      setCountingDocuments(true);
+      let totalCount = 0;
+      
+      // Count documents from each store by actually listing them
+      for (const store of stores) {
+        try {
+          let pageToken = null;
+          let storeCount = 0;
+          
+        do {
+          const response = await listDocuments(store.name, 20, pageToken);
+          if (response.documents) {
+            storeCount += response.documents.length;
+          }
+          pageToken = response.nextPageToken || null;
+        } while (pageToken);
+          
+          totalCount += storeCount;
+        } catch (err) {
+          console.error(`Failed to count documents for store ${store.name}:`, err);
+          // Fallback to activeDocumentsCount if listing fails
+          totalCount += (store.activeDocumentsCount || 0);
+        }
+      }
+      
+      setActualDocumentCount(totalCount);
+    } catch (err) {
+      console.error('Failed to count documents:', err);
+      // Fallback to using activeDocumentsCount sum
+      setActualDocumentCount(null);
+    } finally {
+      setCountingDocuments(false);
     }
   };
 
@@ -134,8 +194,11 @@ function ConciergeDashboard() {
     );
   }
 
-  // Calculate metrics
-  const totalDocuments = stores.reduce((sum, store) => sum + (store.activeDocumentsCount || 0), 0);
+  // Calculate metrics - only count documents that are in stores
+  // Use actual count if available, otherwise fallback to activeDocumentsCount
+  const totalDocuments = actualDocumentCount !== null 
+    ? actualDocumentCount 
+    : stores.reduce((sum, store) => sum + (store.activeDocumentsCount || 0), 0);
   const totalSegments = stores.length;
   const totalSize = stores.reduce((sum, store) => sum + (parseInt(store.sizeBytes) || 0), 0);
   const pendingDocuments = stores.reduce((sum, store) => sum + (store.pendingDocumentsCount || 0), 0);
@@ -150,17 +213,24 @@ function ConciergeDashboard() {
     return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
   };
 
-  return (
-    <div className="concierge-dashboard">
-      <div className="dashboard-header">
-        <div>
-          <h1>Dashboard</h1>
-          <p className="dashboard-subtitle">Knowledge base analytics and insights</p>
-        </div>
-        <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
-          Ask Question →
-        </Link>
-      </div>
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    navigate(`/dashboard?tab=${tab}`, { replace: true });
+  };
+
+  const renderTabContent = () => {
+    if (activeTab === 'workflow') {
+      return <WorkflowAssistant />;
+    }
+    if (activeTab === 'graph') {
+      return <KnowledgeGraph />;
+    }
+    return renderMainDashboard();
+  };
+
+  const renderMainDashboard = () => {
+    return (
+      <>
 
       {error && <div className="dashboard-error">{error}</div>}
 
@@ -176,8 +246,15 @@ function ConciergeDashboard() {
         <div className="metric-card">
           <div className="metric-icon">📄</div>
           <div className="metric-content">
-            <div className="metric-value">{totalDocuments}</div>
-            <div className="metric-label">Total Documents</div>
+            <div className="metric-value">
+              {countingDocuments ? '...' : totalDocuments.toLocaleString()}
+            </div>
+            <div className="metric-label">Documents in Stores</div>
+            {countingDocuments && (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary, #a0a0a0)', marginTop: '0.25rem' }}>
+                Counting...
+              </div>
+            )}
           </div>
         </div>
         <div className="metric-card">
@@ -534,6 +611,50 @@ function ConciergeDashboard() {
           </div>
         </div>
       )}
+      </>
+    );
+  };
+
+  return (
+    <div className="concierge-dashboard">
+      <div className="dashboard-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p className="dashboard-subtitle">Knowledge base analytics and insights</p>
+        </div>
+        <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
+          Ask Question →
+        </Link>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="dashboard-tabs">
+        <button
+          className={`dashboard-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+          onClick={() => handleTabChange('dashboard')}
+        >
+          <span className="tab-icon">📊</span>
+          Dashboard
+        </button>
+        <button
+          className={`dashboard-tab ${activeTab === 'workflow' ? 'active' : ''}`}
+          onClick={() => handleTabChange('workflow')}
+        >
+          <span className="tab-icon">⚙️</span>
+          Workflow
+        </button>
+        <button
+          className={`dashboard-tab ${activeTab === 'graph' ? 'active' : ''}`}
+          onClick={() => handleTabChange('graph')}
+        >
+          <span className="tab-icon">🕸️</span>
+          Knowledge Graph
+        </button>
+      </div>
+
+      {error && <div className="dashboard-error">{error}</div>}
+
+      {renderTabContent()}
     </div>
   );
 }
