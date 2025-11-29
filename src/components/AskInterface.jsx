@@ -292,6 +292,11 @@ function AskInterface() {
     }
   };
 
+  const handleClearChat = () => {
+    setChatMessages([]);
+    setShowSources(null);
+  };
+
   const getStoreDisplayName = (storeName) => {
     const store = stores.find(s => s.name === storeName);
     return store?.displayName || storeName.split('/').pop();
@@ -322,6 +327,18 @@ function AskInterface() {
           <p className="ask-slogan">Get instant, accurate answers from your knowledge base. Donna understands context, synthesizes information, and helps you find what you need.</p>
         </div>
         <div className="segment-selector-container">
+          {chatMessages.length > 0 && (
+            <button
+              className="clear-chat-btn"
+              onClick={handleClearChat}
+              title="Start a new chat"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              New Chat
+            </button>
+          )}
           <button
             className="segment-selector-btn"
             onClick={() => setShowSegmentSelector(!showSegmentSelector)}
@@ -377,11 +394,7 @@ function AskInterface() {
         <div className="chat-messages">
           {chatMessages.length === 0 ? (
             <div className="empty-chat-state">
-              <img 
-                src="https://cdn.prod.website-files.com/68d14433cd550114f9ff7bf6/68dbeba8eee819e51bbce486_donna-full_body.png" 
-                alt="Donna" 
-                className="donna-logo-empty"
-              />
+
               <h2 className="empty-chat-title">Start a conversation with Donna</h2>
               <p className="empty-chat-description">Ask Donna questions about your knowledge base. Donna will search through your selected segments to provide accurate answers.</p>
               <p className="empty-chat-tagline">"Your intelligent assistant, always ready to help"</p>

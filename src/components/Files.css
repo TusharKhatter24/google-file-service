@@ -1,2 +1,206 @@
-/* Additional styles for Files component if needed */
+/* Modern File Management Styles */
 
+.file-list {
+  display: grid;
+  gap: 1rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.file-card {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface, #1f1f1f);
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.5s ease-out;
+  animation-fill-mode: both;
+  position: relative;
+  overflow: hidden;
+}
+
+.file-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+  transition: left 0.6s;
+}
+
+.file-card:nth-child(1) { animation-delay: 0.05s; }
+.file-card:nth-child(2) { animation-delay: 0.1s; }
+.file-card:nth-child(3) { animation-delay: 0.15s; }
+.file-card:nth-child(4) { animation-delay: 0.2s; }
+.file-card:nth-child(5) { animation-delay: 0.25s; }
+
+.file-card:hover::before {
+  left: 100%;
+}
+
+.file-card:hover {
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.6)), var(--ai-glow, 0 0 24px rgba(99, 102, 241, 0.4));
+  transform: translateY(-4px) scale(1.01);
+  border-color: var(--border-hover, rgba(99, 102, 241, 0.4));
+  background: var(--surface-elevated, #2a2a2a);
+}
+
+.file-upload-area {
+  border: 2px dashed var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--surface, #1f1f1f);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.file-upload-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.15), transparent);
+  transition: left 0.8s;
+}
+
+.file-upload-area:hover::before {
+  left: 100%;
+}
+
+.file-upload-area:hover {
+  border-color: var(--accent-primary, #6366f1);
+  background-color: var(--surface-elevated, #2a2a2a);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.5)), var(--ai-glow, 0 0 24px rgba(99, 102, 241, 0.4));
+  transform: scale(1.01);
+}
+
+.file-upload-area.dragover {
+  border-color: var(--accent-primary, #6366f1);
+  background-color: rgba(99, 102, 241, 0.15);
+  box-shadow: var(--ai-glow-strong, 0 0 32px rgba(99, 102, 241, 0.6));
+  transform: scale(1.02);
+  animation: pulse-upload 2s infinite;
+}
+
+@keyframes pulse-upload {
+  0%, 100% {
+    box-shadow: var(--ai-glow-strong, 0 0 32px rgba(99, 102, 241, 0.6));
+  }
+  50% {
+    box-shadow: var(--ai-glow-strong, 0 0 32px rgba(99, 102, 241, 0.6)), 0 0 50px rgba(99, 102, 241, 0.4);
+  }
+}
+
+.upload-progress {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--surface-elevated, #2a2a2a);
+  border-radius: 12px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  animation: fadeIn 0.3s ease-out;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--surface, #1f1f1f);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent-gradient, linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%));
+  border-radius: 4px;
+  transition: width 0.3s ease-out;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.file-action-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  background: var(--surface-elevated, #2a2a2a);
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.file-action-btn:hover {
+  border-color: var(--accent-primary, #6366f1);
+  background: var(--accent-primary, #6366f1);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.5)), var(--ai-glow, 0 0 24px rgba(99, 102, 241, 0.4));
+}
+
+.file-action-btn.danger:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
