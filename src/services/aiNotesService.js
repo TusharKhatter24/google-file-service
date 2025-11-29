@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_KEY, API_BASE_URL } from "../config";
 import { generateContentWithStore } from "./fileStoreService";
+import { getSystemPrompt } from "./settingsService";
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -35,16 +36,26 @@ const generateContent = async (prompt, text, storeNames = null, model = "gemini-
       );
     } else {
       // Use standalone generation
+      const requestBody = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${prompt}\n\nText:\n${text}` }],
+          },
+        ],
+      };
+
+      // Add system instruction if available
+      const systemPrompt = getSystemPrompt();
+      if (systemPrompt && systemPrompt.trim()) {
+        requestBody.systemInstruction = {
+          parts: [{ text: systemPrompt }],
+        };
+      }
+
       const response = await apiClient.post(
         `${API_BASE_URL}/models/${model}:generateContent`,
-        {
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: `${prompt}\n\nText:\n${text}` }],
-            },
-          ],
-        }
+        requestBody
       );
       responseData = response.data;
     }

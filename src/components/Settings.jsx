@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Settings.css';
+import { getSystemPrompt, saveSystemPrompt, getDefaultSystemPrompt, resetSystemPrompt } from '../services/settingsService';
 
 function Settings() {
   const [integrations, setIntegrations] = useState([
@@ -37,6 +38,16 @@ function Settings() {
     }
   ]);
 
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [systemPromptChanged, setSystemPromptChanged] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null);
+
+  useEffect(() => {
+    // Load system prompt on component mount
+    const currentPrompt = getSystemPrompt();
+    setSystemPrompt(currentPrompt);
+  }, []);
+
   const handleConnect = (integrationId) => {
     // In a real implementation, this would open OAuth flow or configuration
     setIntegrations(prev => prev.map(integration =>
@@ -44,6 +55,33 @@ function Settings() {
         ? { ...integration, connected: !integration.connected }
         : integration
     ));
+  };
+
+  const handleSystemPromptChange = (e) => {
+    setSystemPrompt(e.target.value);
+    setSystemPromptChanged(true);
+    setSaveStatus(null);
+  };
+
+  const handleSaveSystemPrompt = () => {
+    try {
+      saveSystemPrompt(systemPrompt);
+      setSystemPromptChanged(false);
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus(null), 3000);
+    } catch (error) {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 3000);
+    }
+  };
+
+  const handleResetSystemPrompt = () => {
+    const defaultPrompt = getDefaultSystemPrompt();
+    setSystemPrompt(defaultPrompt);
+    resetSystemPrompt();
+    setSystemPromptChanged(false);
+    setSaveStatus('reset');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   return (
@@ -127,6 +165,57 @@ function Settings() {
               <input type="checkbox" />
               <span>Notify on sync failures</span>
             </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2>AI Assistant Settings</h2>
+        <p className="section-description">
+          Customize the system prompt that guides the AI assistant's behavior. This prompt is applied to all AI interactions throughout the application, helping to ensure consistent and contextually appropriate responses.
+        </p>
+        <div className="system-prompt-section">
+          <div className="setting-item">
+            <label htmlFor="system-prompt-textarea">
+              System Prompt
+            </label>
+            <textarea
+              id="system-prompt-textarea"
+              className="system-prompt-textarea"
+              value={systemPrompt}
+              onChange={handleSystemPromptChange}
+              rows={10}
+              placeholder="Enter system prompt..."
+            />
+            <div className="system-prompt-footer">
+              <span className="char-count">
+                {systemPrompt.length} characters
+              </span>
+              {saveStatus === 'saved' && (
+                <span className="save-status success">Saved successfully</span>
+              )}
+              {saveStatus === 'reset' && (
+                <span className="save-status success">Reset to default</span>
+              )}
+              {saveStatus === 'error' && (
+                <span className="save-status error">Failed to save</span>
+              )}
+            </div>
+          </div>
+          <div className="system-prompt-actions">
+            <button
+              className="btn-secondary"
+              onClick={handleResetSystemPrompt}
+            >
+              Reset to Default
+            </button>
+            <button
+              className={`btn btn-primary ${!systemPromptChanged ? 'btn-disabled' : ''}`}
+              onClick={handleSaveSystemPrompt}
+              disabled={!systemPromptChanged}
+            >
+              Save Changes
+            </button>
           </div>
         </div>
       </div>

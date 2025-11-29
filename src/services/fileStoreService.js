@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_KEY, API_BASE_URL, UPLOAD_API_BASE_URL } from "../config";
+import { getSystemPrompt } from "./settingsService";
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -288,6 +289,14 @@ export const generateContentWithStore = async (
       ],
     };
 
+    // Add system instruction if available
+    const systemPrompt = getSystemPrompt();
+    if (systemPrompt && systemPrompt.trim()) {
+      requestBody.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
+    }
+
     const response = await apiClient.post(
       `${API_BASE_URL}/models/${model}:generateContent`,
       requestBody
@@ -354,6 +363,14 @@ export const generateAudioWithStore = async (
         },
       ],
     };
+
+    // Add system instruction if available
+    const systemPrompt = getSystemPrompt();
+    if (systemPrompt && systemPrompt.trim()) {
+      textRequestBody.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
+    }
 
     const textResponse = await apiClient.post(
       `${API_BASE_URL}/models/${textModel}:generateContent`,

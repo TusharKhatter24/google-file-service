@@ -262,6 +262,117 @@
   margin: 0;
 }
 
+/* System Prompt Settings */
+.system-prompt-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.system-prompt-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: #374151;
+  background: white;
+  resize: vertical;
+  min-height: 200px;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.system-prompt-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.system-prompt-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.system-prompt-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.char-count {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.save-status {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.save-status.success {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.save-status.error {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.system-prompt-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-secondary {
+  padding: 0.625rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn {
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(.btn-disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
 @media (max-width: 768px) {
   .settings-page {
     padding: 1rem;
@@ -279,6 +390,21 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+
+  .system-prompt-actions {
+    flex-direction: column;
+  }
+
+  .system-prompt-actions .btn,
+  .system-prompt-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .system-prompt-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }
 
