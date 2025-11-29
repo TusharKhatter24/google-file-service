@@ -1,4 +1,48 @@
-/* Additional styles for FileStoreList if needed */
+/* Knowledge Segments Styles */
+
+.segment-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: white;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.segment-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #3b82f6;
+}
+
+.segment-card .store-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0;
+}
+
+.segment-card .store-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.segment-card .store-details span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.segment-card .store-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
 /* Chatbot Styles */
 @keyframes pulse {

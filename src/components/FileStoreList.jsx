@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
-import NotesEditor from './NotesEditor';
 import './FileStoreList.css';
 
 function FileStoreList() {
@@ -20,8 +19,6 @@ function FileStoreList() {
   const [inputMode, setInputMode] = useState('text');
   const [outputMode, setOutputMode] = useState('text');
   const [isRecording, setIsRecording] = useState(false);
-  const [showNotesEditor, setShowNotesEditor] = useState(false);
-  const [selectedStoreForNotes, setSelectedStoreForNotes] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -353,39 +350,47 @@ function FileStoreList() {
   return (
     <div className="container">
       <div className="header-section">
-        <h2>File Search Stores</h2>
+        <div>
+          <h2>Knowledge Segments</h2>
+          <p style={{ color: '#6b7280', marginTop: '0.5rem', fontSize: '0.9375rem' }}>
+            Organize your knowledge base by department, project, or team
+          </p>
+        </div>
         <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          + Create New Store
+          + Create New Segment
         </button>
       </div>
 
       {error && <div className="error">{error}</div>}
 
-      {/* Chatbot Section */}
-      <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ color: '#374151' }}>Chat with All Stores</h3>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {chatMessages.length > 0 && (
-              <button
-                className="btn btn-secondary"
-                onClick={handleClearChat}
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
-              >
-                Clear Chat
-              </button>
-            )}
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowChatbot(!showChatbot)}
-              disabled={stores.length === 0}
-            >
-              {showChatbot ? 'Hide Chat' : 'Show Chat'}
-            </button>
+      {/* Quick Access to Ask Interface */}
+      {stores.length > 0 && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem 1.5rem',
+          background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+          border: '1px solid #bfdbfe',
+          borderRadius: '8px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h3 style={{ color: '#1e40af', margin: '0 0 0.25rem 0', fontSize: '1rem', fontWeight: '600' }}>
+              Ask questions about your knowledge base
+            </h3>
+            <p style={{ color: '#3b82f6', margin: 0, fontSize: '0.875rem' }}>
+              Use the Ask interface to get instant answers from all your segments
+            </p>
           </div>
+          <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
+            Go to Ask →
+          </Link>
         </div>
+      )}
 
-        {showChatbot && (
+      {/* Legacy Chatbot Section - Hidden by default, can be removed later */}
+      {false && showChatbot && (
           <div style={{
             border: '1px solid #e5e7eb',
             borderRadius: '8px',
@@ -730,48 +735,65 @@ function FileStoreList() {
             </div>
           </div>
         )}
-      </div>
 
       {stores.length === 0 ? (
         <div className="empty-state">
-          <h3>No file stores found</h3>
-          <p>Create your first file search store to get started.</p>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📚</div>
+          <h3>No knowledge segments found</h3>
+          <p>Create your first knowledge segment to organize your documents and start building your knowledge base.</p>
+          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)} style={{ marginTop: '1rem' }}>
+            Create Your First Segment
+          </button>
         </div>
       ) : (
-        <div className="store-list">
+        <div className="store-list" style={{ marginTop: '2rem' }}>
           {stores.map((store) => (
-            <div key={store.name} className="store-card">
+            <div key={store.name} className="store-card segment-card">
               <div className="store-info">
-                <div className="store-name">{store.displayName || store.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <div className="store-name">{store.displayName || store.name}</div>
+                  <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>
+                    {store.activeDocumentsCount || 0} docs
+                  </span>
+                </div>
                 <div className="store-details">
-                  <span>Created: {formatDate(store.createTime)}</span>
-                  <span>Active Docs: {store.activeDocumentsCount || 0}</span>
-                  <span>Pending: {store.pendingDocumentsCount || 0}</span>
-                  <span>Failed: {store.failedDocumentsCount || 0}</span>
-                  <span>Size: {formatBytes(store.sizeBytes)}</span>
+                  <span>📅 Created: {formatDate(store.createTime)}</span>
+                  {store.pendingDocumentsCount > 0 && (
+                    <span style={{ color: '#f59e0b' }}>⏳ {store.pendingDocumentsCount} pending</span>
+                  )}
+                  {store.failedDocumentsCount > 0 && (
+                    <span style={{ color: '#ef4444' }}>❌ {store.failedDocumentsCount} failed</span>
+                  )}
+                  <span>💾 {formatBytes(store.sizeBytes)}</span>
                 </div>
               </div>
               <div className="store-actions">
-                <button
+                <Link
+                  to={`/ask?segments=${encodeURIComponent(store.name)}`}
+                  className="btn btn-primary"
+                  style={{ marginRight: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                >
+                  Ask About This
+                </Link>
+                <Link
+                  to={`/notes/${encodeURIComponent(store.name)}`}
                   className="btn btn-secondary"
-                  onClick={() => {
-                    setSelectedStoreForNotes(store.name);
-                    setShowNotesEditor(true);
-                  }}
-                  style={{ marginRight: '0.5rem' }}
+                  style={{ marginRight: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem', textDecoration: 'none', display: 'inline-block' }}
                 >
                   Write Notes
-                </button>
+                </Link>
                 <Link
                   to={`/store/${encodeURIComponent(store.name)}`}
-                  className="btn btn-primary"
+                  className="btn btn-secondary"
+                  style={{ marginRight: '0.5rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                 >
-                  View
+                  View Details
                 </Link>
                 <button
                   className="btn btn-danger"
                   onClick={() => handleDeleteStore(store.name, store.displayName)}
                   disabled={deleting === store.name}
+                  style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
                 >
                   {deleting === store.name ? 'Deleting...' : 'Delete'}
                 </button>
@@ -785,23 +807,26 @@ function FileStoreList() {
         <div className="modal" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Create New File Store</h3>
+              <h3>Create New Knowledge Segment</h3>
               <button className="close-btn" onClick={() => setShowCreateModal(false)}>
                 ×
               </button>
             </div>
             <form onSubmit={handleCreateStore}>
               <div className="form-group">
-                <label htmlFor="storeName">Store Display Name</label>
+                <label htmlFor="storeName">Segment Name</label>
                 <input
                   id="storeName"
                   type="text"
                   value={newStoreName}
                   onChange={(e) => setNewStoreName(e.target.value)}
-                  placeholder="e.g., My Document Store"
+                  placeholder="e.g., Support Team, Product Documentation, Client Onboarding"
                   required
                   autoFocus
                 />
+                <p style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  Choose a name that describes the type of knowledge this segment will contain
+                </p>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button
@@ -820,19 +845,6 @@ function FileStoreList() {
         </div>
       )}
 
-      {selectedStoreForNotes && (
-        <NotesEditor
-          isOpen={showNotesEditor}
-          onClose={() => {
-            setShowNotesEditor(false);
-            setSelectedStoreForNotes(null);
-          }}
-          storeName={selectedStoreForNotes}
-          onSuccess={async () => {
-            await loadStores();
-          }}
-        />
-      )}
     </div>
   );
 }

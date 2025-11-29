@@ -150,27 +150,50 @@ function Files() {
           });
         }
       } else if (fileData.mimeType === 'application/pdf') {
-        // For PDFs, try to extract text using Gemini API first
+        // For PDFs, fetch the blob first for download, then try to extract text for preview
+        let pdfBlob = null;
+        let textContent = null;
+        let blobError = null;
+        
+        // Always fetch the PDF blob for download
         try {
-          const textContent = await extractTextFromFileUsingGemini(fileData);
-          setExtractedContent({
-            file: fileData,
-            content: textContent,
-            type: 'text',
-          });
-        } catch (geminiError) {
-          // If Gemini extraction fails, try downloading as blob
-          try {
-            const result = await extractFileContent(fileData);
-            setExtractedContent({
-              file: fileData,
-              content: result.content,
-              type: 'blob',
-            });
-          } catch (pdfError) {
-            throw new Error(`Failed to extract PDF content: ${geminiError.message}`);
+          const blobResult = await extractFileContent(fileData);
+          // Ensure the content is a proper Blob
+          if (blobResult.content instanceof Blob) {
+            pdfBlob = blobResult.content;
+          } else {
+            // If it's not a Blob, try to create one
+            pdfBlob = new Blob([blobResult.content], { type: 'application/pdf' });
           }
+        } catch (error) {
+          blobError = error;
+          console.warn('Failed to fetch PDF blob:', error);
+          // If blob fetch fails, we'll still try text extraction
         }
+        
+        // Try to extract text using Gemini API for preview
+        try {
+          textContent = await extractTextFromFileUsingGemini(fileData);
+        } catch (geminiError) {
+          console.warn('Failed to extract PDF text:', geminiError);
+        }
+        
+        // If both blob and text extraction failed, throw an error
+        if (!pdfBlob && !textContent) {
+          throw new Error(
+            blobError?.message || 
+            'Failed to extract PDF content. The file may not have a download URI or may not be accessible.'
+          );
+        }
+        
+        // Store both blob and text if available
+        setExtractedContent({
+          file: fileData,
+          content: pdfBlob || textContent, // Use blob if available, otherwise text
+          textContent: textContent, // Store text separately for preview
+          blob: pdfBlob, // Store blob separately for download
+          type: pdfBlob ? 'blob' : (textContent ? 'text' : 'blob'),
+        });
       } else {
         // For other binary files, download as blob
         const result = await extractFileContent(fileData);
@@ -264,20 +287,80 @@ function Files() {
   };
 
   const handleDownloadContent = () => {
-    if (!extractedContent) return;
+    if (!extractedContent) {
+      setError('No content available to download');
+      return;
+    }
     
-    const blob = extractedContent.type === 'blob' 
-      ? extractedContent.content 
-      : new Blob([extractedContent.content], { type: extractedContent.file.mimeType });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = extractedContent.file.displayName || extractedContent.file.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      // For PDFs, prioritize the blob if available
+      let blob;
+      if (extractedContent.file.mimeType === 'application/pdf') {
+        if (extractedContent.blob) {
+          // Use the PDF blob directly
+          blob = extractedContent.blob;
+        } else {
+          // If no blob, try to create one from content or show error
+          if (extractedContent.content && extractedContent.content instanceof Blob) {
+            blob = extractedContent.content;
+          } else {
+            setError('PDF blob is not available. The file may not have a download URI. Please try extracting content again.');
+            return;
+          }
+        }
+      } else if (extractedContent.type === 'blob') {
+        // Use the blob content directly
+        blob = extractedContent.content;
+        // Ensure it's a Blob instance
+        if (!(blob instanceof Blob)) {
+          blob = new Blob([blob], { type: extractedContent.file.mimeType || 'application/octet-stream' });
+        }
+      } else {
+        // Create a blob from text content
+        blob = new Blob([extractedContent.content], { 
+          type: extractedContent.file.mimeType || 'text/plain' 
+        });
+      }
+      
+      // Validate blob
+      if (!blob || !(blob instanceof Blob)) {
+        setError('Failed to create valid file blob for download');
+        return;
+      }
+      
+      // Check if blob is empty (size 0 might indicate an issue)
+      if (blob.size === 0) {
+        setError('The file blob is empty. The file may be corrupted or not fully downloaded.');
+        return;
+      }
+      
+      // Determine file extension based on mime type
+      let fileName = extractedContent.file.displayName || extractedContent.file.name;
+      if (!fileName.includes('.')) {
+        const extension = extractedContent.file.mimeType === 'application/pdf' ? '.pdf' : '.txt';
+        fileName = fileName + extension;
+      }
+      
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        // Prevent the browser from trying to open the file
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        // Clean up after a short delay to ensure download starts
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      } catch (urlError) {
+        setError(`Failed to create download link: ${urlError.message}`);
+      }
+    } catch (error) {
+      setError(`Failed to download content: ${error.message}`);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -307,6 +390,40 @@ function Files() {
 
   const renderContentPreview = () => {
     if (!extractedContent) return null;
+
+    // For PDFs, show text preview if available, otherwise show blob info
+    if (extractedContent.file.mimeType === 'application/pdf') {
+      if (extractedContent.textContent) {
+        return (
+          <div>
+            <p style={{ marginBottom: '1rem', color: '#6b7280', fontStyle: 'italic' }}>
+              Text preview (extracted from PDF). {extractedContent.blob ? 'Download button will save the original PDF file.' : 'Note: PDF download may not be available if the file does not have a download URI.'}
+            </p>
+            <pre className="content-preview-text">
+              {extractedContent.textContent}
+            </pre>
+          </div>
+        );
+      } else if (extractedContent.blob) {
+        return (
+          <div className="content-preview-binary">
+            <p>PDF file ready for download. Use the download button to save the file.</p>
+            <p className="file-info">MIME Type: {extractedContent.file.mimeType}</p>
+            <p className="file-info">Size: {formatBytes(extractedContent.file.sizeBytes)}</p>
+          </div>
+        );
+      } else {
+        return (
+          <div className="content-preview-binary">
+            <p style={{ color: '#ef4444', marginBottom: '1rem' }}>
+              ⚠️ PDF blob is not available. The file may not have a download URI. You can view the text content if available, but downloading the original PDF may not be possible.
+            </p>
+            <p className="file-info">MIME Type: {extractedContent.file.mimeType}</p>
+            <p className="file-info">Size: {formatBytes(extractedContent.file.sizeBytes)}</p>
+          </div>
+        );
+      }
+    }
 
     if (extractedContent.type === 'text') {
       return (
@@ -422,8 +539,9 @@ function Files() {
 
         {files.length === 0 ? (
           <div className="empty-state">
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📁</div>
             <h3>No files found</h3>
-            <p>Upload your first file to get started.</p>
+            <p>Upload your first file to get started. Files can be added to knowledge segments for AI-powered search.</p>
           </div>
         ) : (
           <>
@@ -460,7 +578,7 @@ function Files() {
                       onClick={() => handleAttachToStore(file)}
                       disabled={file.state !== 'ACTIVE'}
                     >
-                      Attach to Store
+                      Add to Segment
                     </button>
                     <button
                       className="btn btn-danger"
@@ -515,6 +633,18 @@ function Files() {
               <button
                 className="btn btn-primary"
                 onClick={handleDownloadContent}
+                disabled={
+                  extractedContent.file.mimeType === 'application/pdf' && 
+                  !extractedContent.blob && 
+                  !(extractedContent.content instanceof Blob)
+                }
+                title={
+                  extractedContent.file.mimeType === 'application/pdf' && 
+                  !extractedContent.blob && 
+                  !(extractedContent.content instanceof Blob)
+                    ? 'PDF download is not available. The file may not have a download URI.'
+                    : 'Download the file content'
+                }
               >
                 Download Content
               </button>
@@ -536,23 +666,23 @@ function Files() {
         <div className="modal" onClick={() => setShowAttachModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Attach File to Store</h3>
+              <h3>Add File to Knowledge Segment</h3>
               <button className="close-btn" onClick={() => setShowAttachModal(false)}>
                 ×
               </button>
             </div>
             <div style={{ padding: '1.5rem' }}>
               <p style={{ marginBottom: '1rem', color: '#6b7280' }}>
-                Select a store to attach <strong>{selectedFileForAttach.displayName || selectedFileForAttach.name}</strong> to:
+                Select a knowledge segment to add <strong>{selectedFileForAttach.displayName || selectedFileForAttach.name}</strong> to:
               </p>
               
               {loadingStores ? (
-                <div className="loading">Loading stores...</div>
+                <div className="loading">Loading segments...</div>
               ) : stores.length === 0 ? (
                 <div className="empty-state">
-                  <p>No stores available. Create a store first.</p>
-                  <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-                    Go to Stores
+                  <p>No knowledge segments available. Create a segment first.</p>
+                  <Link to="/segments" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                    Go to Segments
                   </Link>
                 </div>
               ) : (

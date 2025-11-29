@@ -13,7 +13,6 @@ import {
 } from '../services/fileStoreService';
 import { listFiles } from '../services/filesService';
 import { synthesizeKnowledge } from '../services/documentAnalysisService';
-import NotesEditor from './NotesEditor';
 import './FileStoreDetail.css';
 
 function FileStoreDetail() {
@@ -48,7 +47,6 @@ function FileStoreDetail() {
   const [inputMode, setInputMode] = useState('text'); // 'text' or 'audio'
   const [outputMode, setOutputMode] = useState('text'); // 'text' or 'audio'
   const [isRecording, setIsRecording] = useState(false);
-  const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [synthesisMode, setSynthesisMode] = useState(false);
   const [relatedDocuments, setRelatedDocuments] = useState([]);
   const isLoadingStoreDetailsRef = useRef(false);
@@ -738,7 +736,7 @@ function FileStoreDetail() {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button
               className="btn btn-secondary"
-              onClick={() => setShowNotesEditor(true)}
+              onClick={() => navigate(`/notes/${encodeURIComponent(storeName)}`)}
             >
               Write Notes
             </button>
@@ -1449,16 +1447,6 @@ function FileStoreDetail() {
         </div>
       )}
 
-      <NotesEditor
-        isOpen={showNotesEditor}
-        onClose={() => setShowNotesEditor(false)}
-        storeName={storeName}
-        onSuccess={async () => {
-          await loadStoreDetails();
-          await loadDocuments();
-          setSuccess('Notes saved and attached to store successfully!');
-        }}
-      />
     </div>
   );
 }

@@ -134,55 +134,192 @@ function ConciergeDashboard() {
     );
   }
 
+  // Calculate metrics
+  const totalDocuments = stores.reduce((sum, store) => sum + (store.activeDocumentsCount || 0), 0);
+  const totalSegments = stores.length;
+  const totalSize = stores.reduce((sum, store) => sum + (parseInt(store.sizeBytes) || 0), 0);
+  const pendingDocuments = stores.reduce((sum, store) => sum + (store.pendingDocumentsCount || 0), 0);
+  const failedDocuments = stores.reduce((sum, store) => sum + (store.failedDocumentsCount || 0), 0);
+
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === '0') return '0 B';
+    const b = parseInt(bytes);
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(2)} KB`;
+    if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
+
   return (
     <div className="concierge-dashboard">
       <div className="dashboard-header">
-        <h1>AI Concierge Dashboard</h1>
-        <p className="dashboard-subtitle">Your intelligent knowledge assistant</p>
+        <div>
+          <h1>Dashboard</h1>
+          <p className="dashboard-subtitle">Knowledge base analytics and insights</p>
+        </div>
+        <Link to="/ask" className="btn btn-primary" style={{ whiteSpace: 'nowrap' }}>
+          Ask Question →
+        </Link>
       </div>
 
       {error && <div className="dashboard-error">{error}</div>}
 
-      {/* Store Selection */}
-      <div className="dashboard-section">
-        <h2>Select Knowledge Stores</h2>
-        <div className="store-selection">
-          {stores.map(store => (
-            <label key={store.name} className="store-checkbox-large">
-              <input
-                type="checkbox"
-                checked={selectedStores.includes(store.name)}
-                onChange={() => handleStoreToggle(store.name)}
-              />
-              <div className="store-info">
-                <span className="store-name">{store.displayName || store.name}</span>
-                <span className="store-meta">
-                  {store.documentCount || 0} documents
-                </span>
-              </div>
-            </label>
-          ))}
-          {stores.length === 0 && (
-            <p className="no-stores">No file stores available. <Link to="/">Create one</Link> to get started.</p>
-          )}
+      {/* Knowledge Health Metrics */}
+      <div className="metrics-grid">
+        <div className="metric-card">
+          <div className="metric-icon">📚</div>
+          <div className="metric-content">
+            <div className="metric-value">{totalSegments}</div>
+            <div className="metric-label">Knowledge Segments</div>
+          </div>
         </div>
-        {selectedStores.length > 0 && (
-          <button
-            className="btn-analyze"
-            onClick={analyzeKnowledge}
-            disabled={analyzing}
-          >
-            {analyzing ? 'Analyzing...' : 'Analyze Knowledge'}
-          </button>
+        <div className="metric-card">
+          <div className="metric-icon">📄</div>
+          <div className="metric-content">
+            <div className="metric-value">{totalDocuments}</div>
+            <div className="metric-label">Total Documents</div>
+          </div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-icon">💾</div>
+          <div className="metric-content">
+            <div className="metric-value">{formatBytes(totalSize)}</div>
+            <div className="metric-label">Total Size</div>
+          </div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-icon">✅</div>
+          <div className="metric-content">
+            <div className="metric-value">{totalDocuments - pendingDocuments - failedDocuments}</div>
+            <div className="metric-label">Active Documents</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="dashboard-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Quick Actions</h2>
+          <Link to="/segments" className="btn btn-secondary" style={{ fontSize: '0.875rem' }}>
+            Manage Segments →
+          </Link>
+        </div>
+        <div className="quick-actions-grid">
+          <Link to="/ask" className="quick-action-card">
+            <div className="quick-action-icon">💬</div>
+            <h3>Ask Question</h3>
+            <p>Get instant answers from your knowledge base</p>
+          </Link>
+          <Link to="/segments" className="quick-action-card">
+            <div className="quick-action-icon">📁</div>
+            <h3>View Segments</h3>
+            <p>Browse and manage your knowledge segments</p>
+          </Link>
+          <Link to="/files" className="quick-action-card">
+            <div className="quick-action-icon">📤</div>
+            <h3>Upload Files</h3>
+            <p>Add new documents to your knowledge base</p>
+          </Link>
+          <Link to="/knowledge-graph" className="quick-action-card">
+            <div className="quick-action-icon">🕸️</div>
+            <h3>Knowledge Graph</h3>
+            <p>Visualize document relationships</p>
+          </Link>
+        </div>
+      </div>
+
+      {/* Knowledge Segments Overview */}
+      <div className="dashboard-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Knowledge Segments</h2>
+          <Link to="/segments" className="btn btn-secondary" style={{ fontSize: '0.875rem' }}>
+            View All →
+          </Link>
+        </div>
+        {stores.length === 0 ? (
+          <div className="empty-state">
+            <p>No knowledge segments available. <Link to="/segments">Create one</Link> to get started.</p>
+          </div>
+        ) : (
+          <div className="segments-overview">
+            {stores.slice(0, 6).map(store => (
+              <div key={store.name} className="segment-overview-card">
+                <div className="segment-overview-header">
+                  <h3>{store.displayName || store.name}</h3>
+                  <span className="badge badge-success">{store.activeDocumentsCount || 0} docs</span>
+                </div>
+                <div className="segment-overview-details">
+                  <span>{formatBytes(store.sizeBytes)}</span>
+                  {store.pendingDocumentsCount > 0 && (
+                    <span style={{ color: '#f59e0b' }}>⏳ {store.pendingDocumentsCount} pending</span>
+                  )}
+                </div>
+                <div className="segment-overview-actions">
+                  <Link
+                    to={`/ask?segments=${encodeURIComponent(store.name)}`}
+                    className="btn btn-primary"
+                    style={{ fontSize: '0.8125rem', padding: '0.375rem 0.75rem' }}
+                  >
+                    Ask
+                  </Link>
+                  <Link
+                    to={`/store/${encodeURIComponent(store.name)}`}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8125rem', padding: '0.375rem 0.75rem' }}
+                  >
+                    View
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {analyzing && (
-        <div className="analyzing-indicator">
-          <div className="spinner"></div>
-          <span>Analyzing your knowledge base...</span>
+      {/* Analysis Section */}
+      <div className="dashboard-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Knowledge Analysis</h2>
+          {stores.length > 0 && (
+            <div className="store-selection-mini">
+              <select
+                className="store-select-mini"
+                value={selectedStores[0] || ''}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedStores([e.target.value]);
+                  } else {
+                    setSelectedStores([]);
+                  }
+                }}
+              >
+                <option value="">Select segment to analyze</option>
+                {stores.map(store => (
+                  <option key={store.name} value={store.name}>
+                    {store.displayName || store.name}
+                  </option>
+                ))}
+              </select>
+              {selectedStores.length > 0 && (
+                <button
+                  className="btn-analyze"
+                  onClick={analyzeKnowledge}
+                  disabled={analyzing}
+                >
+                  {analyzing ? 'Analyzing...' : 'Analyze'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        {analyzing && (
+          <div className="analyzing-indicator">
+            <div className="spinner"></div>
+            <span>Analyzing your knowledge base...</span>
+          </div>
+        )}
+      </div>
 
       {/* Insights Panel */}
       {insights && !insights.error && (

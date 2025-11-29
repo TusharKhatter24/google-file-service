@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { mapDocumentRelationships, analyzeStoreDocuments } from '../services/documentAnalysisService';
 import { listFileStores, listDocuments } from '../services/fileStoreService';
 import './KnowledgeGraph.css';
@@ -187,7 +188,14 @@ function KnowledgeGraph() {
   }, []);
 
   if (loading) {
-    return <div className="knowledge-graph loading">Loading...</div>;
+    return (
+      <div className="knowledge-graph">
+        <div className="loading" style={{ textAlign: 'center', padding: '4rem' }}>
+          <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+          <p>Loading knowledge graph...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -201,19 +209,30 @@ function KnowledgeGraph() {
 
       {/* Store Selection */}
       <div className="graph-section">
-        <h2>Select Knowledge Store</h2>
-        <select
-          className="store-select"
-          value={selectedStore || ''}
-          onChange={(e) => setSelectedStore(e.target.value)}
-        >
-          <option value="">-- Select a store --</option>
-          {stores.map(store => (
-            <option key={store.name} value={store.name}>
-              {store.displayName || store.name}
-            </option>
-          ))}
-        </select>
+        <h2>Select Knowledge Segment</h2>
+        {stores.length === 0 ? (
+          <div className="empty-state">
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🕸️</div>
+            <h3>No knowledge segments available</h3>
+            <p>Create a knowledge segment first to visualize document relationships.</p>
+            <Link to="/segments" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+              Create Segment
+            </Link>
+          </div>
+        ) : (
+          <select
+            className="store-select"
+            value={selectedStore || ''}
+            onChange={(e) => setSelectedStore(e.target.value)}
+          >
+            <option value="">-- Select a segment --</option>
+            {stores.map(store => (
+              <option key={store.name} value={store.name}>
+                {store.displayName || store.name}
+              </option>
+            ))}
+          </select>
+        )}
         {selectedStore && (
           <button
             className="btn-refresh"
@@ -286,7 +305,11 @@ function KnowledgeGraph() {
             </div>
           ) : !analyzing && (
             <div className="no-relationships">
-              <p>No relationships found. Try analyzing the store first.</p>
+              <div style={{ textAlign: 'center', padding: '3rem' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔗</div>
+                <h3>No relationships found</h3>
+                <p>Select a segment and analyze it to visualize document relationships.</p>
+              </div>
             </div>
           )}
         </div>

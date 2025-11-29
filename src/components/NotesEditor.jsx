@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
@@ -17,7 +18,10 @@ import { analyzeWritingStyle, getContextAwareSuggestions } from '../services/con
 import { trackInteraction } from '../services/personalizationService';
 import './NotesEditor.css';
 
-function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
+function NotesEditor() {
+  const { storeName: storeNameParam } = useParams();
+  const navigate = useNavigate();
+  const storeName = storeNameParam ? decodeURIComponent(storeNameParam) : null;
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -45,22 +49,24 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   const [documentPrompt, setDocumentPrompt] = useState('');
   const [documentType, setDocumentType] = useState('document');
   const [uploadOption, setUploadOption] = useState('store');
+  const [showSegmentSelector, setShowSegmentSelector] = useState(false);
+  const [segmentSearchQuery, setSegmentSearchQuery] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      setContent('');
-      setError(null);
-      setFileName('');
-      setShowFileNameDialog(false);
-      setSelectedText('');
-      setSelectedRange(null);
-      setAiSuggestions(null);
-      setTranscriptionText('');
-      setUploadOption('store'); // Reset to default
-      loadFileStores();
-    }
+    setContent('');
+    setError(null);
+    setFileName('');
+    setShowFileNameDialog(false);
+    setSelectedText('');
+    setSelectedRange(null);
+    setAiSuggestions(null);
+    setTranscriptionText('');
+    setUploadOption('store'); // Reset to default
+    setShowSegmentSelector(false);
+    setSegmentSearchQuery('');
+    loadFileStores();
     
-    // Cleanup on close
+    // Cleanup on unmount
     return () => {
       if (recognition) {
         try {
@@ -70,20 +76,30 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
         }
       }
     };
-  }, [isOpen]);
+  }, [storeName]);
+
+  // Close segment selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSegmentSelector && !event.target.closest('.segment-selector-wrapper')) {
+        setShowSegmentSelector(false);
+      }
+    };
+
+    if (showSegmentSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSegmentSelector]);
 
   const loadFileStores = async () => {
-    // Prevent multiple simultaneous calls
-    if (!isOpen) return;
-    
     try {
       const response = await listFileStores(20);
       setAvailableStores(response.fileSearchStores || []);
       // Pre-select the current store if provided
       if (storeName) {
-        const decodedStoreName = decodeURIComponent(storeName);
         const store = (response.fileSearchStores || []).find(
-          s => s.name === decodedStoreName
+          s => s.name === storeName
         );
         if (store) {
           setSelectedStores([store.name]);
@@ -510,11 +526,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
         setContent('');
         setFileName('');
         
-        if (onSuccess) {
-          onSuccess();
-        }
-        
-        onClose();
+        navigate('/segments');
       } else {
         // Import file to store
         const decodedStoreName = decodeURIComponent(storeName);
@@ -569,13 +581,26 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     });
   };
 
-  if (!isOpen) return null;
+  const handleSelectAllStores = () => {
+    if (selectedStores.length === availableStores.length) {
+      setSelectedStores([]);
+    } else {
+      setSelectedStores(availableStores.map(s => s.name));
+    }
+  };
 
   return (
-    <div className="notes-editor-modal" onClick={onClose}>
-      <div className="notes-editor-content" onClick={(e) => e.stopPropagation()}>
+    <div className="notes-editor-page">
+      <div className="notes-editor-container">
         <div className="notes-editor-header">
-          <h3>Smart Notes Taker</h3>
+          <div>
+            <h3>Smart Notes Taker</h3>
+            {storeName && (
+              <p style={{ margin: '0.25rem 0 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+                Writing notes for: {availableStores.find(s => s.name === storeName)?.displayName || storeName}
+              </p>
+            )}
+          </div>
           <div className="notes-editor-header-actions">
             <button
               className="btn btn-icon"
@@ -584,9 +609,9 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             >
               {showAIPanel ? '🤖' : '🤖'}
             </button>
-            <button className="close-btn" onClick={onClose} disabled={saving}>
-              ×
-            </button>
+            <Link to="/segments" className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+              ← Back
+            </Link>
           </div>
         </div>
 
@@ -599,7 +624,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               <span className="ai-tools-title">AI Tools</span>
               {selectedStores.length > 0 && (
                 <span className="context-indicator">
-                  Using {selectedStores.length} store{selectedStores.length > 1 ? 's' : ''} for context
+                  {selectedStores.length} segment{selectedStores.length !== 1 ? 's' : ''} selected
                 </span>
               )}
             </div>
@@ -607,20 +632,138 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             <div className="ai-tools-content">
               {/* Context Selector */}
               <div className="context-selector">
-                <label>File Store Context (optional):</label>
-                <div className="store-checkboxes">
-                  {availableStores.map(store => (
-                    <label key={store.name} className="store-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedStores.includes(store.name)}
-                        onChange={() => handleStoreToggle(store.name)}
-                      />
-                      <span>{store.displayName || store.name}</span>
-                    </label>
-                  ))}
-                  {availableStores.length === 0 && (
-                    <span className="no-stores">No file stores available</span>
+                <div className="context-selector-header">
+                  <label>Knowledge Segment Context (optional)</label>
+                  <span className="context-help-text">
+                    Select segments to provide context for AI suggestions
+                  </span>
+                </div>
+                
+                {/* Selected Segments Pills */}
+                {selectedStores.length > 0 && (
+                  <div className="selected-segments-pills">
+                    {selectedStores.map(storeName => {
+                      const store = availableStores.find(s => s.name === storeName);
+                      return (
+                        <div key={storeName} className="segment-pill">
+                          <span className="pill-name">
+                            {store?.displayName || storeName.split('/').pop()}
+                          </span>
+                          {store && (
+                            <span className="pill-count">
+                              {store.activeDocumentsCount || 0} docs
+                            </span>
+                          )}
+                          <button
+                            className="pill-remove"
+                            onClick={() => handleStoreToggle(storeName)}
+                            title="Remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Segment Selector Dropdown */}
+                <div className="segment-selector-wrapper">
+                  <button
+                    className="segment-selector-trigger"
+                    onClick={() => setShowSegmentSelector(!showSegmentSelector)}
+                    type="button"
+                  >
+                    <span>
+                      {selectedStores.length === 0
+                        ? 'Select knowledge segments...'
+                        : `${selectedStores.length} segment${selectedStores.length !== 1 ? 's' : ''} selected`}
+                    </span>
+                    <span className="dropdown-icon">
+                      {showSegmentSelector ? '▲' : '▼'}
+                    </span>
+                  </button>
+
+                  {showSegmentSelector && (
+                    <div className="segment-selector-dropdown">
+                      {availableStores.length > 0 && (
+                        <>
+                          <div className="segment-search">
+                            <input
+                              type="text"
+                              placeholder="Search segments..."
+                              value={segmentSearchQuery}
+                              onChange={(e) => setSegmentSearchQuery(e.target.value)}
+                              className="segment-search-input"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="segment-selector-actions">
+                            <button
+                              type="button"
+                              className="segment-action-btn"
+                              onClick={handleSelectAllStores}
+                            >
+                              {selectedStores.length === availableStores.length ? 'Clear All' : 'Select All'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="segment-list">
+                        {availableStores
+                          .filter(store => {
+                            if (!segmentSearchQuery) return true;
+                            const searchLower = segmentSearchQuery.toLowerCase();
+                            const displayName = (store.displayName || store.name).toLowerCase();
+                            return displayName.includes(searchLower);
+                          })
+                          .map(store => (
+                            <label
+                              key={store.name}
+                              className={`segment-option ${selectedStores.includes(store.name) ? 'selected' : ''}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedStores.includes(store.name)}
+                                onChange={() => handleStoreToggle(store.name)}
+                              />
+                              <div className="segment-option-content">
+                                <div className="segment-option-name">
+                                  {store.displayName || store.name.split('/').pop()}
+                                </div>
+                                <div className="segment-option-meta">
+                                  <span>{store.activeDocumentsCount || 0} documents</span>
+                                  {store.pendingDocumentsCount > 0 && (
+                                    <span className="pending-badge">
+                                      {store.pendingDocumentsCount} pending
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        {availableStores.length === 0 && (
+                          <div className="no-segments-message">
+                            <p>No knowledge segments available</p>
+                            <Link to="/segments" className="create-segment-link">
+                              Create your first segment →
+                            </Link>
+                          </div>
+                        )}
+                        {availableStores.length > 0 && 
+                         availableStores.filter(store => {
+                           if (!segmentSearchQuery) return true;
+                           const searchLower = segmentSearchQuery.toLowerCase();
+                           const displayName = (store.displayName || store.name).toLowerCase();
+                           return displayName.includes(searchLower);
+                         }).length === 0 && (
+                          <div className="no-segments-message">
+                            <p>No segments match "{segmentSearchQuery}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -866,13 +1009,12 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             )}
           </div>
           <div className="footer-actions">
-            <button
+            <Link
+              to="/segments"
               className="btn btn-secondary"
-              onClick={onClose}
-              disabled={saving}
             >
               Cancel
-            </button>
+            </Link>
             <button
               className="btn btn-primary"
               onClick={handleSave}
@@ -923,7 +1065,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                         checked={uploadOption === 'store'}
                         onChange={(e) => setUploadOption(e.target.value)}
                       />
-                      <span>File Store ({decodeURIComponent(storeName).split('/').pop()})</span>
+                      <span>Knowledge Segment ({storeName.split('/').pop()})</span>
                     </label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                       <input

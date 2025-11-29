@@ -1,11 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import FileStoreList from './components/FileStoreList';
 import FileStoreDetail from './components/FileStoreDetail';
 import Files from './components/Files';
 import ConciergeDashboard from './components/ConciergeDashboard';
 import WorkflowAssistant from './components/WorkflowAssistant';
 import KnowledgeGraph from './components/KnowledgeGraph';
+import AskInterface from './components/AskInterface';
+import Settings from './components/Settings';
+import NotesEditor from './components/NotesEditor';
 import './App.css';
 
 function App() {
@@ -13,37 +16,51 @@ function App() {
     <Router>
       <div className="app">
         <header className="app-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <Link to="/" className="app-title">
-              <h1>Google File Manager</h1>
+          <div className="header-container">
+            <Link to="/ask" className="app-title">
+              <h1>AI Concierge</h1>
             </Link>
-            <nav style={{ display: 'flex', gap: '1rem' }}>
-              <Link to="/" style={{ color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
-                Stores
+            <nav className="main-nav">
+              <Link to="/ask" className="nav-link nav-link-primary">
+                Ask
               </Link>
-              <Link to="/files" style={{ color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
+              <Link to="/notes" className="nav-link nav-link-primary">
+                Notes
+              </Link>
+              <Link to="/segments" className="nav-link">
+                Knowledge Segments
+              </Link>
+              <Link to="/dashboard" className="nav-link">
+                Dashboard
+              </Link>
+              <Link to="/files" className="nav-link nav-link-secondary">
                 Files
               </Link>
-              <Link to="/concierge" style={{ color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
-                AI Concierge
-              </Link>
-              <Link to="/workflow" style={{ color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
+              <Link to="/workflow" className="nav-link nav-link-secondary">
                 Workflow
               </Link>
-              <Link to="/knowledge-graph" style={{ color: 'white', textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }}>
+              <Link to="/knowledge-graph" className="nav-link nav-link-secondary">
                 Knowledge Graph
+              </Link>
+              <Link to="/settings" className="nav-link nav-link-secondary">
+                Settings
               </Link>
             </nav>
           </div>
         </header>
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<FileStoreList />} />
+            <Route path="/" element={<Navigate to="/ask" replace />} />
+            <Route path="/ask" element={<AskInterface />} />
+            <Route path="/notes" element={<NotesEditor />} />
+            <Route path="/notes/:storeName" element={<NotesEditor />} />
+            <Route path="/segments" element={<FileStoreList />} />
             <Route path="/store/:storeName" element={<FileStoreDetail />} />
             <Route path="/files" element={<Files />} />
-            <Route path="/concierge" element={<ConciergeDashboard />} />
+            <Route path="/dashboard" element={<ConciergeDashboard />} />
             <Route path="/workflow" element={<WorkflowAssistant />} />
             <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
       </div>

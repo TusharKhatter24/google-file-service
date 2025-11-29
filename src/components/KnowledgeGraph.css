@@ -223,6 +223,18 @@
   color: #6b7280;
 }
 
+.no-relationships h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0.5rem 0;
+}
+
+.no-relationships p {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
 .analysis-summary {
   display: flex;
   flex-wrap: wrap;

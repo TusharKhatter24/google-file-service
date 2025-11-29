@@ -1,23 +1,24 @@
 .workflow-assistant {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .workflow-header {
   margin-bottom: 2rem;
-  text-align: center;
 }
 
 .workflow-header h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
+  font-weight: 700;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
 }
 
 .workflow-subtitle {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: #6b7280;
+  margin: 0;
 }
 
 .workflow-error {
@@ -34,86 +35,97 @@
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
 .workflow-section h2 {
   font-size: 1.5rem;
   color: #1f2937;
   margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.5rem;
+  font-weight: 600;
 }
 
-.store-select,
-.template-type-select {
+.store-select {
   width: 100%;
   max-width: 400px;
   padding: 0.75rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
-  margin-bottom: 1rem;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.2s;
 }
 
-.workflow-actions,
-.template-controls {
+.store-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.workflow-actions {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
-.btn-primary,
-.btn-secondary {
+.btn-primary {
   padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-primary {
-  background: #3b82f6;
-  color: #ffffff;
-}
-
 .btn-primary:hover:not(:disabled) {
   background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  padding: 0.75rem 1.5rem;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: #4b5563;
 }
 
 .btn-link {
-  background: transparent;
+  background: none;
   border: none;
   color: #3b82f6;
-  cursor: pointer;
-  text-decoration: underline;
   font-size: 0.875rem;
-  padding: 0;
-  margin-top: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  text-decoration: underline;
 }
 
 .btn-link:hover {
   color: #2563eb;
 }
 
-/* Tasks List */
 .tasks-list {
   margin-top: 1.5rem;
 }
@@ -122,6 +134,7 @@
   font-size: 1.25rem;
   color: #1f2937;
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .task-card {
@@ -131,11 +144,17 @@
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.task-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .task-header {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: center;
   margin-bottom: 0.75rem;
   flex-wrap: wrap;
@@ -143,7 +162,7 @@
 
 .priority-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -165,42 +184,40 @@
 }
 
 .time-estimate {
+  font-size: 0.875rem;
+  color: #6b7280;
+  background: #f3f4f6;
   padding: 0.25rem 0.75rem;
-  background: #e0e7ff;
-  color: #3730a3;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border-radius: 6px;
 }
 
 .complexity-badge {
-  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
   background: #f3f4f6;
-  color: #374151;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
 }
 
 .task-description {
   color: #1f2937;
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
+  margin-bottom: 0.75rem;
 }
 
 .task-meta {
   display: flex;
   gap: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #6b7280;
   margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
 .status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -222,47 +239,68 @@
 }
 
 .priority-reasoning {
+  font-size: 0.8125rem;
+  color: #6b7280;
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: #ffffff;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  color: #4b5563;
+  background: #f9fafb;
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
 }
 
-/* Workflow Template */
-.workflow-template {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: #f9fafb;
+.template-controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.template-type-select {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.template-type-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.workflow-template {
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 .workflow-template h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
 }
 
 .template-description {
-  color: #4b5563;
+  color: #6b7280;
+  font-size: 0.9375rem;
   margin-bottom: 1.5rem;
   line-height: 1.6;
 }
 
-.template-steps,
-.template-resources,
-.template-milestones,
-.template-tips {
+.template-steps {
   margin-bottom: 1.5rem;
 }
 
-.template-steps h4,
-.template-resources h4,
-.template-milestones h4,
-.template-tips h4 {
-  font-size: 1.125rem;
+.template-steps h4 {
+  font-size: 1rem;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.75rem;
 }
@@ -272,37 +310,55 @@
 }
 
 .template-steps li {
-  margin-bottom: 1rem;
-  color: #1f2937;
+  margin-bottom: 0.75rem;
+  color: #374151;
+  line-height: 1.6;
 }
 
-.template-steps li p {
-  color: #4b5563;
-  margin-top: 0.25rem;
+.template-steps strong {
+  color: #1f2937;
 }
 
 .step-time {
   display: inline-block;
   margin-left: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.template-resources,
+.template-milestones,
+.template-tips {
+  margin-bottom: 1.5rem;
+}
+
+.template-resources h4,
+.template-milestones h4,
+.template-tips h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
 }
 
 .template-resources ul,
 .template-milestones ul,
 .template-tips ul {
-  list-style: disc;
   padding-left: 1.5rem;
-  color: #4b5563;
+  list-style: disc;
 }
 
 .template-resources li,
 .template-milestones li,
 .template-tips li {
   margin-bottom: 0.5rem;
+  color: #374151;
+  line-height: 1.6;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -314,38 +370,38 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1rem;
 }
 
 .modal-content {
-  background: #ffffff;
+  background: white;
   border-radius: 12px;
+  padding: 2rem;
   max-width: 600px;
-  width: 100%;
+  width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
 }
 
 .modal-header h3 {
-  margin: 0;
+  font-size: 1.5rem;
   color: #1f2937;
+  margin: 0;
+  font-weight: 600;
 }
 
 .modal-close {
-  background: transparent;
+  background: none;
   border: none;
   font-size: 1.5rem;
-  color: #6b7280;
   cursor: pointer;
+  color: #6b7280;
   padding: 0;
   width: 32px;
   height: 32px;
@@ -356,16 +412,21 @@
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background-color: #f3f4f6;
+  color: #111;
 }
 
 .modal-body {
-  padding: 1.5rem;
+  color: #374151;
+}
+
+.task-detail {
+  margin-bottom: 1.5rem;
 }
 
 .task-detail h4 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.75rem;
 }
@@ -375,7 +436,6 @@
   gap: 1rem;
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 
@@ -384,7 +444,8 @@
 }
 
 .task-documents h4 {
-  font-size: 1.125rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 1rem;
 }
@@ -394,31 +455,79 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .document-recommendation h5 {
-  font-size: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem 0;
 }
 
 .relevance {
-  font-size: 0.875rem;
-  color: #3b82f6;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  color: #6b7280;
   margin-bottom: 0.5rem;
 }
 
 .key-info {
   font-size: 0.875rem;
-  color: #4b5563;
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.empty-state p {
+  margin-bottom: 1rem;
   line-height: 1.6;
 }
 
 .loading {
   text-align: center;
-  padding: 2rem;
+  padding: 4rem;
   color: #6b7280;
+  font-size: 1.125rem;
 }
 
+@media (max-width: 768px) {
+  .workflow-assistant {
+    padding: 1rem;
+  }
+
+  .workflow-actions {
+    flex-direction: column;
+  }
+
+  .template-controls {
+    flex-direction: column;
+  }
+}

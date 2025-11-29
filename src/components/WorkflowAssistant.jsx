@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { listFileStores } from '../services/fileStoreService';
 import { extractTasks, calculateTaskPriorities, generateWorkflowTemplate, estimateTaskTime, recommendDocumentsForTask } from '../services/taskService';
 import './WorkflowAssistant.css';
@@ -123,7 +124,14 @@ function WorkflowAssistant() {
   };
 
   if (loading) {
-    return <div className="workflow-assistant loading">Loading...</div>;
+    return (
+      <div className="workflow-assistant">
+        <div className="loading" style={{ textAlign: 'center', padding: '4rem' }}>
+          <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+          <p>Loading workflow assistant...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -137,19 +145,30 @@ function WorkflowAssistant() {
 
       {/* Store Selection */}
       <div className="workflow-section">
-        <h2>Select Knowledge Store</h2>
-        <select
-          className="store-select"
-          value={selectedStore || ''}
-          onChange={(e) => setSelectedStore(e.target.value)}
-        >
-          <option value="">-- Select a store --</option>
-          {stores.map(store => (
-            <option key={store.name} value={store.name}>
-              {store.displayName || store.name}
-            </option>
-          ))}
-        </select>
+        <h2>Select Knowledge Segment</h2>
+        {stores.length === 0 ? (
+          <div className="empty-state">
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+            <h3>No knowledge segments available</h3>
+            <p>Create a knowledge segment first to extract tasks and manage workflows.</p>
+            <Link to="/segments" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+              Create Segment
+            </Link>
+          </div>
+        ) : (
+          <select
+            className="store-select"
+            value={selectedStore || ''}
+            onChange={(e) => setSelectedStore(e.target.value)}
+          >
+            <option value="">-- Select a segment --</option>
+            {stores.map(store => (
+              <option key={store.name} value={store.name}>
+                {store.displayName || store.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Task Extraction */}
