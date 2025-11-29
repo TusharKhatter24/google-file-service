@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { listFileStores } from '../services/fileStoreService';
 import { generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
 import './AskInterface.css';
@@ -424,7 +425,9 @@ function AskInterface() {
                       </button>
                     )}
                   </div>
-                  <div className="message-text">{msg.text}</div>
+                  <div className="message-text">
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  </div>
                   {msg.generatingAudio && (
                     <div className="audio-generating">
                       <span className="pulse-dot"></span>

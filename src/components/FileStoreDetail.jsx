@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   getFileStore,
@@ -924,199 +925,11 @@ function FileStoreDetail() {
             height: '600px',
             maxHeight: '80vh'
           }}>
-            {/* Chat Messages Area */}
-            <div 
-              className="chat-messages-container"
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem'
-              }}
-            >
-              {chatMessages.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  color: '#6b7280',
-                  padding: '2rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%'
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
-                  <h4>Start a conversation</h4>
-                  <p>Ask Donna questions about the documents in this store. Donna will search through your documents to provide answers.</p>
-                  <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
-                </div>
-              ) : (
-                chatMessages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className="chat-message"
-                    style={{
-                      display: 'flex',
-                      justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      width: '100%'
-                    }}
-                  >
-                    <div style={{
-                      maxWidth: '75%',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '12px',
-                      backgroundColor: msg.role === 'user' 
-                        ? '#3b82f6' 
-                        : msg.isError 
-                        ? '#fee2e2' 
-                        : '#f3f4f6',
-                      color: msg.role === 'user' 
-                        ? '#ffffff' 
-                        : msg.isError 
-                        ? '#dc2626' 
-                        : '#1f2937',
-                      wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap',
-                      position: 'relative'
-                    }}>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        marginBottom: '0.25rem',
-                        opacity: 0.8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                      }}>
-                        <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                        {msg.role === 'model' && msg.sources && msg.sources.length > 0 && (
-                          <button
-                            onClick={() => setShowSources(showSources === idx ? null : idx)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: '0.25rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: 'inherit',
-                              opacity: 0.7
-                            }}
-                            title="View sources"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <line x1="12" y1="16" x2="12" y2="12"></line>
-                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                      <div>{msg.text}</div>
-                      {msg.generatingAudio && (
-                        <div style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.75rem', 
-                          opacity: 0.7,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}>
-                          <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>●</span>
-                          Generating audio...
-                        </div>
-                      )}
-                      {msg.outputType === 'audio' && msg.audioUrl && (
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <audio
-                            controls
-                            src={msg.audioUrl}
-                            style={{ width: '100%', maxWidth: '300px' }}
-                          />
-                        </div>
-                      )}
-                      {msg.audioError && (
-                        <div style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.75rem', 
-                          color: '#dc2626',
-                          opacity: 0.8
-                        }}>
-                          Audio generation failed: {msg.audioError}
-                        </div>
-                      )}
-                      {msg.synthesized && (
-                        <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f0f9ff', borderRadius: '4px', fontSize: '0.75rem', color: '#1e40af' }}>
-                          ✨ Synthesized from multiple documents
-                        </div>
-                      )}
-                      {showSources === idx && msg.sources && msg.sources.length > 0 && (
-                        <div style={{
-                          marginTop: '0.75rem',
-                          paddingTop: '0.75rem',
-                          borderTop: '1px solid rgba(0,0,0,0.1)',
-                          fontSize: '0.75rem'
-                        }}>
-                          <div style={{ fontWeight: '600', marginBottom: '0.5rem', opacity: 0.8 }}>
-                            Sources ({msg.sources.length}):
-                          </div>
-                          {msg.sources.map((source, sourceIdx) => (
-                            <div 
-                              key={sourceIdx}
-                              style={{
-                                marginBottom: '0.5rem',
-                                padding: '0.5rem',
-                                backgroundColor: 'rgba(0,0,0,0.05)',
-                                borderRadius: '4px',
-                                fontSize: '0.7rem'
-                              }}
-                            >
-                              {/* <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-                                {source.title}
-                              </div> */}
-                              <div style={{ 
-                                opacity: 0.7,
-                                maxHeight: '60px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}>
-                                {source.text.substring(0, 150)}...
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-              {chatLoading && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'flex-start',
-                  width: '100%'
-                }}>
-                  <div style={{
-                    padding: '0.75rem 1rem',
-                    borderRadius: '12px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>Thinking</span>
-                      <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Chat Input Area */}
+            {/* Chat Input Area - Moved to Top */}
             <div style={{
-              borderTop: '1px solid #e5e7eb',
-              padding: '1rem'
+              borderBottom: '1px solid #e5e7eb',
+              padding: '1rem',
+              backgroundColor: '#f9fafb'
             }}>
               {/* Knowledge Synthesis Toggle */}
               <div style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1271,6 +1084,171 @@ function FileStoreDetail() {
                       Listening...
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Chat Messages Area */}
+            <div 
+              className="chat-messages-container"
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}
+            >
+              {chatMessages.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  padding: '2rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%'
+                }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+                  <h4>Start a conversation</h4>
+                  <p>Ask Donna questions about the documents in this store. Donna will search through your documents to provide answers.</p>
+                  <p style={{ marginTop: '0.5rem', fontStyle: 'italic', opacity: 0.8 }}>"Your intelligent assistant, always ready to help"</p>
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className="chat-message"
+                    style={{
+                      display: 'flex',
+                      justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '75%',
+                      padding: '0.75rem 1rem',
+                      borderRadius: '12px',
+                      backgroundColor: msg.role === 'user' 
+                        ? '#3b82f6' 
+                        : msg.isError 
+                        ? '#fee2e2' 
+                        : '#f3f4f6',
+                      color: msg.role === 'user' 
+                        ? '#ffffff' 
+                        : msg.isError 
+                        ? '#dc2626' 
+                        : '#1f2937',
+                      wordWrap: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      position: 'relative'
+                    }}>
+                      <div style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        marginBottom: '0.25rem',
+                        opacity: 0.8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
+                        {msg.role === 'model' && msg.sources && msg.sources.length > 0 && (
+                          <button
+                            onClick={() => setShowSources(showSources === idx ? null : idx)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '0.25rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              color: 'inherit',
+                              opacity: 0.7
+                            }}
+                            title="View sources"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="12" y1="16" x2="12" y2="12"></line>
+                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <div><ReactMarkdown>{msg.text}</ReactMarkdown></div>
+                      {msg.generatingAudio && (
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          opacity: 0.7,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>●</span>
+                          Generating audio...
+                        </div>
+                      )}
+                      {msg.outputType === 'audio' && msg.audioUrl && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <audio
+                            controls
+                            src={msg.audioUrl}
+                            style={{ width: '100%', maxWidth: '300px' }}
+                          />
+                        </div>
+                      )}
+                      {msg.audioError && (
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#dc2626',
+                          opacity: 0.8
+                        }}>
+                          Audio generation failed: {msg.audioError}
+                        </div>
+                      )}
+                      {showSources === idx && msg.sources && msg.sources.length > 0 && (
+                        <div style={{
+                          marginTop: '0.75rem',
+                          padding: '0.75rem',
+                          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                          borderRadius: '6px',
+                          fontSize: '0.75rem'
+                        }}>
+                          <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Sources ({msg.sources.length}):</div>
+                          {msg.sources.map((source, sourceIdx) => (
+                            <div key={sourceIdx} style={{ marginBottom: '0.5rem', paddingLeft: '0.5rem', borderLeft: '2px solid #3b82f6' }}>
+                              <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{source.title}</div>
+                              <div style={{ opacity: 0.8 }}>{source.text.substring(0, 150)}...</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+              {chatLoading && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                  width: '100%'
+                }}>
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    backgroundColor: '#f3f4f6',
+                    color: '#6b7280'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span>Thinking</span>
+                      <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>...</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

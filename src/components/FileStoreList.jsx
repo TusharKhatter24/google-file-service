@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Link, useNavigate } from 'react-router-dom';
 import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
 import './FileStoreList.css';
@@ -495,7 +496,7 @@ function FileStoreList() {
                           </button>
                         )}
                       </div>
-                      <div>{msg.text}</div>
+                      <div><ReactMarkdown>{msg.text}</ReactMarkdown></div>
                       {msg.generatingAudio && (
                         <div style={{ 
                           marginTop: '0.5rem', 

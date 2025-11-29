@@ -521,7 +521,7 @@ function NotesEditor() {
 
       // Step 1: Generate PDF
       const pdfFile = await generatePDFFromHTML(htmlContent, finalFileName);
-      
+
       // Ensure the PDF file has a name
       if (!pdfFile || !pdfFile.name) {
         throw new Error('Failed to generate PDF: Generated file is missing a name');
