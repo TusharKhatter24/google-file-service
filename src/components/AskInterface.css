@@ -403,9 +403,6 @@
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
 }
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
 
 .chat-message {
   display: flex;
