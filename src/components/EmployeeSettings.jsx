@@ -48,7 +48,24 @@ function EmployeeSettings() {
       setLoading(true);
       setError(null);
       const response = await listFileStores(20);
-      setStores(response.fileSearchStores || []);
+      const availableStores = response.fileSearchStores || [];
+      setStores(availableStores);
+      
+      // Auto-select stores if none are selected and stores are available
+      const currentConfig = getEmployeeConfig(employeeId);
+      const currentSelectedStores = currentConfig.chat?.selectedStores || [];
+      
+      if (currentSelectedStores.length === 0 && availableStores.length > 0) {
+        // Auto-select all available stores
+        const storeNames = availableStores.map(store => store.name);
+        setSelectedStores(storeNames);
+        // Save to localStorage immediately
+        updateEmployeeConfigSection(employeeId, 'chat', { 
+          ...currentConfig.chat, 
+          selectedStores: storeNames 
+        });
+        setSuccess(`Auto-selected ${storeNames.length} knowledge base${storeNames.length > 1 ? 's' : ''}. You can change this selection anytime.`);
+      }
     } catch (err) {
       setError(err.message || 'Failed to load file stores');
     } finally {
@@ -72,7 +89,21 @@ function EmployeeSettings() {
       const response = await createFileStore(newStoreName.trim());
       const createdStoreName = response.name;
       
-      setSuccess(`Knowledge source "${newStoreName}" created successfully!`);
+      // Auto-select the newly created store if no stores are currently selected
+      const currentConfig = getEmployeeConfig(employeeId);
+      const currentSelectedStores = currentConfig.chat?.selectedStores || [];
+      
+      if (currentSelectedStores.length === 0) {
+        setSelectedStores([createdStoreName]);
+        updateEmployeeConfigSection(employeeId, 'chat', { 
+          ...currentConfig.chat, 
+          selectedStores: [createdStoreName] 
+        });
+        setSuccess(`Knowledge source "${newStoreName}" created and auto-selected successfully!`);
+      } else {
+        setSuccess(`Knowledge source "${newStoreName}" created successfully!`);
+      }
+      
       setNewStoreName('');
       
       // Reload stores list

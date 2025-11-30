@@ -25,11 +25,13 @@ function ChatInterface({ employeeName, employeeId }) {
     if (employeeId) {
       const config = getEmployeeConfig(employeeId);
       setChatConfig(config.chat);
-      // Get selected stores from config - must have at least one selected
+      // Get selected stores from config - loaded from localStorage
       const stores = config.chat?.selectedStores || [];
       setSelectedStores(stores);
       if (stores.length === 0) {
         setError('No knowledge bases selected. Please select at least one knowledge base in Settings.');
+      } else {
+        setError(null); // Clear error if stores are available
       }
     }
   }, [employeeId]);
