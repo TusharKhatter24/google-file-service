@@ -16,7 +16,7 @@ function LandingPage() {
       <section className="landing-hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            AI Concierges to faster/optimise/productive your internal workflow
+            AI Concierges: Accelerate, Optimize, and Streamline Your Internal Workflow
           </h1>
           <p className="hero-subtitle">
             Get an AI Team who run your inbox, integrations, onboarding, implementation, and support
