@@ -275,6 +275,14 @@ export const generateContentWithStore = async (
       ? storeNames
       : [storeNames];
 
+    // Limit to maximum 5 stores as per API requirement
+    const limitedStoreNames = storeNamesArray.slice(0, 5);
+    if (storeNamesArray.length > 5) {
+      console.warn(
+        `Warning: Maximum 5 file search stores allowed. Using first 5 of ${storeNamesArray.length} stores.`
+      );
+    }
+
     // Build contents array with conversation history and current query
     const contents = [];
 
@@ -299,7 +307,7 @@ export const generateContentWithStore = async (
       tools: [
         {
           file_search: {
-            file_search_store_names: storeNamesArray,
+            file_search_store_names: limitedStoreNames,
           },
         },
       ],
@@ -355,6 +363,14 @@ export const generateAudioWithStore = async (
       ? storeNames
       : [storeNames];
 
+    // Limit to maximum 5 stores as per API requirement
+    const limitedStoreNames = storeNamesArray.slice(0, 5);
+    if (storeNamesArray.length > 5) {
+      console.warn(
+        `Warning: Maximum 5 file search stores allowed. Using first 5 of ${storeNamesArray.length} stores.`
+      );
+    }
+
     // Step 1: Generate text response with conversation history
     const textContents = [];
     conversationHistory.forEach((msg) => {
@@ -374,7 +390,7 @@ export const generateAudioWithStore = async (
       tools: [
         {
           file_search: {
-            file_search_store_names: storeNamesArray,
+            file_search_store_names: limitedStoreNames,
           },
         },
       ],
