@@ -336,7 +336,7 @@ function Files() {
             Upload and manage files using Google Files API
           </p>
         </div>
-        <Link to="/" className="btn btn-secondary">
+        <Link to="/stores" className="btn btn-secondary">
           ← Back to Stores
         </Link>
       </div>
@@ -545,7 +545,7 @@ function Files() {
               ) : stores.length === 0 ? (
                 <div className="empty-state">
                   <p>No stores available. Create a store first.</p>
-                  <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                  <Link to="/stores" className="btn btn-primary" style={{ marginTop: '1rem' }}>
                     Go to Stores
                   </Link>
                 </div>

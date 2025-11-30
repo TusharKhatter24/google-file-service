@@ -606,7 +606,7 @@ function FileStoreDetail() {
     return (
       <div className="container">
         <div className="error">Store not found</div>
-        <Link to="/" className="back-link">← Back to Stores</Link>
+        <Link to="/stores" className="back-link">← Back to Stores</Link>
       </div>
     );
   }

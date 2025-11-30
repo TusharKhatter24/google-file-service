@@ -5,6 +5,9 @@ import Login from './components/Login';
 import EmployeeSelection from './components/EmployeeSelection';
 import EmployeeDetail from './components/EmployeeDetail';
 import EmployeeSettings from './components/EmployeeSettings';
+import FileStoreList from './components/FileStoreList';
+import FileStoreDetail from './components/FileStoreDetail';
+import Files from './components/Files';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -35,6 +38,30 @@ function App() {
           element={
             <ProtectedRoute>
               <EmployeeSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stores"
+          element={
+            <ProtectedRoute>
+              <FileStoreList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/store/:storeName"
+          element={
+            <ProtectedRoute>
+              <FileStoreDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/files"
+          element={
+            <ProtectedRoute>
+              <Files />
             </ProtectedRoute>
           }
         />
