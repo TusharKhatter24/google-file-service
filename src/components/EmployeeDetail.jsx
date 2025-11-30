@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getEmployeeById } from '../data/employees';
 import ChatInterface from './ChatInterface';
 import DocumentUpload from './DocumentUpload';
+import SmartNoteMaker from './SmartNoteMaker';
 import './EmployeeDetail.css';
 
 function EmployeeDetail() {
@@ -10,6 +11,7 @@ function EmployeeDetail() {
   const navigate = useNavigate();
   const employee = getEmployeeById(employeeId);
   const [activeTab, setActiveTab] = useState('chat');
+  const [educateSubTab, setEducateSubTab] = useState('upload'); // 'upload' or 'notes'
 
   // Placeholder n8n workflow URL - can be configured later
   const n8nWorkflowUrl = `https://your-n8n-instance.com/workflow/${employeeId}`;
@@ -67,7 +69,28 @@ function EmployeeDetail() {
 
             {activeTab === 'educate' && (
               <div className="tab-panel">
-                <DocumentUpload employeeName={employee.name} employeeId={employeeId} />
+                <div className="educate-subtabs">
+                  <button
+                    className={`subtab-button ${educateSubTab === 'upload' ? 'active' : ''}`}
+                    onClick={() => setEducateSubTab('upload')}
+                  >
+                    📤 Upload Documents
+                  </button>
+                  <button
+                    className={`subtab-button ${educateSubTab === 'notes' ? 'active' : ''}`}
+                    onClick={() => setEducateSubTab('notes')}
+                  >
+                    ✍️ Smart Note Maker
+                  </button>
+                </div>
+                <div className="educate-content">
+                  {educateSubTab === 'upload' && (
+                    <DocumentUpload employeeName={employee.name} employeeId={employeeId} />
+                  )}
+                  {educateSubTab === 'notes' && (
+                    <SmartNoteMaker employeeName={employee.name} employeeId={employeeId} />
+                  )}
+                </div>
               </div>
             )}
 

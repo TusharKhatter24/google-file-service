@@ -35,6 +35,8 @@ function DocumentUpload({ employeeName, employeeId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeId]);
 
+  const uploadConfig = getEmployeeConfig(employeeId)?.upload;
+
   const handleDragEnter = (e) => {
     e.preventDefault();
     e.stopPropagation();
