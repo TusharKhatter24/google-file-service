@@ -63,6 +63,22 @@ export const getFileStore = async (storeName) => {
 };
 
 /**
+ * Update a FileSearchStore display name
+ */
+export const updateFileStore = async (storeName, displayName) => {
+  try {
+    const response = await apiClient.patch(`${API_BASE_URL}/${storeName}`, {
+      displayName,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error?.message || "Failed to update file store"
+    );
+  }
+};
+
+/**
  * Delete a FileSearchStore
  */
 export const deleteFileStore = async (storeName, force = false) => {
