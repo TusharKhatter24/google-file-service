@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_KEY, API_BASE_URL, UPLOAD_API_BASE_URL } from "../config";
+import { getSystemPrompt } from "./settingsService";
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -57,6 +58,22 @@ export const getFileStore = async (storeName) => {
   } catch (error) {
     throw new Error(
       error.response?.data?.error?.message || "Failed to get file store"
+    );
+  }
+};
+
+/**
+ * Update a FileSearchStore display name
+ */
+export const updateFileStore = async (storeName, displayName) => {
+  try {
+    const response = await apiClient.patch(`${API_BASE_URL}/${storeName}`, {
+      displayName,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error?.message || "Failed to update file store"
     );
   }
 };
@@ -258,6 +275,14 @@ export const generateContentWithStore = async (
       ? storeNames
       : [storeNames];
 
+    // Limit to maximum 5 stores as per API requirement
+    const limitedStoreNames = storeNamesArray.slice(0, 5);
+    if (storeNamesArray.length > 5) {
+      console.warn(
+        `Warning: Maximum 5 file search stores allowed. Using first 5 of ${storeNamesArray.length} stores.`
+      );
+    }
+
     // Build contents array with conversation history and current query
     const contents = [];
 
@@ -282,11 +307,19 @@ export const generateContentWithStore = async (
       tools: [
         {
           file_search: {
-            file_search_store_names: storeNamesArray,
+            file_search_store_names: limitedStoreNames,
           },
         },
       ],
     };
+
+    // Add system instruction if available
+    const systemPrompt = getSystemPrompt();
+    if (systemPrompt && systemPrompt.trim()) {
+      requestBody.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
+    }
 
     const response = await apiClient.post(
       `${API_BASE_URL}/models/${model}:generateContent`,
@@ -330,6 +363,14 @@ export const generateAudioWithStore = async (
       ? storeNames
       : [storeNames];
 
+    // Limit to maximum 5 stores as per API requirement
+    const limitedStoreNames = storeNamesArray.slice(0, 5);
+    if (storeNamesArray.length > 5) {
+      console.warn(
+        `Warning: Maximum 5 file search stores allowed. Using first 5 of ${storeNamesArray.length} stores.`
+      );
+    }
+
     // Step 1: Generate text response with conversation history
     const textContents = [];
     conversationHistory.forEach((msg) => {
@@ -349,11 +390,19 @@ export const generateAudioWithStore = async (
       tools: [
         {
           file_search: {
-            file_search_store_names: storeNamesArray,
+            file_search_store_names: limitedStoreNames,
           },
         },
       ],
     };
+
+    // Add system instruction if available
+    const systemPrompt = getSystemPrompt();
+    if (systemPrompt && systemPrompt.trim()) {
+      textRequestBody.systemInstruction = {
+        parts: [{ text: systemPrompt }],
+      };
+    }
 
     const textResponse = await apiClient.post(
       `${API_BASE_URL}/models/${textModel}:generateContent`,

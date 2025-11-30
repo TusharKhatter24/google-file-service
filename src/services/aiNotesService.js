@@ -1,6 +1,7 @@
 import axios from "axios";
 import { API_KEY, API_BASE_URL } from "../config";
 import { generateContentWithStore } from "./fileStoreService";
+import { getSystemPrompt } from "./settingsService";
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -35,16 +36,26 @@ const generateContent = async (prompt, text, storeNames = null, model = "gemini-
       );
     } else {
       // Use standalone generation
+      const requestBody = {
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${prompt}\n\nText:\n${text}` }],
+          },
+        ],
+      };
+
+      // Add system instruction if available
+      const systemPrompt = getSystemPrompt();
+      if (systemPrompt && systemPrompt.trim()) {
+        requestBody.systemInstruction = {
+          parts: [{ text: systemPrompt }],
+        };
+      }
+
       const response = await apiClient.post(
         `${API_BASE_URL}/models/${model}:generateContent`,
-        {
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: `${prompt}\n\nText:\n${text}` }],
-            },
-          ],
-        }
+        requestBody
       );
       responseData = response.data;
     }
@@ -138,6 +149,30 @@ Return only the improved text without any explanations or comments.`;
 export const autoComplete = async (partialText, storeNames = null, maxLength = 100) => {
   const prompt = `Continue writing from where the following text ends. Complete the thought naturally and coherently. Keep the completion to approximately ${maxLength} words or less. Return only the continuation text without repeating the original text.`;
   return await generateContent(prompt, partialText, storeNames);
+};
+
+/**
+ * Generate a document from a prompt with AI assistance
+ * @param {string} prompt - Document topic or requirements
+ * @param {string} documentType - Type of document (e.g., "meeting notes", "report", "summary")
+ * @param {Array<string>} storeNames - Optional file store names for context
+ * @returns {Promise<string>} Generated document content
+ */
+export const generateDocument = async (prompt, documentType = "document", storeNames = null) => {
+  const docPrompt = `Generate a complete ${documentType} based on the following requirements:
+
+${prompt}
+
+The document should:
+1. Be well-structured and professional
+2. Include all relevant sections for a ${documentType}
+3. Be comprehensive and detailed
+4. Follow best practices for ${documentType} writing
+5. Be ready for use
+
+Return the complete document content.`;
+  
+  return await generateContent(docPrompt, "", storeNames);
 };
 
 /**

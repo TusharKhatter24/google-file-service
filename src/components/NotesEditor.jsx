@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
@@ -11,10 +12,16 @@ import {
   improveText,
   autoComplete,
   startSpeechRecognition,
+  generateDocument,
 } from '../services/aiNotesService';
+import { analyzeWritingStyle, getContextAwareSuggestions } from '../services/conciergeService';
+import { trackInteraction } from '../services/personalizationService';
 import './NotesEditor.css';
 
-function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
+function NotesEditor() {
+  const { storeName: storeNameParam } = useParams();
+  const navigate = useNavigate();
+  const storeName = storeNameParam ? decodeURIComponent(storeNameParam) : null;
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -34,21 +41,34 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   const [showAIPanel, setShowAIPanel] = useState(true);
   const [recognition, setRecognition] = useState(null);
   const [transcriptionText, setTranscriptionText] = useState('');
+  const [styleAnalysis, setStyleAnalysis] = useState(null);
+  const [contextSuggestions, setContextSuggestions] = useState([]);
+  const [showStyleCheck, setShowStyleCheck] = useState(false);
+  const [conciergeMode, setConciergeMode] = useState(true);
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
+  const [documentPrompt, setDocumentPrompt] = useState('');
+  const [documentType, setDocumentType] = useState('document');
+  const [uploadOption, setUploadOption] = useState('store');
+  const [showSegmentSelector, setShowSegmentSelector] = useState(false);
+  const [segmentSearchQuery, setSegmentSearchQuery] = useState('');
+  const [selectedUploadSegment, setSelectedUploadSegment] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      setContent('');
-      setError(null);
-      setFileName('');
-      setShowFileNameDialog(false);
-      setSelectedText('');
-      setSelectedRange(null);
-      setAiSuggestions(null);
-      setTranscriptionText('');
-      loadFileStores();
-    }
+    setContent('');
+    setError(null);
+    setFileName('');
+    setShowFileNameDialog(false);
+    setSelectedText('');
+    setSelectedRange(null);
+    setAiSuggestions(null);
+    setTranscriptionText('');
+    setUploadOption('store'); // Reset to default
+    setShowSegmentSelector(false);
+    setSegmentSearchQuery('');
+    setSelectedUploadSegment('');
+    loadFileStores();
     
-    // Cleanup on close
+    // Cleanup on unmount
     return () => {
       if (recognition) {
         try {
@@ -58,20 +78,34 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
         }
       }
     };
-  }, [isOpen]);
+  }, [storeName]);
+
+  // Close segment selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSegmentSelector && !event.target.closest('.segment-selector-wrapper')) {
+        setShowSegmentSelector(false);
+      }
+    };
+
+    if (showSegmentSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSegmentSelector]);
 
   const loadFileStores = async () => {
     try {
-      const response = await listFileStores(50);
+      const response = await listFileStores(20);
       setAvailableStores(response.fileSearchStores || []);
       // Pre-select the current store if provided
       if (storeName) {
-        const decodedStoreName = decodeURIComponent(storeName);
         const store = (response.fileSearchStores || []).find(
-          s => s.name === decodedStoreName
+          s => s.name === storeName
         );
         if (store) {
           setSelectedStores([store.name]);
+          setSelectedUploadSegment(storeName);
         }
       }
     } catch (err) {
@@ -238,8 +272,80 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
       } else {
         handleInsertAIText(improved, false);
       }
+      
+      // Track interaction
+      trackInteraction('writing', { type: 'improve', style: 'improved' });
     } catch (err) {
       setError(err.message || 'Failed to improve text.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleCheckStyleConsistency = async () => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const textToCheck = quill.getText().trim();
+    
+    if (!textToCheck) {
+      setError('Please enter some text to check style consistency.');
+      return;
+    }
+
+    if (selectedStores.length === 0) {
+      setError('Please select at least one store for style comparison.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('style');
+      setError(null);
+      setShowStyleCheck(true);
+
+      const analysis = await analyzeWritingStyle(selectedStores, textToCheck);
+      setStyleAnalysis(analysis);
+      
+      // Track interaction
+      trackInteraction('writing', { type: 'style_check' });
+    } catch (err) {
+      setError(err.message || 'Failed to check style consistency.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleGetContextSuggestions = async () => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const currentText = quill.getText().trim();
+    
+    if (!currentText) {
+      setError('Please enter some text to get context suggestions.');
+      return;
+    }
+
+    if (selectedStores.length === 0) {
+      setError('Please select at least one store for context.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('context');
+      setError(null);
+
+      const suggestions = await getContextAwareSuggestions(selectedStores, currentText);
+      setContextSuggestions(Array.isArray(suggestions) ? suggestions : []);
+      
+      // Track interaction
+      trackInteraction('concierge', { type: 'context_suggestions' });
+    } catch (err) {
+      setError(err.message || 'Failed to get context suggestions.');
     } finally {
       setAiLoading(false);
       setAiLoadingType(null);
@@ -332,6 +438,40 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     }
   };
 
+  const handleGenerateDocument = async () => {
+    if (!documentPrompt.trim()) {
+      setError('Please enter requirements for the document.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('document');
+      setError(null);
+
+      const storeNames = selectedStores.length > 0 ? selectedStores : null;
+      const document = await generateDocument(documentPrompt, documentType, storeNames);
+      
+      // Replace current content with generated document
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        quill.root.innerHTML = document;
+      }
+      
+      // Close dialog and clear prompt
+      setShowDocumentDialog(false);
+      setDocumentPrompt('');
+      
+      // Track interaction
+      trackInteraction('document', { type: 'generate', documentType });
+    } catch (err) {
+      setError(err.message || 'Failed to generate document.');
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
   const handleSave = async () => {
     if (!content.trim()) {
       setError('Please enter some content before saving.');
@@ -346,6 +486,15 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     if (!fileName.trim()) {
       setError('Please enter a file name.');
       return;
+    }
+
+    // Validate segment selection if uploading to store
+    if (uploadOption === 'store') {
+      const segmentToUse = storeName || selectedUploadSegment;
+      if (!segmentToUse) {
+        setError('Please select a Knowledge Segment to upload to.');
+        return;
+      }
     }
 
     try {
@@ -373,44 +522,51 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
       // Step 1: Generate PDF
       const pdfFile = await generatePDFFromHTML(htmlContent, finalFileName);
 
+      // Ensure the PDF file has a name
+      if (!pdfFile || !pdfFile.name) {
+        throw new Error('Failed to generate PDF: Generated file is missing a name');
+      }
+
       // Step 2: Upload PDF to files
       const uploadedFile = await uploadFile(pdfFile, finalFileName);
       
-      if (!uploadedFile || !uploadedFile.name) {
-        throw new Error('Failed to upload file: No file name returned');
+      // Handle different response structures
+      let uploadedFileName = null;
+      
+      if (uploadedFile?.name) {
+        uploadedFileName = uploadedFile.name;
+      } else if (uploadedFile?.file?.name) {
+        uploadedFileName = uploadedFile.file.name;
+      } else {
+        // Log the actual response for debugging
+        console.error('Upload response structure:', uploadedFile);
+        throw new Error(
+          `Failed to upload file: No file name returned. Response: ${JSON.stringify(uploadedFile)}`
+        );
       }
 
-      const uploadedFileName = uploadedFile.name;
+      // Step 3: Upload based on selected option
+      if (uploadOption === 'store') {
+        // Import file to store - use storeName if available, otherwise use selectedUploadSegment
+        const segmentToUse = storeName || selectedUploadSegment;
+        const decodedStoreName = decodeURIComponent(segmentToUse);
+        await importFileToStore(decodedStoreName, uploadedFileName);
 
-      // Step 3: Import file to store
-      const decodedStoreName = decodeURIComponent(storeName);
-      const importResponse = await importFileToStore(decodedStoreName, uploadedFileName);
-
-      // Check if it's a long-running operation (has a name property)
-      // If so, it will complete in the background
-      if (importResponse.name) {
-        // Long-running operation - it will complete in the background
-        // Show success message and close
+        // Close dialog and navigate
         setShowFileNameDialog(false);
         setContent('');
         setFileName('');
+        setSelectedUploadSegment('');
         
-        if (onSuccess) {
-          onSuccess();
-        }
-        
-        onClose();
+        navigate('/segments');
       } else {
-        // Immediate success
+        // Just upload to files, don't import to store
         setShowFileNameDialog(false);
         setContent('');
         setFileName('');
+        setSelectedUploadSegment('');
         
-        if (onSuccess) {
-          onSuccess();
-        }
-        
-        onClose();
+        navigate('/segments');
       }
     } catch (err) {
       setError(err.message || 'Failed to save notes. Please try again.');
@@ -434,13 +590,26 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     });
   };
 
-  if (!isOpen) return null;
+  const handleSelectAllStores = () => {
+    if (selectedStores.length === availableStores.length) {
+      setSelectedStores([]);
+    } else {
+      setSelectedStores(availableStores.map(s => s.name));
+    }
+  };
 
   return (
-    <div className="notes-editor-modal" onClick={onClose}>
-      <div className="notes-editor-content" onClick={(e) => e.stopPropagation()}>
+    <div className="notes-editor-page">
+      <div className="notes-editor-container">
         <div className="notes-editor-header">
-          <h3>Smart Notes Taker</h3>
+          <div>
+            <h3>Knowledge Taker</h3>
+            {storeName && (
+              <p style={{ margin: '0.25rem 0 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+                Writing notes for: {availableStores.find(s => s.name === storeName)?.displayName || storeName}
+              </p>
+            )}
+          </div>
           <div className="notes-editor-header-actions">
             <button
               className="btn btn-icon"
@@ -449,9 +618,9 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             >
               {showAIPanel ? '🤖' : '🤖'}
             </button>
-            <button className="close-btn" onClick={onClose} disabled={saving}>
-              ×
-            </button>
+            <Link to="/segments" className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+              ← Back
+            </Link>
           </div>
         </div>
 
@@ -464,7 +633,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               <span className="ai-tools-title">AI Tools</span>
               {selectedStores.length > 0 && (
                 <span className="context-indicator">
-                  Using {selectedStores.length} store{selectedStores.length > 1 ? 's' : ''} for context
+                  {selectedStores.length} segment{selectedStores.length !== 1 ? 's' : ''} selected
                 </span>
               )}
             </div>
@@ -472,20 +641,138 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             <div className="ai-tools-content">
               {/* Context Selector */}
               <div className="context-selector">
-                <label>File Store Context (optional):</label>
-                <div className="store-checkboxes">
-                  {availableStores.map(store => (
-                    <label key={store.name} className="store-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedStores.includes(store.name)}
-                        onChange={() => handleStoreToggle(store.name)}
-                      />
-                      <span>{store.displayName || store.name}</span>
-                    </label>
-                  ))}
-                  {availableStores.length === 0 && (
-                    <span className="no-stores">No file stores available</span>
+                <div className="context-selector-header">
+                  <label>Knowledge Segment Context (optional)</label>
+                  <span className="context-help-text">
+                    Select segments to provide context for AI suggestions
+                  </span>
+                </div>
+                
+                {/* Selected Segments Pills */}
+                {selectedStores.length > 0 && (
+                  <div className="selected-segments-pills">
+                    {selectedStores.map(storeName => {
+                      const store = availableStores.find(s => s.name === storeName);
+                      return (
+                        <div key={storeName} className="segment-pill">
+                          <span className="pill-name">
+                            {store?.displayName || storeName.split('/').pop()}
+                          </span>
+                          {store && (
+                            <span className="pill-count">
+                              {store.activeDocumentsCount || 0} docs
+                            </span>
+                          )}
+                          <button
+                            className="pill-remove"
+                            onClick={() => handleStoreToggle(storeName)}
+                            title="Remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Segment Selector Dropdown */}
+                <div className="segment-selector-wrapper">
+                  <button
+                    className="segment-selector-trigger"
+                    onClick={() => setShowSegmentSelector(!showSegmentSelector)}
+                    type="button"
+                  >
+                    <span>
+                      {selectedStores.length === 0
+                        ? 'Select knowledge segments...'
+                        : `${selectedStores.length} segment${selectedStores.length !== 1 ? 's' : ''} selected`}
+                    </span>
+                    <span className="dropdown-icon">
+                      {showSegmentSelector ? '▲' : '▼'}
+                    </span>
+                  </button>
+
+                  {showSegmentSelector && (
+                    <div className="segment-selector-dropdown">
+                      {availableStores.length > 0 && (
+                        <>
+                          <div className="segment-search">
+                            <input
+                              type="text"
+                              placeholder="Search segments..."
+                              value={segmentSearchQuery}
+                              onChange={(e) => setSegmentSearchQuery(e.target.value)}
+                              className="segment-search-input"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="segment-selector-actions">
+                            <button
+                              type="button"
+                              className="segment-action-btn"
+                              onClick={handleSelectAllStores}
+                            >
+                              {selectedStores.length === availableStores.length ? 'Clear All' : 'Select All'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="segment-list">
+                        {availableStores
+                          .filter(store => {
+                            if (!segmentSearchQuery) return true;
+                            const searchLower = segmentSearchQuery.toLowerCase();
+                            const displayName = (store.displayName || store.name).toLowerCase();
+                            return displayName.includes(searchLower);
+                          })
+                          .map(store => (
+                            <label
+                              key={store.name}
+                              className={`segment-option ${selectedStores.includes(store.name) ? 'selected' : ''}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedStores.includes(store.name)}
+                                onChange={() => handleStoreToggle(store.name)}
+                              />
+                              <div className="segment-option-content">
+                                <div className="segment-option-name">
+                                  {store.displayName || store.name.split('/').pop()}
+                                </div>
+                                <div className="segment-option-meta">
+                                  <span>{store.activeDocumentsCount || 0} documents</span>
+                                  {store.pendingDocumentsCount > 0 && (
+                                    <span className="pending-badge">
+                                      {store.pendingDocumentsCount} pending
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        {availableStores.length === 0 && (
+                          <div className="no-segments-message">
+                            <p>No knowledge segments available</p>
+                            <Link to="/segments" className="create-segment-link">
+                              Create your first segment →
+                            </Link>
+                          </div>
+                        )}
+                        {availableStores.length > 0 && 
+                         availableStores.filter(store => {
+                           if (!segmentSearchQuery) return true;
+                           const searchLower = segmentSearchQuery.toLowerCase();
+                           const displayName = (store.displayName || store.name).toLowerCase();
+                           return displayName.includes(searchLower);
+                         }).length === 0 && (
+                          <div className="no-segments-message">
+                            <p>No segments match "{segmentSearchQuery}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -579,6 +866,115 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                   </button>
                 </div>
               )}
+
+              {/* AI Document Tools */}
+              <div className="ai-notes-section">
+                <div className="concierge-section-title">AI Documents</div>
+                <div className="ai-actions">
+                  <button
+                    className="ai-btn ai-document-btn"
+                    onClick={() => setShowDocumentDialog(true)}
+                    disabled={aiLoading}
+                    title="Generate a complete document with AI"
+                  >
+                    📄 Generate Document
+                  </button>
+                </div>
+              </div>
+
+              {/* Concierge Features */}
+              {conciergeMode && selectedStores.length > 0 && (
+                <div className="concierge-actions">
+                  <div className="concierge-section-title">Concierge Features</div>
+                  <div className="ai-actions">
+                    <button
+                      className="ai-btn concierge-btn"
+                      onClick={handleCheckStyleConsistency}
+                      disabled={aiLoading || !content.trim()}
+                      title="Check style consistency with knowledge base"
+                    >
+                      {aiLoadingType === 'style' ? '⏳' : '🎨'} Check Style
+                    </button>
+                    <button
+                      className="ai-btn concierge-btn"
+                      onClick={handleGetContextSuggestions}
+                      disabled={aiLoading || !content.trim()}
+                      title="Get context-aware suggestions from knowledge base"
+                    >
+                      {aiLoadingType === 'context' ? '⏳' : '💡'} Context Suggestions
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Style Analysis Results */}
+              {showStyleCheck && styleAnalysis && (
+                <div className="style-analysis-panel">
+                  <div className="style-analysis-header">
+                    <span>Style Analysis</span>
+                    <button
+                      className="btn-close-suggestions"
+                      onClick={() => {
+                        setShowStyleCheck(false);
+                        setStyleAnalysis(null);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="style-analysis-content">
+                    <div className="style-metric">
+                      <strong>Consistency:</strong> {styleAnalysis.consistent ? '✓ Consistent' : '⚠ Needs improvement'}
+                    </div>
+                    {styleAnalysis.suggestions && (
+                      <div className="style-suggestions">
+                        <strong>Suggestions:</strong>
+                        <ul>
+                          {Array.isArray(styleAnalysis.suggestions) ? (
+                            styleAnalysis.suggestions.map((suggestion, idx) => (
+                              <li key={idx}>{suggestion}</li>
+                            ))
+                          ) : (
+                            <li>{styleAnalysis.suggestions}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    {styleAnalysis.tone && (
+                      <div className="style-tone">
+                        <strong>Tone:</strong> {styleAnalysis.tone}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Context Suggestions */}
+              {contextSuggestions.length > 0 && (
+                <div className="context-suggestions-panel">
+                  <div className="suggestions-header">
+                    <span>Context Suggestions</span>
+                    <button
+                      className="btn-close-suggestions"
+                      onClick={() => setContextSuggestions([])}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="context-suggestions-list">
+                    {contextSuggestions.map((suggestion, idx) => (
+                      <div key={idx} className="context-suggestion-item">
+                        <div className="suggestion-type">{suggestion.type || 'general'}</div>
+                        <h4>{suggestion.title || 'Suggestion'}</h4>
+                        <p>{suggestion.description || suggestion}</p>
+                        {suggestion.source && (
+                          <span className="suggestion-source">Source: {suggestion.source}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -622,13 +1018,12 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
             )}
           </div>
           <div className="footer-actions">
-            <button
+            <Link
+              to="/segments"
               className="btn btn-secondary"
-              onClick={onClose}
-              disabled={saving}
             >
               Cancel
-            </button>
+            </Link>
             <button
               className="btn btn-primary"
               onClick={handleSave}
@@ -663,9 +1058,88 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                     }
                   }}
                 />
-                <small style={{ color: '#6b7280', marginTop: '0.25rem', display: 'block' }}>
+                <small style={{ marginTop: '0.25rem', display: 'block' }}>
                   The file will be saved as a PDF. You can omit the .pdf extension.
                 </small>
+              </div>
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Upload To:</label>
+                <div className="upload-options-container">
+                  <label 
+                    className={`upload-option-card ${uploadOption === 'store' ? 'selected' : ''}`}
+                    onClick={(e) => {
+                      if (e.target.tagName !== 'SELECT') {
+                        setUploadOption('store');
+                      }
+                    }}
+                  >
+                    <div className="upload-option-header">
+                      <input
+                        type="radio"
+                        name="uploadOption"
+                        value="store"
+                        checked={uploadOption === 'store'}
+                        onChange={(e) => setUploadOption(e.target.value)}
+                      />
+                      <div className="upload-option-content">
+                        <span className="upload-option-title">Knowledge Segment</span>
+                        <span className="upload-option-description">Upload to a knowledge segment for AI context</span>
+                      </div>
+                    </div>
+                    {uploadOption === 'store' && (
+                      <div className="upload-option-details">
+                        {storeName ? (
+                          <div className="selected-segment-display">
+                            <span className="segment-icon">📚</span>
+                            <div className="segment-info">
+                              <span className="segment-name">
+                                {availableStores.find(s => s.name === storeName)?.displayName || storeName.split('/').pop()}
+                              </span>
+                              <span className="segment-meta">
+                                {availableStores.find(s => s.name === storeName)?.activeDocumentsCount || 0} documents
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <select
+                            value={selectedUploadSegment}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setSelectedUploadSegment(e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="segment-select-dropdown"
+                          >
+                            <option value="">Select a Knowledge Segment...</option>
+                            {availableStores.map(store => (
+                              <option key={store.name} value={store.name}>
+                                {store.displayName || store.name.split('/').pop()} ({store.activeDocumentsCount || 0} docs)
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    )}
+                  </label>
+                  <label 
+                    className={`upload-option-card ${uploadOption === 'files' ? 'selected' : ''}`}
+                    onClick={() => setUploadOption('files')}
+                  >
+                    <div className="upload-option-header">
+                      <input
+                        type="radio"
+                        name="uploadOption"
+                        value="files"
+                        checked={uploadOption === 'files'}
+                        onChange={(e) => setUploadOption(e.target.value)}
+                      />
+                      <div className="upload-option-content">
+                        <span className="upload-option-title">Files Only</span>
+                        <span className="upload-option-description">Save to files without adding to knowledge segment</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
             </div>
             <div className="notes-editor-dialog-footer">
@@ -679,9 +1153,89 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               <button
                 className="btn btn-primary"
                 onClick={handleConfirmSave}
-                disabled={saving || !fileName.trim()}
+                disabled={saving || !fileName.trim() || (uploadOption === 'store' && !storeName && !selectedUploadSegment)}
               >
                 {saving ? 'Saving...' : 'Save & Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Generation Dialog */}
+      {showDocumentDialog && (
+        <div className="notes-editor-modal-overlay">
+          <div className="notes-editor-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="notes-editor-dialog-header">
+              <h4>Generate Document</h4>
+            </div>
+            <div className="notes-editor-dialog-body">
+              <div className="form-group">
+                <label htmlFor="documentType">Document Type</label>
+                <select
+                  id="documentType"
+                  value={documentType}
+                  onChange={(e) => setDocumentType(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    marginBottom: '1rem'
+                  }}
+                >
+                  <option value="document">General Document</option>
+                  <option value="meeting notes">Meeting Notes</option>
+                  <option value="report">Report</option>
+                  <option value="summary">Summary</option>
+                  <option value="proposal">Proposal</option>
+                  <option value="memo">Memo</option>
+                  <option value="article">Article</option>
+                  <option value="essay">Essay</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="documentPrompt">Requirements or Topic</label>
+                <textarea
+                  id="documentPrompt"
+                  value={documentPrompt}
+                  onChange={(e) => setDocumentPrompt(e.target.value)}
+                  placeholder="e.g., Write a report on Q4 sales performance, Create meeting notes for the team standup, Generate a proposal for the new project..."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                  autoFocus
+                />
+                <small style={{ color: '#6b7280', marginTop: '0.25rem', display: 'block' }}>
+                  Describe what you want the document to contain. The AI will generate a complete, well-structured document.
+                </small>
+              </div>
+            </div>
+            <div className="notes-editor-dialog-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDocumentDialog(false);
+                  setDocumentPrompt('');
+                }}
+                disabled={aiLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleGenerateDocument}
+                disabled={aiLoading || !documentPrompt.trim()}
+              >
+                {aiLoadingType === 'document' ? 'Generating...' : 'Generate Document'}
               </button>
             </div>
           </div>
