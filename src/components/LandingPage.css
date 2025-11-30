@@ -199,6 +199,44 @@
   font-size: 0.95rem;
 }
 
+.create-employee-card {
+  border: 2px dashed #cbd5e1;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  display: block;
+}
+
+.create-employee-card::before {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.create-employee-card:hover {
+  border-color: #667eea;
+  border-style: solid;
+  background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
+}
+
+.create-employee-card .feature-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 3.5rem;
+}
+
+.create-employee-card .feature-name {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.create-employee-card .feature-role {
+  color: #667eea;
+}
+
 .landing-steps {
   padding: 5rem 2rem;
   background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);

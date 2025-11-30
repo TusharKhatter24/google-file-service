@@ -1,9 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { employees } from '../data/employees';
 import './LandingPage.css';
 
 function LandingPage() {
+  const [allEmployees, setAllEmployees] = useState(employees);
+
+  useEffect(() => {
+    // Load custom employees from localStorage
+    const customEmployeesJson = localStorage.getItem('customEmployees');
+    if (customEmployeesJson) {
+      try {
+        const customEmployees = JSON.parse(customEmployeesJson);
+        setAllEmployees([...employees, ...customEmployees]);
+      } catch (e) {
+        console.error('Failed to parse custom employees:', e);
+      }
+    }
+  }, []);
+
   return (
     <div className="landing-page">
       <header className="landing-header">
@@ -31,7 +46,7 @@ function LandingPage() {
         <div className="features-container">
           <h2 className="features-title">Meet Your AI Team</h2>
           <div className="features-grid">
-            {employees.map((employee) => (
+            {allEmployees.map((employee) => (
               <div 
                 key={employee.id} 
                 className="feature-card"
@@ -45,6 +60,19 @@ function LandingPage() {
                 <p className="feature-description">{employee.description}</p>
               </div>
             ))}
+            <Link 
+              to="/login"
+              className="feature-card create-employee-card"
+            >
+              <div className="feature-icon-wrapper">
+                <div className="feature-icon">➕</div>
+              </div>
+              <h3 className="feature-name">Build a New Team Member</h3>
+              <p className="feature-role">Create Custom AI Employee</p>
+              <p className="feature-description">
+                Design your own AI team member with custom role, personality, and expertise
+              </p>
+            </Link>
           </div>
         </div>
       </section>
