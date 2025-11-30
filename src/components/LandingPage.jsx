@@ -49,6 +49,60 @@ function LandingPage() {
         </div>
       </section>
 
+      <section className="landing-steps">
+        <div className="steps-container">
+          <h2 className="steps-title">How It Works</h2>
+          <p className="steps-subtitle">Get started with your AI team in just a few simple steps</p>
+          <div className="steps-grid">
+            <div className="step-card" data-step="1">
+              <div className="step-number">1</div>
+              <div className="step-icon">👤</div>
+              <h3 className="step-title">Choose Your AI Employee</h3>
+              <p className="step-description">
+                Select from pre-built AI employees or create custom ones tailored to your needs
+              </p>
+            </div>
+            <div className="step-card" data-step="2">
+              <div className="step-number">2</div>
+              <div className="step-icon">📚</div>
+              <h3 className="step-title">Configure Knowledge Base</h3>
+              <p className="step-description">
+                Upload documents and train your AI with your company's knowledge and information
+              </p>
+            </div>
+            <div className="step-card" data-step="3">
+              <div className="step-number">3</div>
+              <div className="step-icon">⚙️</div>
+              <h3 className="step-title">Customize Settings</h3>
+              <p className="step-description">
+                Set system prompts, model parameters, and preferences to match your requirements
+              </p>
+            </div>
+            <div className="step-card" data-step="4">
+              <div className="step-number">4</div>
+              <div className="step-icon">💬</div>
+              <h3 className="step-title">Start Chatting</h3>
+              <p className="step-description">
+                Interact with your AI employee and get work done efficiently
+              </p>
+            </div>
+            <div className="step-card" data-step="5">
+              <div className="step-number">5</div>
+              <div className="step-icon">🎯</div>
+              <h3 className="step-title">Give Skills to AI Team</h3>
+              <p className="step-description">
+                Empower your AI employees with skills like meeting assistance, task management, and integrations
+              </p>
+            </div>
+          </div>
+          <div className="steps-cta">
+            <Link to="/login" className="steps-cta-button">
+              Get Started Now
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="landing-benefits">
         <div className="benefits-container">
           <h2 className="benefits-title">Stop juggling. Start scaling.</h2>

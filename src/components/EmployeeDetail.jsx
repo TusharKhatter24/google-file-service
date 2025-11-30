@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getEmployeeById } from '../data/employees';
-import { skills } from '../data/skills';
+import { skills, skillCategories } from '../data/skills';
+import { 
+  getEmployeeSkills, 
+  isSkillEnabled, 
+  toggleSkill,
+  getSkillConfig 
+} from '../services/skillAssignmentService';
 import ChatInterface from './ChatInterface';
 import DocumentUpload from './DocumentUpload';
 import SmartNoteMaker from './SmartNoteMaker';
@@ -25,6 +31,9 @@ function EmployeeDetail() {
   const [activeTab, setActiveTab] = useState('chat');
   const [educateSubTab, setEducateSubTab] = useState('notes'); // 'notes' or 'upload'
   const [selectedSkill, setSelectedSkill] = useState(null);
+  const [skillFilter, setSkillFilter] = useState('all'); // 'all', 'enabled', 'disabled'
+  const [enabledSkills, setEnabledSkills] = useState(new Set());
+  const [skillConfigs, setSkillConfigs] = useState({});
 
   const tabs = [
     { id: 'chat', label: 'Chat', icon: '💬' },
@@ -39,6 +48,62 @@ function EmployeeDetail() {
   const handleBackToSkills = () => {
     setSelectedSkill(null);
   };
+
+  // Load employee skills on mount and when employeeId changes
+  useEffect(() => {
+    if (employeeId) {
+      const assignment = getEmployeeSkills(employeeId);
+      setEnabledSkills(new Set(assignment.enabledSkills || []));
+      setSkillConfigs(assignment.skillConfigs || {});
+    }
+  }, [employeeId]);
+
+  const handleSkillToggle = (skillId) => {
+    try {
+      const newEnabled = toggleSkill(employeeId, skillId);
+      setEnabledSkills(prev => {
+        const updated = new Set(prev);
+        if (newEnabled) {
+          updated.add(skillId);
+        } else {
+          updated.delete(skillId);
+        }
+        return updated;
+      });
+      // Reload skills to ensure consistency
+      const assignment = getEmployeeSkills(employeeId);
+      setEnabledSkills(new Set(assignment.enabledSkills || []));
+    } catch (error) {
+      console.error('Error toggling skill:', error);
+      alert('Failed to toggle skill. Please try again.');
+    }
+  };
+
+  // Filter skills based on selected filter
+  const getFilteredSkills = () => {
+    let filtered = skills;
+    
+    if (skillFilter === 'enabled') {
+      filtered = skills.filter(skill => enabledSkills.has(skill.id));
+    } else if (skillFilter === 'disabled') {
+      filtered = skills.filter(skill => !enabledSkills.has(skill.id));
+    }
+    
+    // Group by category
+    const grouped = {};
+    filtered.forEach(skill => {
+      if (!grouped[skill.category]) {
+        grouped[skill.category] = [];
+      }
+      grouped[skill.category].push(skill);
+    });
+    
+    return grouped;
+  };
+
+  const filteredSkillsByCategory = getFilteredSkills();
+  const enabledCount = enabledSkills.size;
+  const totalCount = skills.length;
 
   // Map skill IDs to their components
   const skillComponents = {
@@ -138,18 +203,60 @@ function EmployeeDetail() {
                 {!selectedSkill ? (
                   <div className="skills-overview">
                     <div className="skills-overview-header">
-                      <h3>Available Skills</h3>
-                      <p>Choose a skill to empower {employee.name}</p>
+                      <div>
+                        <h3>Available Skills</h3>
+                        <p>Choose a skill to empower {employee.name}</p>
+                      </div>
+                      <div className="skills-stats">
+                        <span className="skills-count">{enabledCount} of {totalCount} skills enabled</span>
+                      </div>
                     </div>
-                    <div className="skills-grid">
-                      {skills.map((skill) => (
-                        <SkillCard
-                          key={skill.id}
-                          skill={skill}
-                          onClick={handleSkillClick}
-                        />
-                      ))}
+                    
+                    <div className="skills-filter-bar">
+                      <button
+                        className={`filter-button ${skillFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setSkillFilter('all')}
+                      >
+                        All Skills
+                      </button>
+                      <button
+                        className={`filter-button ${skillFilter === 'enabled' ? 'active' : ''}`}
+                        onClick={() => setSkillFilter('enabled')}
+                      >
+                        Enabled Only
+                      </button>
+                      <button
+                        className={`filter-button ${skillFilter === 'disabled' ? 'active' : ''}`}
+                        onClick={() => setSkillFilter('disabled')}
+                      >
+                        Disabled Only
+                      </button>
                     </div>
+
+                    {Object.keys(filteredSkillsByCategory).length === 0 ? (
+                      <div className="no-skills-message">
+                        <p>No skills match the selected filter.</p>
+                      </div>
+                    ) : (
+                      Object.entries(filteredSkillsByCategory).map(([category, categorySkills]) => (
+                        <div key={category} className="skills-category-section">
+                          <h4 className="skills-category-header">{category}</h4>
+                          <div className="skills-grid">
+                            {categorySkills.map((skill) => (
+                              <SkillCard
+                                key={skill.id}
+                                skill={skill}
+                                onClick={handleSkillClick}
+                                isEnabled={enabledSkills.has(skill.id)}
+                                hasConfig={!!skillConfigs[skill.id]}
+                                onToggle={handleSkillToggle}
+                                employeeId={employeeId}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 ) : (
                   <div className="skill-detail-view">

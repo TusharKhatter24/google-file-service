@@ -92,9 +92,17 @@ function EmployeeSelection() {
       <header className="selection-header">
         <div className="selection-nav">
           <h1 className="selection-title">AI Concierges</h1>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
+          <div className="selection-nav-actions">
+            <button 
+              onClick={() => navigate('/organization/settings')} 
+              className="org-settings-button"
+            >
+              ⚙️ Organization Settings
+            </button>
+            <button onClick={handleLogout} className="logout-button">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 

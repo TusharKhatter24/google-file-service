@@ -5,6 +5,39 @@
   background: #f9fafb;
 }
 
+.chat-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+}
+
+.clear-chat-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-chat-button:hover {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.clear-chat-button svg {
+  flex-shrink: 0;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -357,6 +390,32 @@
   border-radius: 8px;
   border-left: 4px solid #f59e0b;
   font-size: 0.9rem;
+}
+
+.sources-info-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  margin-top: 0.75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sources-info-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.sources-info-button svg {
+  flex-shrink: 0;
 }
 
 .message-sources {

@@ -1,6 +1,8 @@
 // Service to manage employee-specific configuration
 // Stores configurations in localStorage
 
+import { getEmployeeById } from '../data/employees';
+
 const CONFIG_PREFIX = 'employee_config_';
 
 const DEFAULT_CONFIG = {
@@ -32,10 +34,13 @@ const DEFAULT_CONFIG = {
 export const getEmployeeConfig = (employeeId) => {
   try {
     const configJson = localStorage.getItem(`${CONFIG_PREFIX}${employeeId}`);
+    const employee = getEmployeeById(employeeId);
+    const defaultSystemPrompt = employee?.defaultSystemPrompt || '';
+    
     if (configJson) {
       const savedConfig = JSON.parse(configJson);
       // Merge with defaults to ensure all fields exist
-      return {
+      const config = {
         chat: { 
           ...DEFAULT_CONFIG.chat, 
           ...(savedConfig.chat || {}),
@@ -44,8 +49,23 @@ export const getEmployeeConfig = (employeeId) => {
         upload: { ...DEFAULT_CONFIG.upload, ...(savedConfig.upload || {}) },
         n8n: { ...DEFAULT_CONFIG.n8n, ...(savedConfig.n8n || {}) },
       };
+      
+      // Initialize system prompt from employee default if not set
+      if (!config.chat.systemPrompt && defaultSystemPrompt) {
+        config.chat.systemPrompt = defaultSystemPrompt;
+      }
+      
+      return config;
     }
-    return DEFAULT_CONFIG;
+    
+    // Return default config with employee's default system prompt
+    return {
+      ...DEFAULT_CONFIG,
+      chat: {
+        ...DEFAULT_CONFIG.chat,
+        systemPrompt: defaultSystemPrompt
+      }
+    };
   } catch (error) {
     console.error('Error getting employee config:', error);
     return DEFAULT_CONFIG;

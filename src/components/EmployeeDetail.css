@@ -371,7 +371,15 @@
 
 .skills-overview-header {
   margin-bottom: 2rem;
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.skills-overview-header > div:first-child {
+  flex: 1;
 }
 
 .skills-overview-header h3 {
@@ -382,6 +390,71 @@
 }
 
 .skills-overview-header p {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.skills-stats {
+  display: flex;
+  align-items: center;
+}
+
+.skills-count {
+  padding: 0.5rem 1rem;
+  background: #f0f4ff;
+  color: #667eea;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.skills-filter-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.filter-button {
+  padding: 0.625rem 1.25rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.filter-button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.skills-category-section {
+  margin-bottom: 3rem;
+}
+
+.skills-category-header {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.no-skills-message {
+  text-align: center;
+  padding: 3rem;
   color: #6b7280;
   font-size: 1rem;
 }

@@ -4,18 +4,46 @@ import { generateContentWithStore, generateAudioWithStore } from '../services/fi
 import { getEmployeeConfig } from '../services/employeeConfigService';
 import './ChatInterface.css';
 
+const CHAT_STORAGE_PREFIX = 'chat_messages_';
+
 function ChatInterface({ employeeName, employeeId }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: `Hello! I'm ${employeeName || 'your AI assistant'}. How can I help you today?`,
-      sender: 'ai',
-      timestamp: new Date(),
-      sources: [],
-      inputType: 'text',
-      outputType: 'text'
+  const getDefaultMessage = (name) => ({
+    id: 1,
+    text: `Hello! I'm ${name || 'your AI assistant'}. How can I help you today?`,
+    sender: 'ai',
+    timestamp: new Date(),
+    sources: [],
+    inputType: 'text',
+    outputType: 'text'
+  });
+
+  // Initialize messages from localStorage or default
+  const initializeMessages = () => {
+    if (!employeeId) {
+      return [getDefaultMessage(employeeName)];
     }
-  ]);
+
+    try {
+      const stored = localStorage.getItem(`${CHAT_STORAGE_PREFIX}${employeeId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.length > 0) {
+          // Convert timestamp strings back to Date objects
+          return parsed.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat messages:', error);
+    }
+    
+    // Return default message if no stored messages
+    return [getDefaultMessage(employeeName)];
+  };
+
+  const [messages, setMessages] = useState(() => initializeMessages());
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,8 +52,67 @@ function ChatInterface({ employeeName, employeeId }) {
   const [inputMode, setInputMode] = useState('text');
   const [outputMode, setOutputMode] = useState('text');
   const [isRecording, setIsRecording] = useState(false);
+  const [showSources, setShowSources] = useState(null);
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const isInitialLoadRef = useRef(true);
+
+  // Load messages from localStorage whenever component mounts or employeeId changes
+  useEffect(() => {
+    if (!employeeId) return;
+    
+    isInitialLoadRef.current = true;
+    
+    try {
+      const stored = localStorage.getItem(`${CHAT_STORAGE_PREFIX}${employeeId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.length > 0) {
+          // Convert timestamp strings back to Date objects
+          const loadedMessages = parsed.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(loadedMessages);
+          isInitialLoadRef.current = false;
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat messages:', error);
+    }
+    
+    // Set default message if no stored messages found
+    setMessages([getDefaultMessage(employeeName)]);
+    isInitialLoadRef.current = false;
+  }, [employeeId, employeeName]);
+
+  // Save messages to localStorage whenever they change (but skip initial load)
+  useEffect(() => {
+    // Skip saving during initial load to avoid overwriting loaded messages
+    if (isInitialLoadRef.current) return;
+    
+    if (employeeId && messages.length > 0) {
+      try {
+        localStorage.setItem(`${CHAT_STORAGE_PREFIX}${employeeId}`, JSON.stringify(messages));
+      } catch (error) {
+        console.error('Error saving chat messages:', error);
+      }
+    }
+  }, [messages, employeeId]);
+
+  const clearChat = () => {
+    if (window.confirm('Are you sure you want to clear the chat history?')) {
+      const defaultMessage = getDefaultMessage(employeeName);
+      setMessages([defaultMessage]);
+      setShowSources(null);
+      try {
+        localStorage.setItem(`${CHAT_STORAGE_PREFIX}${employeeId}`, JSON.stringify([defaultMessage]));
+      } catch (error) {
+        console.error('Error clearing chat messages:', error);
+      }
+    }
+  };
 
   useEffect(() => {
     if (employeeId) {
@@ -416,6 +503,20 @@ function ChatInterface({ employeeName, employeeId }) {
 
   return (
     <div className="chat-interface">
+      <div className="chat-header-actions">
+        {messages.length > 1 && (
+          <button
+            onClick={clearChat}
+            className="clear-chat-button"
+            title="Clear chat history"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Clear Chat
+          </button>
+        )}
+      </div>
       {error && (
         <div className="chat-error">
           {error}
@@ -485,17 +586,33 @@ function ChatInterface({ employeeName, employeeId }) {
                 </div>
               )}
               {message.sources && message.sources.length > 0 && (
-                <div className="message-sources">
-                  <div className="sources-header">Sources:</div>
-                  {message.sources.map((source, idx) => (
-                    <div key={idx} className="source-item">
-                      <span className="source-title">{source.title}</span>
-                      {source.text && (
-                        <span className="source-preview">{source.text.substring(0, 100)}...</span>
-                      )}
+                <>
+                  <button
+                    className="sources-info-button"
+                    onClick={() => setShowSources(showSources === message.id ? null : message.id)}
+                    title={`${showSources === message.id ? 'Hide' : 'Show'} sources (${message.sources.length})`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    {showSources === message.id ? 'Hide' : 'Show'} Sources ({message.sources.length})
+                  </button>
+                  {showSources === message.id && (
+                    <div className="message-sources">
+                      <div className="sources-header">Sources:</div>
+                      {message.sources.map((source, idx) => (
+                        <div key={idx} className="source-item">
+                          <span className="source-title">{source.title}</span>
+                          {source.text && (
+                            <span className="source-preview">{source.text.substring(0, 100)}...</span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
               <div className="message-time">
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

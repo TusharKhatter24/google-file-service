@@ -13,6 +13,13 @@ import {
   resetEmployeeConfig,
   getDefaultConfig,
 } from '../services/employeeConfigService';
+import {
+  getEmployeeSkills,
+  isSkillEnabled,
+  toggleSkill,
+  getSkillConfig,
+} from '../services/skillAssignmentService';
+import { skills, skillCategories } from '../data/skills';
 import './EmployeeSettings.css';
 
 function EmployeeSettings() {
@@ -30,11 +37,39 @@ function EmployeeSettings() {
   const [savingConfig, setSavingConfig] = useState(false);
   const [n8nWorkflowUrl, setN8nWorkflowUrl] = useState('');
   const [selectedStores, setSelectedStores] = useState([]);
+  const [enabledSkills, setEnabledSkills] = useState(new Set());
+  const [skillConfigs, setSkillConfigs] = useState({});
 
   useEffect(() => {
     loadStores();
     loadConfig();
+    loadSkills();
   }, [employeeId]);
+
+  const loadSkills = () => {
+    const assignment = getEmployeeSkills(employeeId);
+    setEnabledSkills(new Set(assignment.enabledSkills || []));
+    setSkillConfigs(assignment.skillConfigs || {});
+  };
+
+  const handleSkillToggle = (skillId) => {
+    toggleSkill(employeeId, skillId);
+    loadSkills(); // Reload to update state
+  };
+
+  const getSkillsByCategory = () => {
+    const grouped = {};
+    skills.forEach(skill => {
+      if (!grouped[skill.category]) {
+        grouped[skill.category] = [];
+      }
+      grouped[skill.category].push(skill);
+    });
+    return grouped;
+  };
+
+  const skillsByCategory = getSkillsByCategory();
+  const enabledCount = enabledSkills.size;
 
   const loadConfig = () => {
     const employeeConfig = getEmployeeConfig(employeeId);
@@ -660,6 +695,62 @@ function EmployeeSettings() {
                   {savingConfig ? 'Saving...' : 'Save n8n Configuration'}
                 </button>
               </div>
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <h2 className="section-title">Skills Management</h2>
+            <p className="section-description">
+              Enable or disable skills for {employee.name}. Enabled skills will be available in the Skillset tab.
+            </p>
+
+            <div className="skills-management">
+              <div className="skills-stats-bar">
+                <span className="skills-stats-text">
+                  {enabledCount} of {skills.length} skills enabled
+                </span>
+              </div>
+
+              {Object.entries(skillsByCategory).map(([category, categorySkills]) => (
+                <div key={category} className="skills-category-group">
+                  <h3 className="skills-category-title">{category}</h3>
+                  <div className="skills-list">
+                    {categorySkills.map((skill) => {
+                      const skillEnabled = enabledSkills.has(skill.id);
+                      const hasConfig = !!skillConfigs[skill.id];
+                      return (
+                        <div
+                          key={skill.id}
+                          className={`skill-item ${skillEnabled ? 'skill-item-enabled' : 'skill-item-disabled'}`}
+                        >
+                          <div className="skill-item-info">
+                            <div className="skill-item-header">
+                              <span className="skill-item-icon">{skill.icon}</span>
+                              <div className="skill-item-details">
+                                <h4 className="skill-item-name">{skill.name}</h4>
+                                <p className="skill-item-description">{skill.description}</p>
+                              </div>
+                            </div>
+                            {hasConfig && (
+                              <span className="skill-item-config-badge" title="Has custom configuration">
+                                ⚙️
+                              </span>
+                            )}
+                          </div>
+                          <label className="skill-toggle-setting">
+                            <input
+                              type="checkbox"
+                              checked={skillEnabled}
+                              onChange={() => handleSkillToggle(skill.id)}
+                            />
+                            <span className="skill-toggle-setting-slider"></span>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         </div>

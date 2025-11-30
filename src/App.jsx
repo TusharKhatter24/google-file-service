@@ -5,6 +5,7 @@ import Login from './components/Login';
 import EmployeeSelection from './components/EmployeeSelection';
 import EmployeeDetail from './components/EmployeeDetail';
 import EmployeeSettings from './components/EmployeeSettings';
+import OrganizationSettings from './components/OrganizationSettings';
 import FileStoreList from './components/FileStoreList';
 import FileStoreDetail from './components/FileStoreDetail';
 import Files from './components/Files';
@@ -38,6 +39,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EmployeeSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organization/settings"
+          element={
+            <ProtectedRoute>
+              <OrganizationSettings />
             </ProtectedRoute>
           }
         />
