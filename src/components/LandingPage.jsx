@@ -81,9 +81,9 @@ function LandingPage() {
             <div className="step-card" data-step="4">
               <div className="step-number">4</div>
               <div className="step-icon">💬</div>
-              <h3 className="step-title">Start Chatting</h3>
+              <h3 className="step-title">Begin Collaboration</h3>
               <p className="step-description">
-                Interact with your AI employee and get work done efficiently
+                Work alongside your AI employee to accelerate productivity and streamline workflows
               </p>
             </div>
             <div className="step-card" data-step="5">
