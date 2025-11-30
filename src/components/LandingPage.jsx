@@ -32,8 +32,14 @@ function LandingPage() {
           <h2 className="features-title">Meet Your AI Team</h2>
           <div className="features-grid">
             {employees.map((employee) => (
-              <div key={employee.id} className="feature-card">
-                <div className="feature-icon">{employee.icon}</div>
+              <div 
+                key={employee.id} 
+                className="feature-card"
+                style={{ '--employee-color': employee.color }}
+              >
+                <div className="feature-icon-wrapper">
+                  <div className="feature-icon">{employee.icon}</div>
+                </div>
                 <h3 className="feature-name">{employee.name}</h3>
                 <p className="feature-role">{employee.role}</p>
                 <p className="feature-description">{employee.description}</p>

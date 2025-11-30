@@ -38,8 +38,11 @@ function EmployeeSelection() {
                 key={employee.id}
                 className={`employee-card ${employee.id === 'donna' ? 'default-selected' : ''}`}
                 onClick={() => handleEmployeeClick(employee.id)}
+                style={{ '--employee-color': employee.color }}
               >
-                <div className="employee-icon">{employee.icon}</div>
+                <div className="employee-icon-wrapper">
+                  <div className="employee-icon">{employee.icon}</div>
+                </div>
                 <div className="employee-info">
                   <h3 className="employee-name">{employee.name}</h3>
                   <p className="employee-role">{employee.role}</p>
