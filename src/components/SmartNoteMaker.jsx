@@ -16,7 +16,7 @@ import {
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
 import { importFileToStore } from '../services/fileStoreService';
 import { uploadFile } from '../services/filesService';
-import { getEmployeeStore } from '../services/employeeStoreService';
+import { getEmployeeConfig } from '../services/employeeConfigService';
 import './SmartNoteMaker.css';
 
 function SmartNoteMaker({ employeeName, employeeId }) {
@@ -48,6 +48,7 @@ function SmartNoteMaker({ employeeName, employeeId }) {
   const [extractingContent, setExtractingContent] = useState(null);
   const [showFileNameModal, setShowFileNameModal] = useState(false);
   const [fileNameInput, setFileNameInput] = useState('');
+  const [selectedStoresForSave, setSelectedStoresForSave] = useState([]);
 
   useEffect(() => {
     // Load file stores and set up store from settings
@@ -88,20 +89,21 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       const stores = response.fileSearchStores || [];
       setAvailableStores(stores);
       
-      // Get file store from settings (employee's default store)
-      let storeFromSettings = null;
+      // Get selected stores from config
+      let storesFromConfig = [];
       if (employeeId) {
         try {
-          storeFromSettings = getEmployeeStore(employeeId);
+          const config = getEmployeeConfig(employeeId);
+          storesFromConfig = config.chat?.selectedStores || [];
         } catch (e) {
-          console.log('Could not get employee store from settings');
+          console.log('Could not get employee stores from config');
         }
       }
       
-      // Use store from settings, route, or first available
+      // Use first selected store, route store, or first available
       let targetStore = null;
-      if (storeFromSettings) {
-        targetStore = stores.find(s => s.name === storeFromSettings);
+      if (storesFromConfig.length > 0) {
+        targetStore = stores.find(s => storesFromConfig.includes(s.name));
       }
       
       if (!targetStore && routeStoreName) {
@@ -116,8 +118,8 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       if (targetStore) {
         setStoreName(targetStore.name);
         loadDocuments(targetStore.name);
-        // Use the store from settings for AI context
-        setSelectedStores(storeFromSettings ? [storeFromSettings] : [targetStore.name]);
+        // Use selected stores from config, or fallback to target store
+        setSelectedStores(storesFromConfig.length > 0 ? storesFromConfig : [targetStore.name]);
       }
     } catch (err) {
       console.error('Failed to load file stores:', err);
@@ -278,10 +280,14 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       return;
     }
 
-    if (!storeName) {
-      setError('No knowledge source configured.');
+    if (availableStores.length === 0) {
+      setError('No knowledge sources available. Please create a knowledge source in Settings first.');
       return;
     }
+
+    // Initialize selected stores for save with current selected stores or all available
+    const storesToSelect = selectedStores.length > 0 ? selectedStores : availableStores.map(s => s.name);
+    setSelectedStoresForSave(storesToSelect);
 
     // Show file name modal
     const defaultFileName = `smart-notes-${new Date().toISOString().split('T')[0]}`;
@@ -346,20 +352,45 @@ function SmartNoteMaker({ employeeName, employeeId }) {
         ? fileResourceName 
         : `files/${fileResourceName}`;
 
-      console.log('Importing file to store. File name:', fileName, 'Store:', storeName);
-      const decodedStoreName = decodeURIComponent(storeName);
-      const importResult = await importFileToStore(decodedStoreName, fileName);
-
-      // Check if import returned an operation (long-running)
-      if (importResult && importResult.name && importResult.name.includes('operations/')) {
-        setSuccess('Notes import started! The file is being processed...');
-        // Optionally poll for operation status here if needed
-      } else {
-        setSuccess('Notes saved successfully!');
+      // Import file to all selected stores
+      if (selectedStoresForSave.length === 0) {
+        throw new Error('Please select at least one knowledge source to save notes to.');
       }
 
-      // Reload documents to show the new file
-      await loadDocuments(storeName);
+      const importPromises = selectedStoresForSave.map(async (storeName) => {
+        try {
+          const decodedStoreName = decodeURIComponent(storeName);
+          const importResult = await importFileToStore(decodedStoreName, fileName);
+          return { storeName, success: true, result: importResult };
+        } catch (err) {
+          return { storeName, success: false, error: err.message };
+        }
+      });
+
+      const results = await Promise.all(importPromises);
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+
+      if (failed.length > 0) {
+        const errorMessages = failed.map(f => `${f.storeName.split('/').pop()}: ${f.error}`).join(', ');
+        throw new Error(`Failed to save to some stores: ${errorMessages}`);
+      }
+
+      // Check if any import returned an operation (long-running)
+      const hasOperations = successful.some(r => 
+        r.result?.name && r.result.name.includes('operations/')
+      );
+
+      if (hasOperations) {
+        setSuccess(`Notes import started to ${successful.length} knowledge source(s)! The file is being processed...`);
+      } else {
+        setSuccess(`Notes saved successfully to ${successful.length} knowledge source(s)!`);
+      }
+
+      // Reload documents from first selected store
+      if (selectedStoresForSave.length > 0) {
+        await loadDocuments(selectedStoresForSave[0]);
+      }
     } catch (err) {
       console.error('Save notes error:', err);
       const errorMessage = err.response?.data?.error?.message || 
@@ -968,14 +999,14 @@ function SmartNoteMaker({ employeeName, employeeId }) {
           <button
             onClick={handleSaveNotesClick}
             className="btn btn-success btn-large"
-            disabled={!notes.trim() || generatingNotes || !storeName}
+            disabled={!notes.trim() || generatingNotes || availableStores.length === 0}
           >
             {generatingNotes ? 'Saving...' : 'Save to Knowledge Source'}
           </button>
         </div>
-        {!storeName && (
+        {availableStores.length === 0 && (
           <p className="save-hint">
-            Please configure a knowledge source in Settings to save notes. 
+            Please create a knowledge source in Settings to save notes. 
             Your notes will be converted to PDF and added to your AI assistant's knowledge base.
           </p>
         )}
@@ -1015,7 +1046,74 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                 placeholder="Enter file name..."
                 autoFocus
               />
-              <p className="modal-hint">File will be saved as PDF (.pdf extension will be added automatically)</p>
+              <p className="modal-hint" style={{ marginBottom: '1rem' }}>File will be saved as PDF (.pdf extension will be added automatically)</p>
+              
+              <label className="modal-label" style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>
+                Select Knowledge Sources ({selectedStoresForSave.length} selected):
+              </label>
+              <div style={{ 
+                maxHeight: '200px', 
+                overflowY: 'auto', 
+                border: '1px solid #e5e7eb', 
+                borderRadius: '6px', 
+                padding: '0.5rem',
+                background: '#f9fafb'
+              }}>
+                {availableStores.length === 0 ? (
+                  <p style={{ padding: '0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>
+                    No knowledge sources available. Please create one in Settings first.
+                  </p>
+                ) : (
+                  availableStores.map((store) => {
+                    const isSelected = selectedStoresForSave.includes(store.name);
+                    return (
+                      <label
+                        key={store.name}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '0.5rem',
+                          marginBottom: '0.25rem',
+                          border: `1px solid ${isSelected ? '#667eea' : 'transparent'}`,
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? '#f0f4ff' : 'white',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {
+                            setSelectedStoresForSave(prev => 
+                              prev.includes(store.name)
+                                ? prev.filter(name => name !== store.name)
+                                : [...prev, store.name]
+                            );
+                          }}
+                          style={{
+                            marginRight: '0.5rem',
+                            width: '16px',
+                            height: '16px',
+                            cursor: 'pointer'
+                          }}
+                        />
+                        <span style={{ fontSize: '0.875rem', flex: 1 }}>
+                          {store.displayName || store.name.split('/').pop()}
+                        </span>
+                        {isSelected && (
+                          <span style={{ color: '#667eea', fontSize: '1rem' }}>✓</span>
+                        )}
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {selectedStoresForSave.length === 0 && availableStores.length > 0 && (
+                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#dc2626' }}>
+                  Please select at least one knowledge source to save notes to.
+                </p>
+              )}
             </div>
             <div className="modal-footer">
               <button
@@ -1027,9 +1125,9 @@ function SmartNoteMaker({ employeeName, employeeId }) {
               <button
                 className="btn btn-success"
                 onClick={handleSaveNotes}
-                disabled={!fileNameInput.trim()}
+                disabled={!fileNameInput.trim() || selectedStoresForSave.length === 0}
               >
-                Save
+                Save {selectedStoresForSave.length > 0 && `(${selectedStoresForSave.length} store${selectedStoresForSave.length > 1 ? 's' : ''})`}
               </button>
             </div>
           </div>

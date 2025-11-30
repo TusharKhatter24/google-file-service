@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { generateContentWithStore } from '../services/fileStoreService';
-import { getEmployeeStore } from '../services/employeeStoreService';
 import { getEmployeeConfig } from '../services/employeeConfigService';
 import './ChatInterface.css';
 
@@ -18,18 +17,19 @@ function ChatInterface({ employeeName, employeeId }) {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [storeName, setStoreName] = useState(null);
+  const [selectedStores, setSelectedStores] = useState([]);
   const [chatConfig, setChatConfig] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (employeeId) {
-      const store = getEmployeeStore(employeeId);
-      setStoreName(store);
       const config = getEmployeeConfig(employeeId);
       setChatConfig(config.chat);
-      if (!store) {
-        setError('No knowledge source configured. Please set up a knowledge source in Settings.');
+      // Get selected stores from config - must have at least one selected
+      const stores = config.chat?.selectedStores || [];
+      setSelectedStores(stores);
+      if (stores.length === 0) {
+        setError('No knowledge bases selected. Please select at least one knowledge base in Settings.');
       }
     }
   }, [employeeId]);
@@ -46,7 +46,7 @@ function ChatInterface({ employeeName, employeeId }) {
     e.preventDefault();
     if (!inputValue.trim() || loading) return;
 
-    if (!storeName) {
+    if (selectedStores.length === 0) {
       setError('No knowledge source configured. Please set up a knowledge source in Settings first.');
       return;
     }
@@ -76,8 +76,9 @@ function ChatInterface({ employeeName, employeeId }) {
         }));
 
       // Generate response using Google Gemini API with FileSearchStore
+      // Use selected stores array
       const response = await generateContentWithStore(
-        storeName,
+        selectedStores,
         currentInput,
         conversationHistory,
         {
@@ -138,9 +139,25 @@ function ChatInterface({ employeeName, employeeId }) {
           {error}
         </div>
       )}
-      {!storeName && (
+      {selectedStores.length === 0 && (
         <div className="chat-warning">
           ⚠️ No knowledge source configured. Please set up a knowledge source in Settings to enable chat functionality.
+        </div>
+      )}
+      {selectedStores.length > 0 && (
+        <div className="chat-stores-info" style={{
+          padding: '0.75rem 1rem',
+          background: '#f0f4ff',
+          borderBottom: '1px solid #e5e7eb',
+          fontSize: '0.875rem',
+          color: '#667eea'
+        }}>
+          <strong>Searching across {selectedStores.length} knowledge base{selectedStores.length > 1 ? 's' : ''}:</strong>{' '}
+          {selectedStores.map((store, idx) => (
+            <span key={store}>
+              {store.split('/').pop()}{idx < selectedStores.length - 1 ? ', ' : ''}
+            </span>
+          ))}
         </div>
       )}
       <div className="chat-messages">
@@ -201,7 +218,7 @@ function ChatInterface({ employeeName, employeeId }) {
         <button 
           type="submit" 
           className="chat-send-button"
-          disabled={loading || !storeName}
+          disabled={loading || selectedStores.length === 0}
         >
           {loading ? 'Sending...' : 'Send'}
         </button>

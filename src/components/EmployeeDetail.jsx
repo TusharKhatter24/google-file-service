@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getEmployeeById } from '../data/employees';
+import { getEmployeeConfig } from '../services/employeeConfigService';
 import ChatInterface from './ChatInterface';
 import DocumentUpload from './DocumentUpload';
 import SmartNoteMaker from './SmartNoteMaker';
@@ -12,9 +13,17 @@ function EmployeeDetail() {
   const employee = getEmployeeById(employeeId);
   const [activeTab, setActiveTab] = useState('chat');
   const [educateSubTab, setEducateSubTab] = useState('notes'); // 'notes' or 'upload'
+  const [n8nWorkflowUrl, setN8nWorkflowUrl] = useState('');
 
-  // Placeholder n8n workflow URL - can be configured later
-  const n8nWorkflowUrl = `https://your-n8n-instance.com/workflow/${employeeId}`;
+  useEffect(() => {
+    // Load n8n workflow URL from configuration
+    const config = getEmployeeConfig(employeeId);
+    const workflowUrl = config.n8n?.workflowUrl || '';
+    setN8nWorkflowUrl(workflowUrl);
+  }, [employeeId]);
+
+  // Check if we have a valid workflow URL configured
+  const hasValidWorkflowUrl = !!n8nWorkflowUrl && n8nWorkflowUrl.trim() !== '';
 
   const tabs = [
     { id: 'chat', label: 'Chat', icon: '💬' },
@@ -99,24 +108,35 @@ function EmployeeDetail() {
                 <div className="n8n-container">
                   <div className="n8n-header">
                     <h3>n8n Workflow</h3>
-                    <p>Embedded workflow interface for {employee.name}</p>
+                    <p>Access workflow automation for {employee.name}</p>
                   </div>
-                  <div className="n8n-iframe-wrapper">
-                    <iframe
-                      src={n8nWorkflowUrl}
-                      title={`n8n Workflow for ${employee.name}`}
-                      className="n8n-iframe"
-                      frameBorder="0"
-                    />
+                  {hasValidWorkflowUrl ? (
+                    <div className="n8n-workflow-card">
+                      <div className="workflow-card-content">
+                        <div className="workflow-icon">⚡</div>
+                        <div className="workflow-info">
+                          <h4>Workflow Ready</h4>
+                          <p>Click the button below to open the n8n workflow in a new tab.</p>
+                          <p className="workflow-url-hint">Workflow URL: {n8nWorkflowUrl}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => window.open(n8nWorkflowUrl, '_blank', 'noopener,noreferrer')}
+                        className="btn-open-workflow"
+                      >
+                        Open Workflow →
+                      </button>
+                    </div>
+                  ) : (
                     <div className="n8n-placeholder">
                       <div className="placeholder-content">
                         <div className="placeholder-icon">⚙️</div>
-                        <h4>n8n Workflow Placeholder</h4>
+                        <h4>n8n Workflow Not Configured</h4>
                         <p>Configure your n8n instance URL in the component to display workflows here.</p>
                         <p className="placeholder-url">Current URL: {n8nWorkflowUrl}</p>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}

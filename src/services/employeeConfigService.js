@@ -11,12 +11,16 @@ const DEFAULT_CONFIG = {
     topP: 0.95,
     topK: 40,
     maxOutputTokens: 8192,
+    selectedStores: [], // Array of selected knowledge base store names (max 5)
   },
   upload: {
     chunkingConfig: {
       chunkSize: 1000,
       chunkOverlap: 200,
     },
+  },
+  n8n: {
+    workflowUrl: '',
   },
 };
 
@@ -32,8 +36,13 @@ export const getEmployeeConfig = (employeeId) => {
       const savedConfig = JSON.parse(configJson);
       // Merge with defaults to ensure all fields exist
       return {
-        chat: { ...DEFAULT_CONFIG.chat, ...(savedConfig.chat || {}) },
+        chat: { 
+          ...DEFAULT_CONFIG.chat, 
+          ...(savedConfig.chat || {}),
+          selectedStores: savedConfig.chat?.selectedStores || DEFAULT_CONFIG.chat.selectedStores,
+        },
         upload: { ...DEFAULT_CONFIG.upload, ...(savedConfig.upload || {}) },
+        n8n: { ...DEFAULT_CONFIG.n8n, ...(savedConfig.n8n || {}) },
       };
     }
     return DEFAULT_CONFIG;

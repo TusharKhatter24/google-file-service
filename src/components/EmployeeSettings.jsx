@@ -7,11 +7,6 @@ import {
   getFileStore, 
   deleteFileStore 
 } from '../services/fileStoreService';
-import { 
-  getEmployeeStore, 
-  setEmployeeStore, 
-  clearEmployeeStore 
-} from '../services/employeeStoreService';
 import {
   getEmployeeConfig,
   updateEmployeeConfigSection,
@@ -26,7 +21,6 @@ function EmployeeSettings() {
   const employee = getEmployeeById(employeeId);
   
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -34,16 +28,19 @@ function EmployeeSettings() {
   const [creatingStore, setCreatingStore] = useState(false);
   const [config, setConfig] = useState(getDefaultConfig());
   const [savingConfig, setSavingConfig] = useState(false);
+  const [n8nWorkflowUrl, setN8nWorkflowUrl] = useState('');
+  const [selectedStores, setSelectedStores] = useState([]);
 
   useEffect(() => {
     loadStores();
-    loadSelectedStore();
     loadConfig();
   }, [employeeId]);
 
   const loadConfig = () => {
     const employeeConfig = getEmployeeConfig(employeeId);
     setConfig(employeeConfig);
+    setN8nWorkflowUrl(employeeConfig.n8n?.workflowUrl || '');
+    setSelectedStores(employeeConfig.chat?.selectedStores || []);
   };
 
   const loadStores = async () => {
@@ -59,10 +56,6 @@ function EmployeeSettings() {
     }
   };
 
-  const loadSelectedStore = () => {
-    const storeName = getEmployeeStore(employeeId);
-    setSelectedStore(storeName);
-  };
 
   const handleCreateStore = async (e) => {
     e.preventDefault();
@@ -84,10 +77,6 @@ function EmployeeSettings() {
       
       // Reload stores list
       await loadStores();
-      
-      // Optionally set as default for this employee
-      setEmployeeStore(employeeId, createdStoreName);
-      setSelectedStore(createdStoreName);
     } catch (err) {
       setError(err.message || 'Failed to create knowledge source');
     } finally {
@@ -95,15 +84,6 @@ function EmployeeSettings() {
     }
   };
 
-  const handleSelectStore = async (storeName) => {
-    try {
-      setEmployeeStore(employeeId, storeName);
-      setSelectedStore(storeName);
-      setSuccess('Knowledge source set as default for this employee');
-    } catch (err) {
-      setError(err.message || 'Failed to set knowledge source');
-    }
-  };
 
   const handleDeleteStore = async (storeName, force = false) => {
     if (!window.confirm(`Are you sure you want to delete "${storeName}"?${force ? ' This will also delete all documents.' : ''}`)) {
@@ -116,10 +96,9 @@ function EmployeeSettings() {
       await deleteFileStore(storeName, force);
       setSuccess('Knowledge source deleted successfully');
       
-      // If deleted store was selected, clear selection
-      if (selectedStore === storeName) {
-        clearEmployeeStore(employeeId);
-        setSelectedStore(null);
+      // Remove from selected stores if it was selected
+      if (selectedStores.includes(storeName)) {
+        setSelectedStores(prev => prev.filter(name => name !== storeName));
       }
       
       await loadStores();
@@ -166,14 +145,29 @@ function EmployeeSettings() {
     try {
       setSavingConfig(true);
       setError(null);
-      updateEmployeeConfigSection(employeeId, 'chat', config.chat);
+      updateEmployeeConfigSection(employeeId, 'chat', { ...config.chat, selectedStores });
       updateEmployeeConfigSection(employeeId, 'upload', config.upload);
+      updateEmployeeConfigSection(employeeId, 'n8n', { workflowUrl: n8nWorkflowUrl });
       setSuccess('Configuration saved successfully!');
     } catch (err) {
       setError(err.message || 'Failed to save configuration');
     } finally {
       setSavingConfig(false);
     }
+  };
+
+  const handleStoreToggle = (storeName) => {
+    setSelectedStores(prev => {
+      if (prev.includes(storeName)) {
+        // Remove store
+        setError(null);
+        return prev.filter(name => name !== storeName);
+      } else {
+        // Add store (no limit)
+        setError(null);
+        return [...prev, storeName];
+      }
+    });
   };
 
   const handleResetConfig = () => {
@@ -235,7 +229,22 @@ function EmployeeSettings() {
             </div>
 
             <div className="stores-list-section">
-              <h3 className="subsection-title">Available Knowledge Sources</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 className="subsection-title" style={{ margin: 0 }}>Available Knowledge Sources</h3>
+                {selectedStores.length > 0 && (
+                  <button
+                    onClick={handleSaveConfig}
+                    className="save-config-button"
+                    disabled={savingConfig}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    {savingConfig ? 'Saving...' : `Save Selection (${selectedStores.length} selected)`}
+                  </button>
+                )}
+              </div>
               {loading && <div className="loading">Loading knowledge sources...</div>}
               
               {!loading && stores.length === 0 && (
@@ -245,61 +254,74 @@ function EmployeeSettings() {
               )}
 
               {stores.length > 0 && (
-                <div className="stores-grid">
-                  {stores.map((store) => (
-                    <div 
-                      key={store.name} 
-                      className={`store-card ${selectedStore === store.name ? 'selected' : ''}`}
-                    >
-                      <div className="store-card-header">
-                        <h4 className="store-name">{store.displayName || store.name}</h4>
-                        {selectedStore === store.name && (
-                          <span className="default-badge">Default</span>
-                        )}
-                      </div>
-                      
-                      <div className="store-details">
-                        <div className="store-detail-item">
-                          <span className="detail-label">Store ID:</span>
-                          <span className="detail-value">{store.name}</span>
-                        </div>
-                        <div className="store-detail-item">
-                          <span className="detail-label">Active Documents:</span>
-                          <span className="detail-value">{store.activeDocumentsCount || '0'}</span>
-                        </div>
-                        <div className="store-detail-item">
-                          <span className="detail-label">Pending:</span>
-                          <span className="detail-value">{store.pendingDocumentsCount || '0'}</span>
-                        </div>
-                        <div className="store-detail-item">
-                          <span className="detail-label">Failed:</span>
-                          <span className="detail-value">{store.failedDocumentsCount || '0'}</span>
-                        </div>
-                        <div className="store-detail-item">
-                          <span className="detail-label">Size:</span>
-                          <span className="detail-value">{formatBytes(store.sizeBytes)}</span>
-                        </div>
-                      </div>
-
-                      <div className="store-actions">
-                        {selectedStore !== store.name && (
-                          <button
-                            onClick={() => handleSelectStore(store.name)}
-                            className="select-store-button"
-                          >
-                            Set as Default
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDeleteStore(store.name, false)}
-                          className="delete-store-button"
+                <>
+                  <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f0f4ff', borderRadius: '6px', fontSize: '0.875rem', color: '#667eea' }}>
+                    <strong>Select knowledge bases to use:</strong> Check the boxes below to select which knowledge bases should be used for chat queries. You can select multiple. Don't forget to click "Save Selection" after making your choices.
+                  </div>
+                  <div className="stores-grid">
+                    {stores.map((store) => {
+                      const isSelected = selectedStores.includes(store.name);
+                      return (
+                        <div 
+                          key={store.name} 
+                          className={`store-card ${isSelected ? 'selected' : ''}`}
+                          style={{
+                            border: isSelected ? '2px solid #667eea' : '1px solid #e5e7eb',
+                            backgroundColor: isSelected ? '#f0f4ff' : 'white'
+                          }}
                         >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                          <div className="store-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleStoreToggle(store.name)}
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                cursor: 'pointer'
+                              }}
+                            />
+                            <h4 className="store-name" style={{ flex: 1, margin: 0 }}>
+                              {store.displayName || store.name.split('/').pop()}
+                            </h4>
+                          </div>
+                          
+                          <div className="store-details">
+                            <div className="store-detail-item">
+                              <span className="detail-label">Store ID:</span>
+                              <span className="detail-value">{store.name}</span>
+                            </div>
+                            <div className="store-detail-item">
+                              <span className="detail-label">Active Documents:</span>
+                              <span className="detail-value">{store.activeDocumentsCount || '0'}</span>
+                            </div>
+                            <div className="store-detail-item">
+                              <span className="detail-label">Pending:</span>
+                              <span className="detail-value">{store.pendingDocumentsCount || '0'}</span>
+                            </div>
+                            <div className="store-detail-item">
+                              <span className="detail-label">Failed:</span>
+                              <span className="detail-value">{store.failedDocumentsCount || '0'}</span>
+                            </div>
+                            <div className="store-detail-item">
+                              <span className="detail-label">Size:</span>
+                              <span className="detail-value">{formatBytes(store.sizeBytes)}</span>
+                            </div>
+                          </div>
+
+                          <div className="store-actions">
+                            <button
+                              onClick={() => handleDeleteStore(store.name, false)}
+                              className="delete-store-button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </section>
@@ -552,6 +574,54 @@ function EmployeeSettings() {
                   disabled={savingConfig}
                 >
                   {savingConfig ? 'Saving...' : 'Save Upload Configuration'}
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="settings-section">
+            <h2 className="section-title">n8n Workflow Configuration</h2>
+            <p className="section-description">
+              Configure the n8n workflow URL for {employee.name}. This workflow will be accessible 
+              in the "Perform Action" tab. The workflow will open in a new tab due to security restrictions.
+            </p>
+
+            <div className="config-form">
+              <div className="config-group">
+                <label htmlFor="n8nWorkflowUrl" className="config-label">
+                  <span className="label-text">
+                    n8n Workflow URL
+                    <span className="info-icon-wrapper">
+                      <span className="info-icon">i</span>
+                      <span className="info-tooltip">
+                        The full URL to your n8n workflow. This can be a workflow execution URL or 
+                        a public workflow URL. Example: https://your-n8n-instance.com/workflow/12345
+                      </span>
+                    </span>
+                  </span>
+                </label>
+                <input
+                  id="n8nWorkflowUrl"
+                  type="url"
+                  value={n8nWorkflowUrl}
+                  onChange={(e) => setN8nWorkflowUrl(e.target.value)}
+                  placeholder="https://your-n8n-instance.com/workflow/12345"
+                  className="config-input"
+                />
+                {n8nWorkflowUrl && (
+                  <p className="config-hint" style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                    Workflow will be accessible at: {n8nWorkflowUrl}
+                  </p>
+                )}
+              </div>
+
+              <div className="config-actions">
+                <button
+                  onClick={handleSaveConfig}
+                  className="save-config-button"
+                  disabled={savingConfig}
+                >
+                  {savingConfig ? 'Saving...' : 'Save n8n Configuration'}
                 </button>
               </div>
             </div>
