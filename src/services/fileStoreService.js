@@ -238,21 +238,36 @@ export const importFileToStore = async (
 
 /**
  * Generate content using Gemini API with FileSearchStore context
- * Based on: https://ai.google.dev/api/file-search/file-search-stores
+ * Based: https://ai.google.dev/api/file-search/file-search-stores
  *
- * @param {string} storeName - The FileSearchStore name (e.g., "fileSearchStores/my-store")
+ * @param {string|Array<string>} storeNames - The FileSearchStore name(s)
  * @param {string} query - User's query/question
  * @param {Array} conversationHistory - Optional conversation history for context
- * @param {string} model - Model to use (default: "gemini-2.5-flash")
+ * @param {Object} options - Optional configuration
+ * @param {string} options.model - Model to use (default: "gemini-2.5-flash")
+ * @param {string} options.systemPrompt - System instruction/prompt
+ * @param {number} options.temperature - Temperature (0.0-2.0, default: 0.7)
+ * @param {number} options.topP - Top P (0.0-1.0, default: 0.95)
+ * @param {number} options.topK - Top K (default: 40)
+ * @param {number} options.maxOutputTokens - Max output tokens (default: 8192)
  * @returns {Promise<Object>} Generated content response
  */
 export const generateContentWithStore = async (
   storeNames,
   query,
   conversationHistory = [],
-  model = "gemini-2.5-flash"
+  options = {}
 ) => {
   try {
+    const {
+      model = "gemini-2.5-flash",
+      systemPrompt = null,
+      temperature = null,
+      topP = null,
+      topK = null,
+      maxOutputTokens = null,
+    } = options;
+
     // Normalize storeNames to array
     const storeNamesArray = Array.isArray(storeNames)
       ? storeNames
@@ -260,6 +275,18 @@ export const generateContentWithStore = async (
 
     // Build contents array with conversation history and current query
     const contents = [];
+
+    // Add system instruction if provided
+    if (systemPrompt) {
+      contents.push({
+        role: "user",
+        parts: [{ text: systemPrompt }],
+      });
+      contents.push({
+        role: "model",
+        parts: [{ text: "Understood." }],
+      });
+    }
 
     // Add conversation history
     conversationHistory.forEach((msg) => {
@@ -287,6 +314,25 @@ export const generateContentWithStore = async (
         },
       ],
     };
+
+    // Add generation config if any parameters are provided
+    const generationConfig = {};
+    if (temperature !== null && temperature !== undefined) {
+      generationConfig.temperature = temperature;
+    }
+    if (topP !== null && topP !== undefined) {
+      generationConfig.topP = topP;
+    }
+    if (topK !== null && topK !== undefined) {
+      generationConfig.topK = topK;
+    }
+    if (maxOutputTokens !== null && maxOutputTokens !== undefined) {
+      generationConfig.maxOutputTokens = maxOutputTokens;
+    }
+
+    if (Object.keys(generationConfig).length > 0) {
+      requestBody.generationConfig = generationConfig;
+    }
 
     const response = await apiClient.post(
       `${API_BASE_URL}/models/${model}:generateContent`,
