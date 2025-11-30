@@ -56,15 +56,16 @@ function EmployeeSettings() {
       const currentSelectedStores = currentConfig.chat?.selectedStores || [];
       
       if (currentSelectedStores.length === 0 && availableStores.length > 0) {
-        // Auto-select all available stores
-        const storeNames = availableStores.map(store => store.name);
+        // Auto-select max 5 stores from the top
+        const maxStores = Math.min(5, availableStores.length);
+        const storeNames = availableStores.slice(0, maxStores).map(store => store.name);
         setSelectedStores(storeNames);
         // Save to localStorage immediately
         updateEmployeeConfigSection(employeeId, 'chat', { 
           ...currentConfig.chat, 
           selectedStores: storeNames 
         });
-        setSuccess(`Auto-selected ${storeNames.length} knowledge base${storeNames.length > 1 ? 's' : ''}. You can change this selection anytime.`);
+        setSuccess(`Auto-selected ${storeNames.length} knowledge base${storeNames.length > 1 ? 's' : ''} (max 5). You can change this selection anytime.`);
       }
     } catch (err) {
       setError(err.message || 'Failed to load file stores');
@@ -194,7 +195,11 @@ function EmployeeSettings() {
         setError(null);
         return prev.filter(name => name !== storeName);
       } else {
-        // Add store (no limit)
+        // Add store (max 5)
+        if (prev.length >= 5) {
+          setError('Maximum 5 knowledge bases can be selected at once.');
+          return prev;
+        }
         setError(null);
         return [...prev, storeName];
       }
@@ -287,7 +292,7 @@ function EmployeeSettings() {
               {stores.length > 0 && (
                 <>
                   <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f0f4ff', borderRadius: '6px', fontSize: '0.875rem', color: '#667eea' }}>
-                    <strong>Select knowledge bases to use:</strong> Check the boxes below to select which knowledge bases should be used for chat queries. You can select multiple. Don't forget to click "Save Selection" after making your choices.
+                    <strong>Select knowledge bases to use:</strong> Check the boxes below to select which knowledge bases should be used for chat queries. You can select up to 5 knowledge bases (currently {selectedStores.length}/5 selected). Don't forget to click "Save Selection" after making your choices.
                   </div>
                   <div className="stores-grid">
                     {stores.map((store) => {
