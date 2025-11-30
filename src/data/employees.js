@@ -39,19 +39,32 @@ export const employees = [
     description: 'Your implementation superhero who oversees project implementations and deployments. He gets things done, fast!',
     icon: '🦸🚀',
     color: '#fa709a'
-  },
-  {
-    id: 'custom',
-    name: 'Nova',
-    role: 'Custom Employee',
-    description: 'Your customizable superhero! Build and configure your own AI employee tailored to your exact needs. The power is yours!',
-    icon: '🦸⚙️',
-    color: '#ffecd2'
   }
 ];
 
 export const getEmployeeById = (id) => {
-  return employees.find(emp => emp.id === id) || employees[0]; // Default to Donna
+  // First check default employees
+  const defaultEmployee = employees.find(emp => emp.id === id);
+  if (defaultEmployee) {
+    return defaultEmployee;
+  }
+  
+  // Check custom employees in localStorage
+  const customEmployeesJson = localStorage.getItem('customEmployees');
+  if (customEmployeesJson) {
+    try {
+      const customEmployees = JSON.parse(customEmployeesJson);
+      const customEmployee = customEmployees.find(emp => emp.id === id);
+      if (customEmployee) {
+        return customEmployee;
+      }
+    } catch (e) {
+      console.error('Failed to parse custom employees:', e);
+    }
+  }
+  
+  // Default to Donna
+  return employees[0];
 };
 
 export const getDefaultEmployee = () => {

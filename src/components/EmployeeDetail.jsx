@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getEmployeeById } from '../data/employees';
-import { getEmployeeConfig } from '../services/employeeConfigService';
+import { skills } from '../data/skills';
 import ChatInterface from './ChatInterface';
 import DocumentUpload from './DocumentUpload';
 import SmartNoteMaker from './SmartNoteMaker';
+import SkillCard from './SkillCard';
+import MeetingAssistant from './skills/MeetingAssistant';
+import SlackIntegration from './skills/SlackIntegration';
+import JiraIntegration from './skills/JiraIntegration';
+import EmailAssistant from './skills/EmailAssistant';
+import NoteTaking from './skills/NoteTaking';
+import WorkflowAutomation from './skills/WorkflowAutomation';
+import DocumentAnalysis from './skills/DocumentAnalysis';
+import TaskManagement from './skills/TaskManagement';
+import CalendarManagement from './skills/CalendarManagement';
+import KnowledgeBaseSearch from './skills/KnowledgeBaseSearch';
 import './EmployeeDetail.css';
 
 function EmployeeDetail() {
@@ -13,23 +24,42 @@ function EmployeeDetail() {
   const employee = getEmployeeById(employeeId);
   const [activeTab, setActiveTab] = useState('chat');
   const [educateSubTab, setEducateSubTab] = useState('notes'); // 'notes' or 'upload'
-  const [n8nWorkflowUrl, setN8nWorkflowUrl] = useState('');
-
-  useEffect(() => {
-    // Load n8n workflow URL from configuration
-    const config = getEmployeeConfig(employeeId);
-    const workflowUrl = config.n8n?.workflowUrl || '';
-    setN8nWorkflowUrl(workflowUrl);
-  }, [employeeId]);
-
-  // Check if we have a valid workflow URL configured
-  const hasValidWorkflowUrl = !!n8nWorkflowUrl && n8nWorkflowUrl.trim() !== '';
+  const [selectedSkill, setSelectedSkill] = useState(null);
 
   const tabs = [
     { id: 'chat', label: 'Chat', icon: '💬' },
     { id: 'educate', label: 'Educate/Train', icon: '📚' },
-    { id: 'action', label: 'Perform Action', icon: '⚡' }
+    { id: 'skillset', label: 'Skillset', icon: '🎯' }
   ];
+
+  const handleSkillClick = (skill) => {
+    setSelectedSkill(skill);
+  };
+
+  const handleBackToSkills = () => {
+    setSelectedSkill(null);
+  };
+
+  // Map skill IDs to their components
+  const skillComponents = {
+    'meeting-assistant': MeetingAssistant,
+    'slack-integration': SlackIntegration,
+    'jira-integration': JiraIntegration,
+    'email-assistant': EmailAssistant,
+    'note-taking': NoteTaking,
+    'workflow-automation': WorkflowAutomation,
+    'document-analysis': DocumentAnalysis,
+    'task-management': TaskManagement,
+    'calendar-management': CalendarManagement,
+    'knowledge-base': KnowledgeBaseSearch
+  };
+
+  const renderSkillComponent = () => {
+    if (!selectedSkill) return null;
+    const SkillComponent = skillComponents[selectedSkill.id];
+    if (!SkillComponent) return <div>Skill component not found</div>;
+    return <SkillComponent employeeName={employee.name} employeeId={employeeId} />;
+  };
 
   return (
     <div className="employee-detail-page">
@@ -103,41 +133,32 @@ function EmployeeDetail() {
               </div>
             )}
 
-            {activeTab === 'action' && (
-              <div className="tab-panel action-panel">
-                <div className="n8n-container">
-                  <div className="n8n-header">
-                    <h3>n8n Workflow</h3>
-                    <p>Access workflow automation for {employee.name}</p>
+            {activeTab === 'skillset' && (
+              <div className="tab-panel skillset-panel">
+                {!selectedSkill ? (
+                  <div className="skills-overview">
+                    <div className="skills-overview-header">
+                      <h3>Available Skills</h3>
+                      <p>Choose a skill to empower {employee.name}</p>
+                    </div>
+                    <div className="skills-grid">
+                      {skills.map((skill) => (
+                        <SkillCard
+                          key={skill.id}
+                          skill={skill}
+                          onClick={handleSkillClick}
+                        />
+                      ))}
+                    </div>
                   </div>
-                  {hasValidWorkflowUrl ? (
-                    <div className="n8n-workflow-card">
-                      <div className="workflow-card-content">
-                        <div className="workflow-icon">⚡</div>
-                        <div className="workflow-info">
-                          <h4>Workflow Ready</h4>
-                          <p>Click the button below to open the n8n workflow in a new tab.</p>
-                          <p className="workflow-url-hint">Workflow URL: {n8nWorkflowUrl}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => window.open(n8nWorkflowUrl, '_blank', 'noopener,noreferrer')}
-                        className="btn-open-workflow"
-                      >
-                        Open Workflow →
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="n8n-placeholder">
-                      <div className="placeholder-content">
-                        <div className="placeholder-icon">⚙️</div>
-                        <h4>n8n Workflow Not Configured</h4>
-                        <p>Configure your n8n instance URL in the component to display workflows here.</p>
-                        <p className="placeholder-url">Current URL: {n8nWorkflowUrl}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="skill-detail-view">
+                    <button className="back-to-skills-btn" onClick={handleBackToSkills}>
+                      ← Back to Skills
+                    </button>
+                    {renderSkillComponent()}
+                  </div>
+                )}
               </div>
             )}
           </div>
