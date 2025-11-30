@@ -62,7 +62,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
 
   const loadFileStores = async () => {
     try {
-      const response = await listFileStores(50);
+      const response = await listFileStores(20);
       setAvailableStores(response.fileSearchStores || []);
       // Pre-select the current store if provided
       if (storeName) {

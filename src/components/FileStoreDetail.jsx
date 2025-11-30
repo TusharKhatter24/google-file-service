@@ -237,7 +237,7 @@ function FileStoreDetail() {
     setShowImportModal(true);
     setLoadingFiles(true);
     try {
-      const response = await listFiles(50);
+      const response = await listFiles(20);
       setAvailableFiles(response.files || []);
       setFilesNextPageToken(response.nextPageToken || null);
     } catch (err) {
@@ -251,7 +251,7 @@ function FileStoreDetail() {
     if (!filesNextPageToken) return;
     try {
       setLoadingFiles(true);
-      const response = await listFiles(50, filesNextPageToken);
+      const response = await listFiles(20, filesNextPageToken);
       setAvailableFiles(prev => [...prev, ...(response.files || [])]);
       setFilesNextPageToken(response.nextPageToken || null);
     } catch (err) {

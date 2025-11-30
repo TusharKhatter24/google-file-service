@@ -11,14 +11,14 @@ function EmployeeDetail() {
   const navigate = useNavigate();
   const employee = getEmployeeById(employeeId);
   const [activeTab, setActiveTab] = useState('chat');
-  const [educateSubTab, setEducateSubTab] = useState('upload'); // 'upload' or 'notes'
+  const [educateSubTab, setEducateSubTab] = useState('notes'); // 'notes' or 'upload'
 
   // Placeholder n8n workflow URL - can be configured later
   const n8nWorkflowUrl = `https://your-n8n-instance.com/workflow/${employeeId}`;
 
   const tabs = [
-    { id: 'chat', label: 'Chat with her', icon: '💬' },
-    { id: 'educate', label: 'Educate/Train her', icon: '📚' },
+    { id: 'chat', label: 'Chat', icon: '💬' },
+    { id: 'educate', label: 'Educate/Train', icon: '📚' },
     { id: 'action', label: 'Perform Action', icon: '⚡' }
   ];
 
@@ -71,24 +71,24 @@ function EmployeeDetail() {
               <div className="tab-panel">
                 <div className="educate-subtabs">
                   <button
-                    className={`subtab-button ${educateSubTab === 'upload' ? 'active' : ''}`}
-                    onClick={() => setEducateSubTab('upload')}
-                  >
-                    📤 Upload Documents
-                  </button>
-                  <button
                     className={`subtab-button ${educateSubTab === 'notes' ? 'active' : ''}`}
                     onClick={() => setEducateSubTab('notes')}
                   >
                     ✍️ Smart Note Maker
                   </button>
+                  <button
+                    className={`subtab-button ${educateSubTab === 'upload' ? 'active' : ''}`}
+                    onClick={() => setEducateSubTab('upload')}
+                  >
+                    📤 Upload Documents
+                  </button>
                 </div>
                 <div className="educate-content">
-                  {educateSubTab === 'upload' && (
-                    <DocumentUpload employeeName={employee.name} employeeId={employeeId} />
-                  )}
                   {educateSubTab === 'notes' && (
                     <SmartNoteMaker employeeName={employee.name} employeeId={employeeId} />
+                  )}
+                  {educateSubTab === 'upload' && (
+                    <DocumentUpload employeeName={employee.name} employeeId={employeeId} />
                   )}
                 </div>
               </div>

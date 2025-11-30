@@ -15,10 +15,18 @@ function DocumentUpload({ employeeName, employeeId }) {
   const [storeName, setStoreName] = useState(null);
   const fileInputRef = useRef(null);
 
-  const loadDocuments = async (store) => {
+  const loadDocuments = async (store, pageToken = null) => {
     try {
-      const response = await listDocuments(store, 50);
-      setUploadedDocuments(response.documents || []);
+      const response = await listDocuments(store, 20, pageToken);
+      if (pageToken) {
+        // Append for pagination
+        setUploadedDocuments(prev => [...prev, ...(response.documents || [])]);
+      } else {
+        // Replace for initial load
+        setUploadedDocuments(response.documents || []);
+      }
+      // Note: If you need more than 20 documents, implement pagination UI
+      // using response.nextPageToken
     } catch (err) {
       console.error('Failed to load documents:', err);
     }
@@ -220,7 +228,11 @@ function DocumentUpload({ employeeName, employeeId }) {
     <div className="document-upload">
       <div className="upload-header">
         <h3>Train {employeeName || 'your AI employee'}</h3>
-        <p>Upload documents to educate and train your AI employee with knowledge and context</p>
+        <p>
+          <strong>Part 1: Upload Documents Flow</strong><br />
+          Upload documents directly to Google Files and attach them to your knowledge source (file store). 
+          These documents will be processed and made searchable for AI-powered queries.
+        </p>
         {!storeName && (
           <div className="warning-message">
             ⚠️ No knowledge source configured. Please set up a knowledge source in Settings first.
@@ -228,7 +240,7 @@ function DocumentUpload({ employeeName, employeeId }) {
         )}
         {storeName && (
           <div className="info-message">
-            ✓ Uploading to: {storeName}
+            ✓ Files will be uploaded to Google Files and imported into: {storeName}
           </div>
         )}
       </div>

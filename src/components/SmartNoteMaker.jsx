@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { listDocuments, listFileStores, getDocument } from '../services/fileStoreService';
-import { generateComprehensiveNotes, generateNotesFromDocuments } from '../services/smartNoteService';
 import { extractTextFromFileUsingGemini } from '../services/filesService';
 import { extractTextFromFile } from '../utils/fileReader';
 import {
@@ -16,6 +15,8 @@ import {
 } from '../services/aiNotesService';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
 import { importFileToStore } from '../services/fileStoreService';
+import { uploadFile } from '../services/filesService';
+import { getEmployeeStore } from '../services/employeeStoreService';
 import './SmartNoteMaker.css';
 
 function SmartNoteMaker({ employeeName, employeeId }) {
@@ -29,8 +30,6 @@ function SmartNoteMaker({ employeeName, employeeId }) {
   const [storeName, setStoreName] = useState(routeStoreName ? decodeURIComponent(routeStoreName) : null);
   const [notes, setNotes] = useState('');
   const [generatingNotes, setGeneratingNotes] = useState(false);
-  const [selectedDocuments, setSelectedDocuments] = useState([]);
-  const [noteMode, setNoteMode] = useState('comprehensive'); // 'comprehensive', 'custom', 'manual'
   const extractFileInputRef = useRef(null);
   const quillRef = useRef(null);
   
@@ -47,28 +46,11 @@ function SmartNoteMaker({ employeeName, employeeId }) {
   const [recognition, setRecognition] = useState(null);
   const [transcriptionText, setTranscriptionText] = useState('');
   const [extractingContent, setExtractingContent] = useState(null);
+  const [showFileNameModal, setShowFileNameModal] = useState(false);
+  const [fileNameInput, setFileNameInput] = useState('');
 
   useEffect(() => {
-    // Use route storeName if available, otherwise try employeeId (for backward compatibility)
-    if (routeStoreName) {
-      const decodedStoreName = decodeURIComponent(routeStoreName);
-      setStoreName(decodedStoreName);
-      loadDocuments(decodedStoreName);
-    } else if (employeeId) {
-      // Backward compatibility: try to get store from employeeId if available
-      try {
-        const { getEmployeeStore } = require('../services/employeeStoreService');
-        const store = getEmployeeStore(employeeId);
-        if (store) {
-          setStoreName(store);
-          loadDocuments(store);
-        }
-      } catch (e) {
-        // employeeStoreService might not exist in lokesh branch
-        console.log('Employee store service not available');
-      }
-    }
-    
+    // Load file stores and set up store from settings
     loadFileStores();
     
     // Cleanup on unmount
@@ -83,10 +65,18 @@ function SmartNoteMaker({ employeeName, employeeId }) {
     };
   }, [routeStoreName, employeeId]);
 
-  const loadDocuments = async (store) => {
+  const loadDocuments = async (store, pageToken = null) => {
     try {
-      const response = await listDocuments(store, 100);
-      setUploadedDocuments(response.documents || []);
+      const response = await listDocuments(store, 20, pageToken);
+      if (pageToken) {
+        // Append for pagination
+        setUploadedDocuments(prev => [...prev, ...(response.documents || [])]);
+      } else {
+        // Replace for initial load
+        setUploadedDocuments(response.documents || []);
+      }
+      // Note: If you need more than 20 documents, implement pagination UI
+      // using response.nextPageToken
     } catch (err) {
       console.error('Failed to load documents:', err);
     }
@@ -94,26 +84,40 @@ function SmartNoteMaker({ employeeName, employeeId }) {
 
   const loadFileStores = async () => {
     try {
-      const response = await listFileStores(50);
+      const response = await listFileStores(20);
       const stores = response.fileSearchStores || [];
       setAvailableStores(stores);
       
-      // If no store is selected yet, auto-select one
-      if (!storeName && stores.length > 0) {
-        // Auto-select the first available store
-        const firstStore = stores[0];
-        setStoreName(firstStore.name);
-        loadDocuments(firstStore.name);
-        setSelectedStores([firstStore.name]);
-      } else if (storeName) {
-        // Pre-select the current store if available
-        const decodedStoreName = typeof storeName === 'string' ? decodeURIComponent(storeName) : storeName;
-        const store = stores.find(
-          s => s.name === decodedStoreName
-        );
-        if (store) {
-          setSelectedStores([store.name]);
+      // Get file store from settings (employee's default store)
+      let storeFromSettings = null;
+      if (employeeId) {
+        try {
+          storeFromSettings = getEmployeeStore(employeeId);
+        } catch (e) {
+          console.log('Could not get employee store from settings');
         }
+      }
+      
+      // Use store from settings, route, or first available
+      let targetStore = null;
+      if (storeFromSettings) {
+        targetStore = stores.find(s => s.name === storeFromSettings);
+      }
+      
+      if (!targetStore && routeStoreName) {
+        const decodedStoreName = decodeURIComponent(routeStoreName);
+        targetStore = stores.find(s => s.name === decodedStoreName);
+      }
+      
+      if (!targetStore && stores.length > 0) {
+        targetStore = stores[0];
+      }
+      
+      if (targetStore) {
+        setStoreName(targetStore.name);
+        loadDocuments(targetStore.name);
+        // Use the store from settings for AI context
+        setSelectedStores(storeFromSettings ? [storeFromSettings] : [targetStore.name]);
       }
     } catch (err) {
       console.error('Failed to load file stores:', err);
@@ -178,30 +182,43 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       setExtractingFile(fileObj.id);
       setError(null);
 
+      // Extract text directly from file using browser FileReader API and pdf.js
+      // This section does NOT use Google APIs - only local browser extraction
       let extractedText;
+      const fileName = fileObj.name;
+      const fileType = fileObj.type || 'unknown';
+      const isPDF = fileType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
       
       try {
-        // Try to extract text directly from file using browser FileReader API
         extractedText = await extractTextFromFile(fileObj.file);
-      } catch (browserError) {
-        // If browser extraction fails (e.g., for PDFs), use Gemini API as fallback
-        if (browserError.message === 'PDF_EXTRACTION_NEEDED' || 
-            fileObj.type === 'application/pdf' || 
-            fileObj.name.toLowerCase().endsWith('.pdf')) {
-          // For PDFs, upload temporarily to Google Files and use Gemini API
-          const { uploadFile } = await import('../services/filesService');
-          const uploadedFile = await uploadFile(fileObj.file, fileObj.name);
-          
-          if (!uploadedFile || !uploadedFile.uri) {
-            throw new Error('Failed to upload file for PDF extraction');
-          }
-
-          extractedText = await extractTextFromFileUsingGemini({
-            uri: uploadedFile.uri,
-            mimeType: uploadedFile.mimeType || fileObj.type || 'application/pdf',
-          });
+      } catch (extractionError) {
+        console.error('Extraction error:', extractionError);
+        
+        // For PDFs, preserve the specific error message from extractTextFromPDF
+        if (isPDF) {
+          throw extractionError; // Re-throw PDF-specific errors as-is
+        }
+        
+        // For unsupported formats (DOCX, images), show helpful error
+        if (fileType.includes('wordprocessingml') || fileName.toLowerCase().endsWith('.docx')) {
+          throw new Error(
+            `DOCX files cannot be extracted locally. ` +
+            `Please convert to PDF or text format (.txt) or use AI Notes Generator ` +
+            `to extract content from DOCX files in your knowledge source.`
+          );
+        } else if (fileType.startsWith('image/')) {
+          throw new Error(
+            `Image files cannot be converted to text locally. ` +
+            `Please provide a text version or use AI Notes Generator ` +
+            `to extract content from images in your knowledge source.`
+          );
         } else {
-          throw browserError;
+          // Generic error for other file types
+          throw new Error(
+            `Cannot extract text from "${fileName}". ` +
+            `Supported formats: .txt, .md, .json, .csv, .html, .xml, .pdf, and other text files. ` +
+            `For DOCX and images, use AI Notes Generator instead.`
+          );
         }
       }
 
@@ -230,8 +247,7 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       // Remove file from list (discard - not uploading to store)
       handleRemoveExtractFile(fileObj.id);
     } catch (err) {
-      const errorMessage = err.response?.data?.error?.message || 
-                          err.message || 
+      const errorMessage = err.message || 
                           'Failed to extract content from file. Please try again.';
       setError(errorMessage);
       console.error('Extract content error:', err);
@@ -240,60 +256,23 @@ function SmartNoteMaker({ employeeName, employeeId }) {
     }
   };
 
-  const handleGenerateNotes = async () => {
-    if (!storeName) {
-      setError('No knowledge source configured.');
-      return;
-    }
 
-    const docsToProcess = selectedDocuments.length > 0 
-      ? selectedDocuments 
-      : uploadedDocuments.map(doc => doc.name);
-
-    if (docsToProcess.length === 0) {
-      setError('Please upload documents first or select documents to process.');
-      return;
-    }
-
-    try {
-      setGeneratingNotes(true);
-      setError(null);
-
-      let generatedNotes = '';
-
-      if (noteMode === 'comprehensive') {
-        const comprehensive = await generateComprehensiveNotes(docsToProcess, storeName);
-        generatedNotes = `# Notes Generated from ${comprehensive.documentCount} Document(s)\n\n` +
-          `**Generated:** ${new Date(comprehensive.generatedAt).toLocaleString()}\n\n` +
-          `## Summary\n\n${comprehensive.summary}\n\n` +
-          `## Key Points\n\n${comprehensive.keyPoints}\n\n` +
-          `## Insights\n\n${comprehensive.insights}\n\n` +
-          `## Action Items\n\n${comprehensive.actionItems}\n\n` +
-          `## Topics\n\n${comprehensive.topics}\n\n` +
-          `## Synthesis\n\n${comprehensive.synthesis}`;
-      } else {
-        generatedNotes = await generateNotesFromDocuments(docsToProcess, storeName, {
-          includeSummary: true,
-          includeKeyPoints: true,
-          includeActionItems: true,
-          includeTopics: true,
-        });
+  const handleClearNotes = () => {
+    if (window.confirm('Are you sure you want to clear all notes? This action cannot be undone.')) {
+      setNotes('');
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        quill.setContents([]);
       }
-
-      setNotes(generatedNotes);
-      setSuccess('Notes generated successfully!');
-    } catch (err) {
-      const errorMessage = err.response?.data?.error?.message || 
-                          err.message || 
-                          'Failed to generate notes. Please check your API key and try again.';
-      setError(errorMessage);
-      console.error('Note generation error:', err);
-    } finally {
-      setGeneratingNotes(false);
+      setError(null);
+      setSuccess(null);
+      setSelectedText('');
+      setSelectedRange(null);
+      setAiSuggestions(null);
     }
   };
 
-  const handleSaveNotes = async () => {
+  const handleSaveNotesClick = () => {
     if (!notes.trim()) {
       setError('Please generate or write notes before saving.');
       return;
@@ -304,46 +283,94 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       return;
     }
 
+    // Show file name modal
+    const defaultFileName = `smart-notes-${new Date().toISOString().split('T')[0]}`;
+    setFileNameInput(defaultFileName);
+    setShowFileNameModal(true);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!fileNameInput.trim()) {
+      setError('Please enter a file name.');
+      return;
+    }
+
+    // Ensure file name ends with .pdf
+    const displayName = fileNameInput.trim().endsWith('.pdf') 
+      ? fileNameInput.trim() 
+      : `${fileNameInput.trim()}.pdf`;
+
+    setShowFileNameModal(false);
+
     try {
       setGeneratingNotes(true);
       setError(null);
+      setSuccess(null);
 
+      // Generate PDF from notes
       const quill = quillRef.current?.getEditor();
       const htmlContent = quill ? quill.root.innerHTML : notes;
-      const fileName = `smart-notes-${Date.now()}.pdf`;
 
-      const pdfFile = await generatePDFFromHTML(htmlContent, fileName);
-      const uploadedFile = await uploadFile(pdfFile, fileName);
+      console.log('Generating PDF...');
+      const pdfFile = await generatePDFFromHTML(htmlContent, displayName);
       
-      if (!uploadedFile || !uploadedFile.name) {
-        throw new Error('Failed to upload file');
+      if (!pdfFile) {
+        throw new Error('Failed to generate PDF file');
       }
 
-      const decodedStoreName = decodeURIComponent(storeName);
-      await importFileToStore(decodedStoreName, uploadedFile.name);
+      // Upload PDF to Google Files
+      console.log('Uploading PDF to Google Files...');
+      const uploadedFileResponse = await uploadFile(pdfFile, displayName);
+      
+      if (!uploadedFileResponse) {
+        throw new Error('Failed to upload file to Google Files - no response received');
+      }
 
-      setSuccess('Notes saved successfully!');
+      console.log('Upload response:', uploadedFileResponse);
+
+      // The uploadFile API returns the file object directly
+      // It should have a 'name' property with format "files/{file_id}"
+      let fileResourceName = null;
+      
+      if (uploadedFileResponse.name) {
+        fileResourceName = uploadedFileResponse.name;
+      } else if (uploadedFileResponse.file && uploadedFileResponse.file.name) {
+        fileResourceName = uploadedFileResponse.file.name;
+      } else {
+        console.error('Uploaded file response structure:', uploadedFileResponse);
+        throw new Error('Uploaded file does not have a resource name. Response: ' + JSON.stringify(uploadedFileResponse));
+      }
+
+      // Ensure file name is in correct format (should already be "files/{file_id}")
+      const fileName = fileResourceName.startsWith('files/') 
+        ? fileResourceName 
+        : `files/${fileResourceName}`;
+
+      console.log('Importing file to store. File name:', fileName, 'Store:', storeName);
+      const decodedStoreName = decodeURIComponent(storeName);
+      const importResult = await importFileToStore(decodedStoreName, fileName);
+
+      // Check if import returned an operation (long-running)
+      if (importResult && importResult.name && importResult.name.includes('operations/')) {
+        setSuccess('Notes import started! The file is being processed...');
+        // Optionally poll for operation status here if needed
+      } else {
+        setSuccess('Notes saved successfully!');
+      }
+
+      // Reload documents to show the new file
       await loadDocuments(storeName);
     } catch (err) {
+      console.error('Save notes error:', err);
       const errorMessage = err.response?.data?.error?.message || 
                           err.message || 
                           'Failed to save notes. Please try again.';
       setError(errorMessage);
-      console.error('Save notes error:', err);
     } finally {
       setGeneratingNotes(false);
     }
   };
 
-  const handleDocumentToggle = (docName) => {
-    setSelectedDocuments(prev => {
-      if (prev.includes(docName)) {
-        return prev.filter(name => name !== docName);
-      } else {
-        return [...prev, docName];
-      }
-    });
-  };
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -615,15 +642,6 @@ function SmartNoteMaker({ employeeName, employeeId }) {
     }
   };
 
-  const handleStoreToggle = (storeName) => {
-    setSelectedStores(prev => {
-      if (prev.includes(storeName)) {
-        return prev.filter(s => s !== storeName);
-      } else {
-        return [...prev, storeName];
-      }
-    });
-  };
 
   const handleExtractDocumentContent = async (documentName) => {
     if (!storeName) {
@@ -685,239 +703,135 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       <div className="smart-note-header">
         <div>
           <h2>Smart AI Note Maker</h2>
-          <p>Extract content from documents or generate AI notes from your knowledge source</p>
-        </div>
-        <div className="header-actions">
-          {!storeName && availableStores.length > 0 && (
-            <div className="store-selector">
-              <label htmlFor="store-select">Select Knowledge Source:</label>
-              <select
-                id="store-select"
-                value={storeName || ''}
-                onChange={(e) => handleStoreSelect(e.target.value)}
-                className="store-select"
-              >
-                <option value="">-- Select a store --</option>
-                {availableStores.map(store => (
-                  <option key={store.name} value={store.name}>
-                    {store.displayName || store.name.split('/').pop()}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <p className="header-description">
+            Create and organize knowledge content that powers your AI assistant's responses
+          </p>
           {storeName && (
-            <div className="store-info">
-              <span>📚 Knowledge Source: {storeName.split('/').pop()}</span>
-              {availableStores.length > 1 && (
-                <button
-                  className="btn-change-store"
-                  onClick={() => setStoreName(null)}
-                  title="Change knowledge source"
-                >
-                  Change
-                </button>
-              )}
-            </div>
+            <p className="knowledge-source-info">
+              📚 Knowledge Source: {storeName.split('/').pop()}
+            </p>
           )}
         </div>
+        {!storeName && availableStores.length > 0 && (
+          <div className="header-actions">
+            <select
+              value={storeName || ''}
+              onChange={(e) => handleStoreSelect(e.target.value)}
+              className="store-select"
+            >
+              <option value="">Select Knowledge Source</option>
+              {availableStores.map(store => (
+                <option key={store.name} value={store.name}>
+                  {store.displayName || store.name.split('/').pop()}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="smart-note-layout">
-        {/* Left Panel - Document Upload & Selection */}
-        <div className="left-panel">
-          <div className="panel-section">
-            <h3>Upload Document to Extract Content</h3>
-            <p className="section-hint">Upload a document to extract its content and paste into your notes. This does not upload to the knowledge source.</p>
-            
-            <div
-              className={`upload-zone ${isDragging ? 'dragging' : ''}`}
-              onDragEnter={handleExtractDragEnter}
-              onDragOver={handleExtractDragOver}
-              onDragLeave={handleExtractDragLeave}
-              onDrop={handleExtractDrop}
-              onClick={() => extractFileInputRef.current?.click()}
-            >
-              <div className="upload-content">
-                <div className="upload-icon">📄</div>
-                <h4>Drop files here or click to browse</h4>
-                <p>Supports PDF, DOCX, TXT, MD, and images</p>
-              </div>
-              <input
-                ref={extractFileInputRef}
-                type="file"
-                multiple
-                onChange={handleExtractFileInput}
-                className="file-input"
-                accept=".pdf,.doc,.docx,.txt,.md,.jpg,.jpeg,.png"
-              />
-            </div>
-
-            {extractFiles.length > 0 && (
-              <div className="files-to-upload">
-                <h4>Files to Extract Content ({extractFiles.length})</h4>
-                <div className="files-list">
-                  {extractFiles.map((fileObj) => (
-                    <div key={fileObj.id} className="file-item">
-                      <div className="file-info">
-                        <div className="file-icon">📄</div>
-                        <div className="file-details">
-                          <div className="file-name">{fileObj.name}</div>
-                          <div className="file-meta">
-                            {formatFileSize(fileObj.size)} • {fileObj.type || 'Unknown'}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="file-actions">
-                        <button
-                          onClick={() => handleUploadForExtraction(fileObj)}
-                          className="btn btn-primary btn-sm"
-                          disabled={extractingFile === fileObj.id}
-                          title="Extract content and paste into notes"
-                        >
-                          {extractingFile === fileObj.id ? '⏳ Extracting...' : '📄 Extract Content'}
-                        </button>
-                        <button
-                          onClick={() => handleRemoveExtractFile(fileObj.id)}
-                          className="remove-btn"
-                          disabled={extractingFile === fileObj.id}
-                          title="Remove file"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="panel-section">
-            <h3>Select Documents for Note Generation</h3>
-            <p className="section-hint">Choose which documents from your knowledge source to include in AI note generation</p>
-            
-            {uploadedDocuments.length === 0 ? (
-              <div className="empty-state">
-                <p>No documents in knowledge source yet. Use the "Upload Documents" tab to add documents to your knowledge source.</p>
-              </div>
-            ) : (
-              <div className="documents-selection">
-                {uploadedDocuments.map((doc) => (
-                  <div key={doc.name} className="document-item">
-                    <label className="document-checkbox">
-                      <input
-                        type="checkbox"
-                        checked={selectedDocuments.includes(doc.name)}
-                        onChange={() => handleDocumentToggle(doc.name)}
-                      />
-                      <div className="document-info">
-                        <div className="document-name">{doc.displayName || doc.name.split('/').pop()}</div>
-                        {doc.createTime && (
-                          <div className="document-date">
-                            {new Date(doc.createTime).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                    <button
-                      className="btn-extract-content"
-                      onClick={() => handleExtractDocumentContent(doc.name)}
-                      disabled={extractingContent === doc.name || !storeName}
-                      title="Extract content and paste into notes editor"
-                    >
-                      {extractingContent === doc.name ? '⏳ Extracting...' : '📄 Load Content'}
-                    </button>
-                  </div>
-                ))}
-                <div className="selection-actions">
-                  <button
-                    onClick={() => setSelectedDocuments(uploadedDocuments.map(doc => doc.name))}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    Select All
-                  </button>
-                  <button
-                    onClick={() => setSelectedDocuments([])}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Primary Section: AI Notes Generator */}
+      <div className="workflow-section section-ai-notes">
+        <div className="section-header">
+          <h2 className="section-title">AI Notes Generator</h2>
+          <p className="section-description">
+            Create intelligent notes that enhance your AI assistant's knowledge base. 
+            Use AI tools to summarize, improve, and structure content that will help your assistant 
+            provide better, more accurate responses.
+          </p>
         </div>
 
-        {/* Right Panel - Notes Editor */}
-        <div className="right-panel">
-          <div className="panel-section">
-            <div className="notes-header">
-              <h3>Generated Notes</h3>
-              <div className="notes-actions">
-                <select
-                  value={noteMode}
-                  onChange={(e) => setNoteMode(e.target.value)}
-                  className="mode-select"
-                  disabled={generatingNotes}
-                >
-                  <option value="comprehensive">Comprehensive</option>
-                  <option value="custom">Custom</option>
-                  <option value="manual">Manual</option>
-                </select>
-                <button
-                  onClick={handleGenerateNotes}
-                  className="btn btn-primary"
-                  disabled={generatingNotes || uploadedDocuments.length === 0}
-                >
-                  {generatingNotes ? 'Generating...' : '🤖 Generate Notes'}
-                </button>
+        <div className="smart-note-layout">
+          {/* Left Panel - Extract Content */}
+          <div className="left-panel">
+            <div className="panel-section">
+              <h3 className="panel-title">Extract Content</h3>
+              <p className="section-hint">
+                Upload documents to extract text content. Extracted content will be added to your notes 
+                and can be enhanced with AI tools before saving to your knowledge source.
+              </p>
+              <div
+                className={`upload-zone ${isDragging ? 'dragging' : ''}`}
+                onDragEnter={handleExtractDragEnter}
+                onDragOver={handleExtractDragOver}
+                onDragLeave={handleExtractDragLeave}
+                onDrop={handleExtractDrop}
+                onClick={() => extractFileInputRef.current?.click()}
+              >
+                <div className="upload-content">
+                  <div className="upload-icon">📄</div>
+                  <h4>Drop files here</h4>
+                  <p className="upload-hint">.txt, .md, .json, .csv, .html, .xml, .pdf</p>
+                </div>
+                <input
+                  ref={extractFileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleExtractFileInput}
+                  className="file-input"
+                  accept=".txt,.md,.markdown,.json,.csv,.html,.htm,.xml,.js,.jsx,.ts,.tsx,.css,.scss,.yaml,.yml,.pdf"
+                />
               </div>
-            </div>
 
-            {/* AI Tools Panel */}
+              {extractFiles.length > 0 && (
+                <div className="files-to-upload">
+                  <div className="files-list">
+                    {extractFiles.map((fileObj) => (
+                      <div key={fileObj.id} className="file-item">
+                        <div className="file-info">
+                          <div className="file-name">{fileObj.name}</div>
+                          <div className="file-meta">{formatFileSize(fileObj.size)}</div>
+                        </div>
+                        <div className="file-actions">
+                          <button
+                            onClick={() => handleUploadForExtraction(fileObj)}
+                            className="btn btn-primary btn-sm"
+                            disabled={extractingFile === fileObj.id}
+                          >
+                            {extractingFile === fileObj.id ? 'Extracting...' : 'Extract'}
+                          </button>
+                          <button
+                            onClick={() => handleRemoveExtractFile(fileObj.id)}
+                            className="remove-btn"
+                            disabled={extractingFile === fileObj.id}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Panel - Notes Editor with AI Tools */}
+          <div className="right-panel">
+            <div className="panel-section">
+
             {showAIPanel && (
               <div className="ai-tools-panel">
                 <div className="ai-tools-header">
                   <span className="ai-tools-title">AI Tools</span>
-                  {selectedStores.length > 0 && (
-                    <span className="context-indicator">
-                      Using {selectedStores.length} store{selectedStores.length > 1 ? 's' : ''} for context
-                    </span>
-                  )}
+                  <button
+                    className="btn-toggle-ai"
+                    onClick={() => setShowAIPanel(false)}
+                    title="Hide AI Tools"
+                  >
+                    −
+                  </button>
                 </div>
                 
                 <div className="ai-tools-content">
-                  {/* Context Selector */}
-                  <div className="context-selector">
-                    <label>File Store Context (optional):</label>
-                    <div className="store-checkboxes">
-                      {availableStores.map(store => (
-                        <label key={store.name} className="store-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={selectedStores.includes(store.name)}
-                            onChange={() => handleStoreToggle(store.name)}
-                          />
-                          <span>{store.displayName || store.name}</span>
-                        </label>
-                      ))}
-                      {availableStores.length === 0 && (
-                        <span className="no-stores">No file stores available</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* AI Action Buttons */}
                   <div className="ai-actions">
                     <button
                       className="ai-btn"
                       onClick={handleSummarize}
                       disabled={aiLoading || !notes.trim()}
-                      title={selectedText.trim() ? "Summarize selected text" : "Summarize all text"}
                     >
                       {aiLoadingType === 'summarize' ? '⏳' : '📝'} Summarize
                     </button>
@@ -925,7 +839,6 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                       className="ai-btn"
                       onClick={handleRewrite}
                       disabled={aiLoading || !notes.trim()}
-                      title={selectedText.trim() ? "Rewrite/improve selected text" : "Rewrite/improve all text"}
                     >
                       {aiLoadingType === 'rewrite' ? '⏳' : '✏️'} Rewrite
                     </button>
@@ -933,15 +846,13 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                       className="ai-btn"
                       onClick={handleExtractKeyPoints}
                       disabled={aiLoading || !notes.trim()}
-                      title={selectedText.trim() ? "Extract key points from selected text" : "Extract key points from all text"}
                     >
-                      {aiLoadingType === 'extract' ? '⏳' : '🔑'} Extract Key Points
+                      {aiLoadingType === 'extract' ? '⏳' : '🔑'} Key Points
                     </button>
                     <button
                       className="ai-btn"
                       onClick={handleImproveText}
                       disabled={aiLoading || !notes.trim()}
-                      title={selectedText.trim() ? "Improve selected text" : "Improve all text"}
                     >
                       {aiLoadingType === 'improve' ? '⏳' : '✨'} Improve
                     </button>
@@ -949,17 +860,15 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                       className="ai-btn"
                       onClick={handleAutoComplete}
                       disabled={aiLoading}
-                      title="Auto-complete text"
                     >
-                      {aiLoadingType === 'autocomplete' ? '⏳' : '⚡'} Auto-Complete
+                      {aiLoadingType === 'autocomplete' ? '⏳' : '⚡'} Complete
                     </button>
                     <button
                       className={`ai-btn ${isRecording ? 'recording' : ''}`}
                       onClick={isRecording ? handleStopRecording : handleStartRecording}
                       disabled={aiLoading}
-                      title={isRecording ? 'Stop recording' : 'Start voice transcription'}
                     >
-                      {isRecording ? '🔴' : '🎤'} {isRecording ? 'Stop' : 'Voice'}
+                      {isRecording ? '🔴 Stop' : '🎤 Voice'}
                     </button>
                   </div>
 
@@ -1004,53 +913,128 @@ function SmartNoteMaker({ employeeName, employeeId }) {
               </div>
             )}
 
-            <ReactQuill
-              ref={quillRef}
-              theme="snow"
-              value={notes}
-              onChange={setNotes}
-              onSelectionChange={handleTextSelection}
-              placeholder="Notes will appear here after generation, or start writing manually..."
-              modules={{
-                toolbar: [
-                  [{ 'header': [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                  [{ 'color': [] }, { 'background': [] }],
-                  ['link'],
-                  ['clean']
-                ],
-              }}
-            />
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={notes}
+                onChange={setNotes}
+                onSelectionChange={handleTextSelection}
+                placeholder="Create notes that will enhance your AI assistant's knowledge. Extract content from documents, write manually, or use AI tools to improve and structure your notes. These notes will be saved to your knowledge source and used by your AI assistant to answer questions."
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['link'],
+                    ['clean']
+                  ],
+                }}
+              />
 
-            <div className="notes-footer">
-              <div className="footer-info">
-                {selectedText && (
-                  <span className="selection-info">
-                    {selectedText.length} character{selectedText.length !== 1 ? 's' : ''} selected
-                  </span>
-                )}
-              </div>
-              <div className="footer-actions">
-                <button
-                  className="btn btn-icon"
-                  onClick={() => setShowAIPanel(!showAIPanel)}
-                  title={showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}
-                >
-                  🤖
-                </button>
-                <button
-                  onClick={handleSaveNotes}
-                  className="btn btn-success"
-                  disabled={!notes.trim() || generatingNotes || !storeName}
-                >
-                  💾 Save Notes to Knowledge Source
-                </button>
-              </div>
+              {!showAIPanel && (
+                <div className="notes-footer">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowAIPanel(true)}
+                  >
+                    Show AI Tools
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Save Notes */}
+      <div className="workflow-section section-save-notes">
+        <div className="section-header">
+          <h3 className="section-title">Save to Knowledge Source</h3>
+          <p className="section-description">
+            Save your notes to your knowledge source. Once saved, this content will be available 
+            to your AI assistant, enabling it to answer questions and provide information based on these notes.
+          </p>
+        </div>
+        <div className="save-notes-actions">
+          <button
+            onClick={handleClearNotes}
+            className="btn btn-secondary"
+            disabled={!notes.trim() || generatingNotes}
+            title="Clear all notes"
+          >
+            Clear Notes
+          </button>
+          <button
+            onClick={handleSaveNotesClick}
+            className="btn btn-success btn-large"
+            disabled={!notes.trim() || generatingNotes || !storeName}
+          >
+            {generatingNotes ? 'Saving...' : 'Save to Knowledge Source'}
+          </button>
+        </div>
+        {!storeName && (
+          <p className="save-hint">
+            Please configure a knowledge source in Settings to save notes. 
+            Your notes will be converted to PDF and added to your AI assistant's knowledge base.
+          </p>
+        )}
+      </div>
+
+      {/* File Name Modal */}
+      {showFileNameModal && (
+        <div className="modal-overlay" onClick={() => setShowFileNameModal(false)}>
+          <div className="modal-content file-name-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Save Notes</h3>
+              <button
+                className="modal-close"
+                onClick={() => setShowFileNameModal(false)}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <label htmlFor="fileNameInput" className="modal-label">
+                Enter a name for your notes file:
+              </label>
+              <input
+                id="fileNameInput"
+                type="text"
+                value={fileNameInput}
+                onChange={(e) => setFileNameInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveNotes();
+                  } else if (e.key === 'Escape') {
+                    setShowFileNameModal(false);
+                  }
+                }}
+                className="modal-input"
+                placeholder="Enter file name..."
+                autoFocus
+              />
+              <p className="modal-hint">File will be saved as PDF (.pdf extension will be added automatically)</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowFileNameModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={handleSaveNotes}
+                disabled={!fileNameInput.trim()}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
