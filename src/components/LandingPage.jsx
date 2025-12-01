@@ -252,20 +252,21 @@ function LandingPage() {
               <h3 className="our-story-subtitle">Our Solution</h3>
               <p className="our-story-text">
                 AI Concierges provides instant access to all relevant knowledge—integrations, product 
-                features, SOPs, past issues, and client context—right where teams work. We make every 
-                team member faster, more confident, and more consistent, not just in client interactions 
-                but in their overall day-to-day work.
+                features, SOPs, past issues, and client context—through intelligent AI employees powered 
+                by your knowledge base. Each AI employee can be configured with custom system prompts, 
+                selected knowledge stores, and specialized skills to match your team's needs.
               </p>
               <p className="our-story-text">
-                Our AI concierges are available across all commonly used platforms, ensuring rapid, 
-                reliable, and contextual responses within existing workflows. They don't just answer 
-                questions—they can perform relevant actions seamlessly, from managing tickets to updating 
-                integrations to drafting responses.
+                Our platform enables you to build, customize, and deploy AI team members with skills like 
+                meeting assistance, Slack and Jira integrations, email management, document analysis, 
+                research capabilities, and workflow automation. They access your uploaded documents and 
+                knowledge stores to provide accurate, contextual responses based on your company's information.
               </p>
               <p className="our-story-text">
-                Starting with the most frequent queries from support and implementation teams, we validate 
-                and refine the concept, then gradually expand to broader use cases. The result: teams that 
-                work smarter, respond faster, and maintain consistency at scale.
+                With pre-built AI employees for support, implementation, and marketing—or the ability to 
+                create custom ones—teams can get started quickly. The AI concierges learn from your knowledge 
+                base, answer questions with source citations, and can be extended with custom workflows. 
+                The result: teams that work smarter, respond faster, and maintain consistency at scale.
               </p>
             </div>
           </div>
@@ -742,7 +743,7 @@ function LandingPage() {
                   <span>Scale your automation</span>
                 </div>
               </div>
-            </div>
+                </div>
               </div>
             </div>
           </div>
