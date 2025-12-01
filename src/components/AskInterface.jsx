@@ -309,7 +309,7 @@ function AskInterface() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
             <img 
               src="https://cdn.prod.website-files.com/68d14433cd550114f9ff7bf6/68dbeba8eee819e51bbce486_donna-full_body.png" 
-              alt="Donna" 
+              alt="Pam" 
               className="donna-logo-header"
               onLoad={(e) => {
                 // Ensure animation plays even if image loads from cache
@@ -320,11 +320,11 @@ function AskInterface() {
               }}
             />
             <div className="ask-header-text">
-              <h1 style={{ margin: 0 }}>Ask Donna</h1>
+              <h1 style={{ margin: 0 }}>Ask Pam</h1>
               <p className="ask-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Your Intelligent Knowledge Assistant</p>
             </div>
           </div>
-          <p className="ask-slogan">Get instant, accurate answers from your knowledge base. Donna understands context, synthesizes information, and helps you find what you need.</p>
+          <p className="ask-slogan">Get instant, accurate answers from your knowledge base. Pam understands context, synthesizes information, and helps you find what you need.</p>
         </div>
         <div className="segment-selector-container">
           {chatMessages.length > 0 && (
@@ -395,8 +395,8 @@ function AskInterface() {
           {chatMessages.length === 0 ? (
             <div className="empty-chat-state">
 
-              <h2 className="empty-chat-title">Start a conversation with Donna</h2>
-              <p className="empty-chat-description">Ask Donna questions about your knowledge base. Donna will search through your selected segments to provide accurate answers.</p>
+              <h2 className="empty-chat-title">Start a conversation with Pam</h2>
+              <p className="empty-chat-description">Ask Pam questions about your knowledge base. Pam will search through your selected segments to provide accurate answers.</p>
               <p className="empty-chat-tagline">"Your intelligent assistant, always ready to help"</p>
               {selectedStores.length > 0 && (
                 <div className="selected-segments-preview">
@@ -425,7 +425,7 @@ function AskInterface() {
                     <span className="message-role">
                       {msg.role === 'user' ? 'You' : (
                         <>
-                          <span className="ai-badge">🤖</span> Donna
+                          <span className="ai-badge">🤖</span> Pam
                         </>
                       )}
                     </span>
@@ -482,7 +482,7 @@ function AskInterface() {
               <div className="message-content">
                 <div className="message-header">
                   <span className="message-role">
-                    <span className="ai-badge">🤖</span> Donna
+                    <span className="ai-badge">🤖</span> Pam
                   </span>
                 </div>
                 <div className="typing-indicator">
@@ -543,7 +543,7 @@ function AskInterface() {
                 placeholder={
                   selectedStores.length === 0
                     ? "Select knowledge segments first..."
-                    : "Ask Donna a question about your knowledge base..."
+                    : "Ask Pam a question about your knowledge base..."
                 }
                 disabled={chatLoading || selectedStores.length === 0}
                 className="chat-input"

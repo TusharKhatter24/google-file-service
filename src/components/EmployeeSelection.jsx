@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { employees } from '../data/employees';
 import { logout } from '../utils/auth';
+import GuidedTour from './GuidedTour';
+import { employeeSelectionTour } from '../data/tourSteps';
 import './EmployeeSelection.css';
 
 function EmployeeSelection() {
   const navigate = useNavigate();
   const [customEmployees, setCustomEmployees] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     role: '',
@@ -94,6 +97,13 @@ function EmployeeSelection() {
           <h1 className="selection-title">AI Concierges</h1>
           <div className="selection-nav-actions">
             <button 
+              onClick={() => setShowTour(true)} 
+              className="help-button"
+              title="Take interactive tour"
+            >
+              <span>?</span> Take Tour
+            </button>
+            <button 
               onClick={() => navigate('/organization/settings')} 
               className="org-settings-button"
             >
@@ -104,6 +114,28 @@ function EmployeeSelection() {
             </button>
           </div>
         </div>
+        
+        {/* Interactive Tour Trigger */}
+        <div className="tour-trigger-header">
+          <div className="tour-trigger-card">
+            <div className="tour-trigger-content">
+              <div className="tour-icon-wrapper">
+                <span className="tour-icon">🚀</span>
+              </div>
+              <div className="tour-text">
+                <h3 className="tour-title">New to AI Employees?</h3>
+                <p className="tour-subtitle">Take an interactive tour to learn how to get started</p>
+              </div>
+            </div>
+            <button 
+              className="tour-start-button"
+              onClick={() => setShowTour(true)}
+              aria-label="Start interactive tour"
+            >
+              Start Tour
+            </button>
+          </div>
+        </div>
       </header>
 
       <main className="selection-main">
@@ -111,7 +143,7 @@ function EmployeeSelection() {
           <h2 className="page-title">Choose your employee</h2>
           <p className="page-subtitle">Select an AI employee to start working with</p>
 
-          <div className="employees-grid">
+          <div className="employees-grid" data-tour-target="employees-grid">
             {allEmployees.map((employee) => (
               <div
                 key={employee.id}
@@ -147,6 +179,7 @@ function EmployeeSelection() {
             {/* Create New Employee Card */}
             <div
               className="employee-card create-card"
+              data-tour-target="create-card"
               onClick={() => setShowCreateModal(true)}
               style={{ '--employee-color': '#9333ea' }}
             >
@@ -258,6 +291,14 @@ function EmployeeSelection() {
           </div>
         </div>
       )}
+
+      {/* Guided Tour */}
+      <GuidedTour
+        steps={employeeSelectionTour}
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        storageKey="employeeSelection"
+      />
     </div>
   );
 }

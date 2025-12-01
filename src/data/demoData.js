@@ -4,7 +4,7 @@ export const demoConversations = {
   donna: [
     {
       id: 1,
-      text: "Hello! I'm Donna, your AI support engineer. How can I help you today?",
+      text: "Hello! I'm Pam, your AI support engineer. How can I help you today?",
       sender: 'ai',
       timestamp: new Date(Date.now() - 3600000),
       sources: []

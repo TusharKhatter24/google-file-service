@@ -8,7 +8,7 @@ export const templates = [
     employeeId: 'donna',
     icon: '🦸‍♀️💬',
     color: '#667eea',
-    systemPrompt: `You are Donna, a friendly and knowledgeable customer support engineer. Your role is to:
+    systemPrompt: `You are Pam, a friendly and knowledgeable customer support engineer. Your role is to:
 - Help customers resolve their issues quickly and efficiently
 - Provide clear, step-by-step instructions
 - Escalate complex issues when necessary
@@ -112,7 +112,7 @@ Be creative, engaging, and aligned with marketing best practices.`,
     employeeId: 'integration',
     icon: '🦸‍♂️🔌',
     color: '#4facfe',
-    systemPrompt: `You are Iris, a technical integration specialist. Your role is to:
+    systemPrompt: `You are Oscar, a technical integration specialist. Your role is to:
 - Help developers integrate APIs and services
 - Provide technical documentation and code examples
 - Troubleshoot integration issues
@@ -154,7 +154,7 @@ Use API key in header: Authorization: Bearer YOUR_API_KEY
     employeeId: 'onboarding',
     icon: '🦸👋',
     color: '#43e97b',
-    systemPrompt: `You are Owen, an onboarding specialist. Your role is to:
+    systemPrompt: `You are Erin, an onboarding specialist. Your role is to:
 - Welcome new employees warmly
 - Guide them through onboarding processes
 - Answer questions about company policies
@@ -200,7 +200,7 @@ Be welcoming, patient, and thorough.`,
     employeeId: 'implementation',
     icon: '🦸🚀',
     color: '#fa709a',
-    systemPrompt: `You are Ivan, an implementation manager. Your role is to:
+    systemPrompt: `You are Dwight, an implementation manager. Your role is to:
 - Guide teams through project implementations
 - Provide deployment checklists
 - Troubleshoot implementation issues

@@ -5,8 +5,8 @@ import './LandingPage.css';
 
 function LandingPage() {
   const [allEmployees, setAllEmployees] = useState(employees);
-  const stepsRailRef = useRef(null);
   const powerfulFeaturesRailRef = useRef(null);
+  const stepsRailRef = useRef(null);
 
   useEffect(() => {
     // Load custom employees from localStorage
@@ -21,85 +21,6 @@ function LandingPage() {
     }
   }, []);
 
-  useEffect(() => {
-    // Auto-scroll the steps rail
-    const rail = stepsRailRef.current;
-    if (!rail) return;
-
-    let scrollPosition = 0;
-    const scrollSpeed = 0.5; // pixels per frame
-    let animationFrameId;
-    let isPaused = false;
-    let isScrolling = false;
-
-    const autoScroll = () => {
-      if (!isPaused && isScrolling) {
-        const track = rail.querySelector('.steps-rail-track');
-        if (!track) return;
-
-        scrollPosition += scrollSpeed;
-        const maxScroll = track.scrollWidth / 2; // Half because we duplicated the cards
-        
-        // Reset scroll position when reaching the end (seamless loop)
-        if (scrollPosition >= maxScroll) {
-          scrollPosition = 0;
-        }
-        
-        rail.scrollLeft = scrollPosition;
-      }
-      animationFrameId = requestAnimationFrame(autoScroll);
-    };
-
-    // Pause on hover
-    const handleMouseEnter = () => {
-      isPaused = true;
-    };
-
-    const handleMouseLeave = () => {
-      isPaused = false;
-    };
-
-    // Check if rail is ready and start scrolling
-    const checkAndStart = () => {
-      const track = rail.querySelector('.steps-rail-track');
-      if (track && track.scrollWidth > rail.clientWidth) {
-        isScrolling = true;
-        if (!animationFrameId) {
-          animationFrameId = requestAnimationFrame(autoScroll);
-        }
-      } else {
-        // Retry after a short delay
-        setTimeout(checkAndStart, 100);
-      }
-    };
-
-    rail.addEventListener('mouseenter', handleMouseEnter);
-    rail.addEventListener('mouseleave', handleMouseLeave);
-
-    // Start checking after content loads
-    const startTimeout = setTimeout(() => {
-      checkAndStart();
-    }, 1000);
-
-    // Recalculate on resize
-    const handleResize = () => {
-      isScrolling = false;
-      scrollPosition = 0;
-      rail.scrollLeft = 0;
-      setTimeout(checkAndStart, 100);
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearTimeout(startTimeout);
-      window.removeEventListener('resize', handleResize);
-      rail.removeEventListener('mouseenter', handleMouseEnter);
-      rail.removeEventListener('mouseleave', handleMouseLeave);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     // Auto-scroll the powerful features rail
@@ -149,6 +70,86 @@ function LandingPage() {
         }
       } else {
         // Retry after a short delay - wait for all 5 cards to load
+        setTimeout(checkAndStart, 100);
+      }
+    };
+
+    rail.addEventListener('mouseenter', handleMouseEnter);
+    rail.addEventListener('mouseleave', handleMouseLeave);
+
+    // Start checking after content loads
+    const startTimeout = setTimeout(() => {
+      checkAndStart();
+    }, 1000);
+
+    // Recalculate on resize
+    const handleResize = () => {
+      isScrolling = false;
+      scrollPosition = 0;
+      rail.scrollLeft = 0;
+      setTimeout(checkAndStart, 100);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(startTimeout);
+      window.removeEventListener('resize', handleResize);
+      rail.removeEventListener('mouseenter', handleMouseEnter);
+      rail.removeEventListener('mouseleave', handleMouseLeave);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Auto-scroll the steps rail
+    const rail = stepsRailRef.current;
+    if (!rail) return;
+
+    let scrollPosition = 0;
+    const scrollSpeed = 0.5; // pixels per frame
+    let animationFrameId;
+    let isPaused = false;
+    let isScrolling = false;
+
+    const autoScroll = () => {
+      if (!isPaused && isScrolling) {
+        const track = rail.querySelector('.steps-rail-track');
+        if (!track) return;
+
+        scrollPosition += scrollSpeed;
+        const maxScroll = track.scrollWidth / 2; // Half because we duplicated the cards
+        
+        // Reset scroll position when reaching the end (seamless loop)
+        if (scrollPosition >= maxScroll) {
+          scrollPosition = 0;
+        }
+        
+        rail.scrollLeft = scrollPosition;
+      }
+      animationFrameId = requestAnimationFrame(autoScroll);
+    };
+
+    // Pause on hover
+    const handleMouseEnter = () => {
+      isPaused = true;
+    };
+
+    const handleMouseLeave = () => {
+      isPaused = false;
+    };
+
+    // Check if rail is ready and start scrolling
+    const checkAndStart = () => {
+      const track = rail.querySelector('.steps-rail-track');
+      if (track && track.scrollWidth > rail.clientWidth) {
+        isScrolling = true;
+        if (!animationFrameId) {
+          animationFrameId = requestAnimationFrame(autoScroll);
+        }
+      } else {
+        // Retry after a short delay - wait for all cards to load
         setTimeout(checkAndStart, 100);
       }
     };
@@ -317,86 +318,104 @@ function LandingPage() {
               <div className="steps-rail-track">
                 <div className="step-card" data-step="1">
                   <div className="step-number">1</div>
-                  <div className="step-icon">👤</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">👤</div>
+                  </div>
                   <h3 className="step-title">Choose Your AI Employee</h3>
                   <p className="step-description">
-                    Select from pre-built AI employees or create custom ones tailored to your needs
+                    Pick a ready-made role template or create your own assistant from scratch.
                   </p>
                 </div>
                 <div className="step-card" data-step="2">
                   <div className="step-number">2</div>
-                  <div className="step-icon">📚</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">📚</div>
+                  </div>
                   <h3 className="step-title">Configure Knowledge Base</h3>
                   <p className="step-description">
-                    Upload documents and train your AI with your company's knowledge and information
+                    Upload documents, URLs, and notes so your AI understands your workflows.
                   </p>
                 </div>
                 <div className="step-card" data-step="3">
                   <div className="step-number">3</div>
-                  <div className="step-icon">⚙️</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">⚙️</div>
+                  </div>
                   <h3 className="step-title">Customize Settings</h3>
                   <p className="step-description">
-                    Set system prompts, model parameters, and preferences to match your requirements
+                    Adjust behavior, tone, permissions, and preferences with fine-grained controls.
                   </p>
                 </div>
                 <div className="step-card" data-step="4">
                   <div className="step-number">4</div>
-                  <div className="step-icon">💬</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">💬</div>
+                  </div>
                   <h3 className="step-title">Begin Collaboration</h3>
                   <p className="step-description">
-                    Work alongside your AI employee to accelerate productivity and streamline workflows
+                    Chat with your AI teammate and automate work instantly.
                   </p>
                 </div>
                 <div className="step-card" data-step="5">
                   <div className="step-number">5</div>
-                  <div className="step-icon">🎯</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">🎯</div>
+                  </div>
                   <h3 className="step-title">Give Skills to AI Team</h3>
                   <p className="step-description">
                     Empower your AI employees with skills like meeting assistance, task management, and integrations
                   </p>
                 </div>
-                {/* Spacer between sets for visual separation */}
-                <div className="steps-rail-spacer"></div>
                 {/* Duplicate cards for seamless infinite scroll */}
-            <div className="step-card" data-step="1">
-              <div className="step-number">1</div>
-              <div className="step-icon">👤</div>
-              <h3 className="step-title">Choose Your AI Employee</h3>
-              <p className="step-description">
-                Select from pre-built AI employees or create custom ones tailored to your needs
-              </p>
-            </div>
-            <div className="step-card" data-step="2">
-              <div className="step-number">2</div>
-              <div className="step-icon">📚</div>
-              <h3 className="step-title">Configure Knowledge Base</h3>
-              <p className="step-description">
-                Upload documents and train your AI with your company's knowledge and information
-              </p>
-            </div>
-            <div className="step-card" data-step="3">
-              <div className="step-number">3</div>
-              <div className="step-icon">⚙️</div>
-              <h3 className="step-title">Customize Settings</h3>
-              <p className="step-description">
-                Set system prompts, model parameters, and preferences to match your requirements
-              </p>
-            </div>
-            <div className="step-card" data-step="4">
-              <div className="step-number">4</div>
-              <div className="step-icon">💬</div>
-              <h3 className="step-title">Begin Collaboration</h3>
-              <p className="step-description">
-                Work alongside your AI employee to accelerate productivity and streamline workflows
-              </p>
-            </div>
-            <div className="step-card" data-step="5">
-              <div className="step-number">5</div>
-              <div className="step-icon">🎯</div>
-              <h3 className="step-title">Give Skills to AI Team</h3>
-              <p className="step-description">
-                Empower your AI employees with skills like meeting assistance, task management, and integrations
-              </p>
+                <div className="step-card" data-step="1">
+                  <div className="step-number">1</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">👤</div>
+                  </div>
+                  <h3 className="step-title">Choose Your AI Employee</h3>
+                  <p className="step-description">
+                    Pick a ready-made role template or create your own assistant from scratch.
+                  </p>
+                </div>
+                <div className="step-card" data-step="2">
+                  <div className="step-number">2</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">📚</div>
+                  </div>
+                  <h3 className="step-title">Configure Knowledge Base</h3>
+                  <p className="step-description">
+                    Upload documents, URLs, and notes so your AI understands your workflows.
+                  </p>
+                </div>
+                <div className="step-card" data-step="3">
+                  <div className="step-number">3</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">⚙️</div>
+                  </div>
+                  <h3 className="step-title">Customize Settings</h3>
+                  <p className="step-description">
+                    Adjust behavior, tone, permissions, and preferences with fine-grained controls.
+                  </p>
+                </div>
+                <div className="step-card" data-step="4">
+                  <div className="step-number">4</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">💬</div>
+                  </div>
+                  <h3 className="step-title">Begin Collaboration</h3>
+                  <p className="step-description">
+                    Chat with your AI teammate and automate work instantly.
+                  </p>
+                </div>
+                <div className="step-card" data-step="5">
+                  <div className="step-number">5</div>
+                  <div className="step-icon-wrapper">
+                    <div className="step-icon">🎯</div>
+                  </div>
+                  <h3 className="step-title">Give Skills to AI Team</h3>
+                  <p className="step-description">
+                    Empower your AI employees with skills like meeting assistance, task management, and integrations
+                  </p>
                 </div>
               </div>
             </div>

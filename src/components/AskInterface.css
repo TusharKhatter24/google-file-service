@@ -952,7 +952,7 @@
 }
 
 .typing-indicator::before {
-  content: "Donna is thinking...";
+  content: "Pam is thinking...";
   font-size: 0.8125rem;
   color: var(--accent-primary, #6366f1);
   margin-right: 0.5rem;
