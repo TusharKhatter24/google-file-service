@@ -54,8 +54,7 @@
 }
 
 .btn-icon:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  filter: brightness(0.95);
 }
 
 .notes-editor-body {
@@ -299,8 +298,7 @@
 }
 
 .ai-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  filter: brightness(0.95);
 }
 
 .ai-btn:disabled {
@@ -407,8 +405,7 @@
 }
 
 .btn-close-suggestions:hover {
-  background: #f3f4f6;
-  color: #374151;
+  filter: brightness(0.95);
 }
 
 .suggestions-content {
@@ -434,7 +431,7 @@
 }
 
 .btn-insert-suggestion:hover {
-  background: #2563eb;
+  filter: brightness(0.85);
 }
 
 .close-btn {
@@ -454,8 +451,7 @@
 }
 
 .close-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  filter: brightness(0.95);
 }
 
 .close-btn:disabled {
@@ -480,8 +476,7 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
-  border-color: #2563eb;
+  filter: brightness(0.85);
 }
 
 .btn-primary:disabled {
@@ -496,8 +491,7 @@
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  filter: brightness(0.95);
 }
 
 .btn-secondary:disabled {

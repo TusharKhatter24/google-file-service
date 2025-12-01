@@ -218,6 +218,7 @@ body {
 }
 
 .btn-primary:hover {
+  filter: brightness(0.85);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
 }
@@ -229,7 +230,7 @@ body {
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  filter: brightness(0.85);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
 }
@@ -242,10 +243,10 @@ body {
 }
 
 .btn-secondary:hover {
-  background: var(--bg-tertiary);
+  filter: brightness(0.9);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px var(--shadow-md);
-  border-color: var(--accent-primary);
+  border-color: var(--border-color);
 }
 
 .btn:disabled {

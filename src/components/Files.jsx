@@ -769,13 +769,12 @@ function Files() {
                           cursor: "pointer",
                           transition: "background-color 0.2s",
                         }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#f9fafb")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor =
-                            "transparent")
-                        }
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.filter = "brightness(0.95)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.filter = "none";
+                        }}
                         onClick={() => handleImportToStore(store.name)}
                       >
                         <div
