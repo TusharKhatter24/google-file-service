@@ -20,6 +20,47 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 2rem;
+}
+
+.landing-nav-tabs {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.landing-nav-tab {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.landing-nav-tab:hover {
+  color: #667eea;
+}
+
+.landing-nav-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.landing-nav-tab:hover::after {
+  transform: scaleX(1);
 }
 
 .landing-logo {
@@ -88,6 +129,99 @@
 .hero-cta:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.landing-our-story {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-our-story::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(102, 126, 234, 0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.our-story-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.our-story-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.our-story-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 0;
+}
+
+.our-story-problem,
+.our-story-solution {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.our-story-problem:hover,
+.our-story-solution:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #e5e7eb;
+}
+
+.our-story-problem {
+  border-left: 4px solid #ef4444;
+}
+
+.our-story-solution {
+  border-left: 4px solid #10b981;
+}
+
+.our-story-subtitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.our-story-problem .our-story-subtitle {
+  color: #ef4444;
+}
+
+.our-story-solution .our-story-subtitle {
+  color: #10b981;
+}
+
+.our-story-text {
+  color: #6b7280;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.our-story-text:last-child {
+  margin-bottom: 0;
 }
 
 .landing-features {
@@ -730,6 +864,14 @@
   background: linear-gradient(90deg, #0052cc 0%, #0065ff 100%);
 }
 
+.workflow-feature {
+  border-left: 3px solid #f59e0b;
+}
+
+.workflow-feature::before {
+  background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
+}
+
 .powerful-feature-icon-wrapper {
   display: flex;
   align-items: center;
@@ -843,6 +985,17 @@
   color: #0052cc;
 }
 
+.workflow-feature .powerful-feature-name {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.workflow-feature .powerful-feature-tagline {
+  color: #f59e0b;
+}
+
 .powerful-feature-description {
   color: #4b5563;
   line-height: 1.65;
@@ -954,6 +1107,74 @@
 
   .hero-subtitle {
     font-size: 1.1rem;
+  }
+
+  .landing-nav {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .landing-nav-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    gap: 1.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .landing-nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-nav-tab {
+    font-size: 0.875rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .landing-logo {
+    font-size: 1.25rem;
+  }
+
+  .landing-login-btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .landing-our-story {
+    padding: 3rem 1rem;
+  }
+
+  .our-story-container {
+    max-width: 100%;
+  }
+
+  .our-story-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .our-story-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .our-story-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .our-story-problem,
+  .our-story-solution {
+    padding: 1.5rem;
+  }
+
+  .our-story-text {
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
   }
 
   .features-grid {

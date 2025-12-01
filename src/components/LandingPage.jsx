@@ -148,7 +148,7 @@ function LandingPage() {
           animationFrameId = requestAnimationFrame(autoScroll);
         }
       } else {
-        // Retry after a short delay
+        // Retry after a short delay - wait for all 5 cards to load
         setTimeout(checkAndStart, 100);
       }
     };
@@ -181,11 +181,32 @@ function LandingPage() {
     };
   }, []);
 
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="landing-page">
       <header className="landing-header">
         <div className="landing-nav">
           <div className="landing-logo">AI Concierges</div>
+          <nav className="landing-nav-tabs">
+            <button className="landing-nav-tab" onClick={() => scrollToSection('features')}>
+              Features
+            </button>
+            <button className="landing-nav-tab" onClick={() => scrollToSection('how-it-works')}>
+              How It Works
+            </button>
+            <button className="landing-nav-tab" onClick={() => scrollToSection('skills')}>
+              Skills
+            </button>
+            <button className="landing-nav-tab" onClick={() => scrollToSection('our-story')}>
+              Our Story
+            </button>
+          </nav>
           <Link to="/login" className="landing-login-btn">Log In</Link>
         </div>
       </header>
@@ -204,7 +225,54 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-features">
+      <section id="our-story" className="landing-our-story">
+        <div className="our-story-container">
+          <h2 className="our-story-title">Our Story</h2>
+          <div className="our-story-content">
+            <div className="our-story-problem">
+              <h3 className="our-story-subtitle">The Problem</h3>
+              <p className="our-story-text">
+                Every day, organizations handle client calls, integrations, implementations, and product 
+                development—all while their knowledge base expands across documents, tickets, meetings, 
+                and internal discussions. Yet finding accurate answers quickly becomes increasingly difficult 
+                as information fragments across multiple systems and conversations.
+              </p>
+              <p className="our-story-text">
+                This knowledge fragmentation slows down client responses, creates inconsistencies, and 
+                impacts overall team efficiency. Support and implementation teams waste valuable time 
+                searching through scattered information instead of delivering fast, confident responses.
+              </p>
+              <p className="our-story-text">
+                Critical information—integration details, product features, standard operating procedures, 
+                past issue resolutions, and client context—exists but isn't instantly accessible when 
+                teams need it most, within their existing workflows.
+              </p>
+            </div>
+            <div className="our-story-solution">
+              <h3 className="our-story-subtitle">Our Solution</h3>
+              <p className="our-story-text">
+                AI Concierges provides instant access to all relevant knowledge—integrations, product 
+                features, SOPs, past issues, and client context—right where teams work. We make every 
+                team member faster, more confident, and more consistent, not just in client interactions 
+                but in their overall day-to-day work.
+              </p>
+              <p className="our-story-text">
+                Our AI concierges are available across all commonly used platforms, ensuring rapid, 
+                reliable, and contextual responses within existing workflows. They don't just answer 
+                questions—they can perform relevant actions seamlessly, from managing tickets to updating 
+                integrations to drafting responses.
+              </p>
+              <p className="our-story-text">
+                Starting with the most frequent queries from support and implementation teams, we validate 
+                and refine the concept, then gradually expand to broader use cases. The result: teams that 
+                work smarter, respond faster, and maintain consistency at scale.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="landing-features">
         <div className="features-container">
           <h2 className="features-title">Meet Your AI Team</h2>
           <div className="features-grid">
@@ -239,7 +307,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-steps">
+      <section id="how-it-works" className="landing-steps">
         <div className="steps-container">
           <h2 className="steps-title">How It Works</h2>
           <p className="steps-subtitle">Get started with your AI team in just a few simple steps</p>
@@ -340,7 +408,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-powerful-features">
+      <section id="skills" className="landing-powerful-features">
         <div className="powerful-features-container">
           <div className="powerful-features-header">
             <h2 className="powerful-features-title">Powerful Skillsets</h2>
@@ -480,6 +548,38 @@ function LandingPage() {
                     </div>
                   </div>
                 </div>
+
+                <div className="powerful-feature-card workflow-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">⚙️</div>
+                    <div className="powerful-feature-badge">POWERFUL</div>
+                  </div>
+                  <h3 className="powerful-feature-name">Infinite Building Capabilities</h3>
+                  <p className="powerful-feature-tagline">Create Your Own Workflows</p>
+                  <p className="powerful-feature-description">
+                    Build unlimited custom workflows tailored to your specific needs. Design automated processes, 
+                    create custom integrations, and extend your AI team's capabilities without limits. From simple 
+                    task automation to complex multi-step workflows, the power to build is in your hands.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔧</span>
+                      <span>Build custom workflows</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔗</span>
+                      <span>Connect any tool or service</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">♾️</span>
+                      <span>Unlimited possibilities</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🚀</span>
+                      <span>Scale your automation</span>
+                    </div>
+                  </div>
+                </div>
                 {/* Spacer between sets for visual separation */}
                 <div className="powerful-features-rail-spacer"></div>
                 {/* Duplicate cards for seamless infinite scroll */}
@@ -608,9 +708,41 @@ function LandingPage() {
                 <div className="powerful-feature-benefit">
                   <span className="benefit-icon">⚡</span>
                   <span>Automate task management</span>
-                    </div>
-                  </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="powerful-feature-card workflow-feature">
+              <div className="powerful-feature-icon-wrapper">
+                <div className="powerful-feature-icon">⚙️</div>
+                <div className="powerful-feature-badge">POWERFUL</div>
+              </div>
+              <h3 className="powerful-feature-name">Infinite Building Capabilities</h3>
+              <p className="powerful-feature-tagline">Create Your Own Workflows</p>
+              <p className="powerful-feature-description">
+                Build unlimited custom workflows tailored to your specific needs. Design automated processes, 
+                create custom integrations, and extend your AI team's capabilities without limits. From simple 
+                task automation to complex multi-step workflows, the power to build is in your hands.
+              </p>
+              <div className="powerful-feature-benefits">
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🔧</span>
+                  <span>Build custom workflows</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🔗</span>
+                  <span>Connect any tool or service</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">♾️</span>
+                  <span>Unlimited possibilities</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🚀</span>
+                  <span>Scale your automation</span>
+                </div>
+              </div>
+            </div>
               </div>
             </div>
           </div>
