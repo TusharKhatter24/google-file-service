@@ -98,6 +98,15 @@ export const skills = [
     category: skillCategories.ANALYSIS,
     isGlobal: true,
     color: '#ffecd2'
+  },
+  {
+    id: 'research',
+    name: 'Research',
+    icon: '🔍',
+    description: 'Research external tools, APIs, errors, and supported features',
+    category: skillCategories.ANALYSIS,
+    isGlobal: false,
+    color: '#8b5cf6'
   }
 ];
 

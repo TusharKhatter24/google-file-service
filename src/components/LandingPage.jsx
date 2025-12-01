@@ -131,6 +131,148 @@ function LandingPage() {
         </div>
       </section>
 
+      <section className="landing-powerful-features">
+        <div className="powerful-features-container">
+          <div className="powerful-features-header">
+            <h2 className="powerful-features-title">Powerful Skillsets</h2>
+            <p className="powerful-features-subtitle">
+              Equip your AI team with advanced capabilities for research, note-taking, and seamless integrations
+            </p>
+          </div>
+          
+          <div className="powerful-features-grid">
+            <div className="powerful-feature-card research-feature">
+              <div className="powerful-feature-icon-wrapper">
+                <div className="powerful-feature-icon">🔍</div>
+                <div className="powerful-feature-badge">NEW</div>
+              </div>
+              <h3 className="powerful-feature-name">AI Research Tool</h3>
+              <p className="powerful-feature-tagline">Powered by Research API</p>
+              <p className="powerful-feature-description">
+                Instantly research any topic, API documentation, error codes, or technical information. 
+                Get comprehensive research reports with citations and sources. Perfect for developers, 
+                researchers, and knowledge workers who need accurate, up-to-date information fast.
+              </p>
+              <div className="powerful-feature-benefits">
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🌐</span>
+                  <span>Research external tools & APIs</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">📚</span>
+                  <span>Access technical documentation</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">⚡</span>
+                  <span>Get instant, accurate answers</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🔗</span>
+                  <span>Citations and sources included</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="powerful-feature-card notes-feature">
+              <div className="powerful-feature-icon-wrapper">
+                <div className="powerful-feature-icon">✍️</div>
+                <div className="powerful-feature-badge">ENHANCED</div>
+              </div>
+              <h3 className="powerful-feature-name">Smart Notes Taker</h3>
+              <p className="powerful-feature-tagline">AI-Powered Note Creation & Enhancement</p>
+              <p className="powerful-feature-description">
+                Create intelligent notes with AI assistance. Summarize, rewrite, extract key points, 
+                and enhance your content. Extract text from documents, use voice transcription, and 
+                leverage AI tools to transform raw content into polished, structured knowledge that 
+                powers your AI assistant's responses.
+              </p>
+              <div className="powerful-feature-benefits">
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🤖</span>
+                  <span>AI-powered writing assistance</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">📄</span>
+                  <span>Extract content from documents</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🎤</span>
+                  <span>Voice transcription support</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">💾</span>
+                  <span>Save directly to knowledge base</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="powerful-feature-card slack-feature">
+              <div className="powerful-feature-icon-wrapper">
+                <div className="powerful-feature-icon">💬</div>
+                <div className="powerful-feature-badge">INTEGRATION</div>
+              </div>
+              <h3 className="powerful-feature-name">Slack Integration</h3>
+              <p className="powerful-feature-tagline">Seamless Team Communication</p>
+              <p className="powerful-feature-description">
+                Connect your AI team directly to Slack channels. Monitor conversations, draft intelligent 
+                replies, and stay connected with your team. Your AI employee can read messages, understand 
+                context, and respond appropriately, ensuring seamless communication across your organization.
+              </p>
+              <div className="powerful-feature-benefits">
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">📢</span>
+                  <span>Monitor Slack channels</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">✍️</span>
+                  <span>Draft intelligent replies</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🔔</span>
+                  <span>Real-time notifications</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🤝</span>
+                  <span>Team collaboration support</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="powerful-feature-card jira-feature">
+              <div className="powerful-feature-icon-wrapper">
+                <div className="powerful-feature-icon">🎫</div>
+                <div className="powerful-feature-badge">INTEGRATION</div>
+              </div>
+              <h3 className="powerful-feature-name">Jira Integration</h3>
+              <p className="powerful-feature-tagline">Project Management Made Easy</p>
+              <p className="powerful-feature-description">
+                Empower your AI team to manage Jira tickets, update statuses, and track project workflows. 
+                Create tickets automatically, update progress, and keep your team aligned. Perfect for 
+                project managers and development teams who need intelligent task and issue management.
+              </p>
+              <div className="powerful-feature-benefits">
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🎯</span>
+                  <span>Create & manage tickets</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">📊</span>
+                  <span>Update ticket status</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">🔄</span>
+                  <span>Track project workflows</span>
+                </div>
+                <div className="powerful-feature-benefit">
+                  <span className="benefit-icon">⚡</span>
+                  <span>Automate task management</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="landing-benefits">
         <div className="benefits-container">
           <h2 className="benefits-title">Stop juggling. Start scaling.</h2>

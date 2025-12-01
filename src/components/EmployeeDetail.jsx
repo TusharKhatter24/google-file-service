@@ -22,6 +22,7 @@ import DocumentAnalysis from './skills/DocumentAnalysis';
 import TaskManagement from './skills/TaskManagement';
 import CalendarManagement from './skills/CalendarManagement';
 import KnowledgeBaseSearch from './skills/KnowledgeBaseSearch';
+import Research from './skills/Research';
 import './EmployeeDetail.css';
 
 function EmployeeDetail() {
@@ -116,7 +117,8 @@ function EmployeeDetail() {
     'document-analysis': DocumentAnalysis,
     'task-management': TaskManagement,
     'calendar-management': CalendarManagement,
-    'knowledge-base': KnowledgeBaseSearch
+    'knowledge-base': KnowledgeBaseSearch,
+    'research': Research
   };
 
   const renderSkillComponent = () => {

@@ -1,0 +1,82 @@
+.research-section {
+  margin-bottom: 2rem;
+}
+
+.research-form {
+  width: 100%;
+}
+
+.research-type-selector {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.research-input {
+  width: 100%;
+  padding: 0.75rem;
+  padding-left: 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.research-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.research-results {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.research-results-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.research-results-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.research-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.research-results-content {
+  margin-top: 1rem;
+}
+
+.example-queries-section {
+  margin-top: 2rem;
+}
+
+.example-queries-section h3 {
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  color: #111827;
+}
+
+.example-queries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+

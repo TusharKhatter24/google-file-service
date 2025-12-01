@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ReactMarkdown from 'react-markdown';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
 import { uploadFile } from '../services/filesService';
 import { importFileToStore, listFileStores } from '../services/fileStoreService';
@@ -12,6 +13,7 @@ import {
   autoComplete,
   startSpeechRecognition,
 } from '../services/aiNotesService';
+import { performResearch } from '../services/researchService';
 import './NotesEditor.css';
 
 function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
@@ -34,6 +36,12 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   const [showAIPanel, setShowAIPanel] = useState(true);
   const [recognition, setRecognition] = useState(null);
   const [transcriptionText, setTranscriptionText] = useState('');
+  const [showResearchModal, setShowResearchModal] = useState(false);
+  const [researchQuery, setResearchQuery] = useState('');
+  const [researchResults, setResearchResults] = useState(null);
+  const [editorHeight, setEditorHeight] = useState(null);
+  const resizeHandleRef = useRef(null);
+  const editorBodyRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +53,8 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
       setSelectedRange(null);
       setAiSuggestions(null);
       setTranscriptionText('');
+      setResearchResults(null);
+      setEditorHeight(null);
       loadFileStores();
     }
     
@@ -57,6 +67,52 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
           // Ignore errors
         }
       }
+    };
+  }, [isOpen]);
+
+  // Resize functionality
+  useEffect(() => {
+    const handleRef = resizeHandleRef.current;
+    const editorRef = editorBodyRef.current;
+    
+    if (!handleRef || !editorRef) return;
+
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    const handleMouseDown = (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = editorRef.offsetHeight;
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      const diff = e.clientY - startY;
+      const newHeight = Math.max(400, startHeight + diff); // Minimum 400px
+      setEditorHeight(newHeight);
+      editorRef.style.height = `${newHeight}px`;
+    };
+
+    const handleMouseUp = () => {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    handleRef.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      handleRef.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isOpen]);
 
@@ -332,6 +388,48 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
     }
   };
 
+  const handleResearch = async () => {
+    if (!researchQuery.trim()) {
+      setError('Please enter a research query.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('research');
+      setError(null);
+      setShowResearchModal(false);
+
+      const researchReport = await performResearch(researchQuery.trim());
+      
+      // Format the research report
+      const formattedReport = `## Research: ${researchQuery}\n\n${researchReport}\n\n`;
+      
+      // Store research results for markdown preview
+      setResearchResults({
+        query: researchQuery.trim(),
+        report: formattedReport,
+        rawReport: researchReport
+      });
+      
+      // Clear query
+      setResearchQuery('');
+    } catch (err) {
+      setError(err.message || 'Failed to perform research. Please check your API key and try again.');
+      setShowResearchModal(true); // Keep modal open on error
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleInsertResearch = () => {
+    if (researchResults) {
+      handleInsertAIText(researchResults.report, false);
+      setResearchResults(null);
+    }
+  };
+
   const handleSave = async () => {
     if (!content.trim()) {
       setError('Please enter some content before saving.');
@@ -442,13 +540,6 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
         <div className="notes-editor-header">
           <h3>Smart Notes Taker</h3>
           <div className="notes-editor-header-actions">
-            <button
-              className="btn btn-icon"
-              onClick={() => setShowAIPanel(!showAIPanel)}
-              title={showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}
-            >
-              {showAIPanel ? '🤖' : '🤖'}
-            </button>
             <button className="close-btn" onClick={onClose} disabled={saving}>
               ×
             </button>
@@ -457,11 +548,28 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
 
         {error && <div className="notes-editor-error">{error}</div>}
 
+        {/* Show AI Tools Toggle - Above Editor */}
+        <div className="editor-top-controls">
+          <button
+            className={`btn-toggle-ai-top ${showAIPanel ? 'active' : ''}`}
+            onClick={() => setShowAIPanel(!showAIPanel)}
+            title={showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}
+          >
+            <span className="ai-tools-icon-small">🤖</span>
+            <span>{showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}</span>
+            <span className="toggle-arrow">{showAIPanel ? '▲' : '▼'}</span>
+          </button>
+        </div>
+
         {/* AI Tools Panel */}
         {showAIPanel && (
           <div className="ai-tools-panel">
             <div className="ai-tools-header">
-              <span className="ai-tools-title">AI Tools</span>
+              <div className="ai-tools-title-wrapper">
+                <span className="ai-tools-icon">🤖</span>
+                <span className="ai-tools-title">AI Tools</span>
+                <span className="ai-tools-badge">Powered by AI</span>
+              </div>
               {selectedStores.length > 0 && (
                 <span className="context-indicator">
                   Using {selectedStores.length} store{selectedStores.length > 1 ? 's' : ''} for context
@@ -540,6 +648,15 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                 >
                   {isRecording ? '🔴' : '🎤'} {isRecording ? 'Stop' : 'Voice'}
                 </button>
+                <button
+                  className="ai-btn ai-btn-research"
+                  onClick={() => setShowResearchModal(true)}
+                  disabled={aiLoading}
+                  title="Research any topic using Perplexity Research API"
+                >
+                  <span className="ai-logo">🤖</span>
+                  {aiLoadingType === 'research' ? '⏳' : '🔍'} Research
+                </button>
               </div>
 
               {/* Transcription Display */}
@@ -579,11 +696,46 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                   </button>
                 </div>
               )}
+
+              {/* Research Results */}
+              {researchResults && (
+                <div className="ai-suggestions" style={{ marginTop: '1rem' }}>
+                  <div className="suggestions-header">
+                    <span>🔍 Research Results: {researchResults.query}</span>
+                    <button
+                      className="btn-close-suggestions"
+                      onClick={() => setResearchResults(null)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="suggestions-content" style={{
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    padding: '1rem',
+                    backgroundColor: '#f9fafb',
+                    borderRadius: '6px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <ReactMarkdown>{researchResults.report}</ReactMarkdown>
+                  </div>
+                  <button
+                    className="btn-insert-suggestion"
+                    onClick={handleInsertResearch}
+                  >
+                    Insert into Notes
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        <div className="notes-editor-body">
+        <div 
+          ref={editorBodyRef}
+          className="notes-editor-body resizable-editor"
+          style={editorHeight ? { height: `${editorHeight}px` } : {}}
+        >
           <ReactQuill
             ref={quillRef}
             theme="snow"
@@ -611,6 +763,7 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               'link', 'image'
             ]}
           />
+          <div ref={resizeHandleRef} className="resize-handle"></div>
         </div>
 
         <div className="notes-editor-footer">
@@ -682,6 +835,72 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                 disabled={saving || !fileName.trim()}
               >
                 {saving ? 'Saving...' : 'Save & Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Research Modal */}
+      {showResearchModal && (
+        <div className="notes-editor-modal-overlay">
+          <div className="notes-editor-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="notes-editor-dialog-header">
+              <h4>🔍 Research Tool</h4>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setShowResearchModal(false);
+                  setResearchQuery('');
+                }}
+                disabled={aiLoading}
+              >
+                ×
+              </button>
+            </div>
+            <div className="notes-editor-dialog-body">
+              <div className="form-group">
+                <label htmlFor="researchQuery">Enter your research query</label>
+                <textarea
+                  id="researchQuery"
+                  value={researchQuery}
+                  onChange={(e) => setResearchQuery(e.target.value)}
+                  placeholder="e.g., What are the API endpoints for Stripe payment processing? What errors can occur?"
+                  rows={4}
+                  autoFocus
+                  disabled={aiLoading}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical'
+                  }}
+                />
+                <small style={{ color: '#6b7280', marginTop: '0.25rem', display: 'block' }}>
+                  Research any topic, API documentation, errors, or technical information. Results will be inserted into your notes.
+                </small>
+              </div>
+            </div>
+            <div className="notes-editor-dialog-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowResearchModal(false);
+                  setResearchQuery('');
+                }}
+                disabled={aiLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleResearch}
+                disabled={aiLoading || !researchQuery.trim()}
+              >
+                {aiLoadingType === 'research' ? 'Researching...' : 'Research'}
               </button>
             </div>
           </div>

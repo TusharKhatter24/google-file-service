@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ReactMarkdown from 'react-markdown';
 import { listDocuments, listFileStores, getDocument } from '../services/fileStoreService';
 import { extractTextFromFileUsingGemini } from '../services/filesService';
 import { extractTextFromFile } from '../utils/fileReader';
@@ -13,6 +14,7 @@ import {
   autoComplete,
   startSpeechRecognition,
 } from '../services/aiNotesService';
+import { performResearch } from '../services/researchService';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
 import { importFileToStore } from '../services/fileStoreService';
 import { uploadFile } from '../services/filesService';
@@ -49,6 +51,12 @@ function SmartNoteMaker({ employeeName, employeeId }) {
   const [showFileNameModal, setShowFileNameModal] = useState(false);
   const [fileNameInput, setFileNameInput] = useState('');
   const [selectedStoresForSave, setSelectedStoresForSave] = useState([]);
+  const [showResearchModal, setShowResearchModal] = useState(false);
+  const [researchQuery, setResearchQuery] = useState('');
+  const [researchResults, setResearchResults] = useState(null);
+  const [editorHeight, setEditorHeight] = useState(null);
+  const resizeHandleRef = useRef(null);
+  const editorWrapperRef = useRef(null);
 
   useEffect(() => {
     // Load file stores and set up store from settings
@@ -65,6 +73,52 @@ function SmartNoteMaker({ employeeName, employeeId }) {
       }
     };
   }, [routeStoreName, employeeId]);
+
+  // Resize functionality
+  useEffect(() => {
+    const handleRef = resizeHandleRef.current;
+    const editorRef = editorWrapperRef.current;
+    
+    if (!handleRef || !editorRef) return;
+
+    let isResizing = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    const handleMouseDown = (e) => {
+      isResizing = true;
+      startY = e.clientY;
+      startHeight = editorRef.offsetHeight;
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+      e.preventDefault();
+    };
+
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      const diff = e.clientY - startY;
+      const newHeight = Math.max(400, startHeight + diff); // Minimum 400px
+      setEditorHeight(newHeight);
+      editorRef.style.height = `${newHeight}px`;
+    };
+
+    const handleMouseUp = () => {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    handleRef.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      handleRef.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   const loadDocuments = async (store, pageToken = null) => {
     try {
@@ -673,6 +727,54 @@ function SmartNoteMaker({ employeeName, employeeId }) {
     }
   };
 
+  const handleResearch = async () => {
+    if (!researchQuery.trim()) {
+      setError('Please enter a research query.');
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiLoadingType('research');
+      setError(null);
+      setSuccess(null);
+      setShowResearchModal(false);
+
+      const researchReport = await performResearch(researchQuery.trim());
+      
+      // Format the research report
+      const formattedReport = `## Research: ${researchQuery}\n\n${researchReport}\n\n`;
+      
+      // Store research results for markdown preview
+      setResearchResults({
+        query: researchQuery.trim(),
+        report: formattedReport,
+        rawReport: researchReport
+      });
+      
+      // Clear query
+      setResearchQuery('');
+      setSuccess('Research completed! Review the results below and click "Insert into Notes" to add them.');
+    } catch (err) {
+      const errorMessage = err.response?.data?.error?.message || 
+                          err.message || 
+                          'Failed to perform research. Please check your API key and try again.';
+      setError(errorMessage);
+      setShowResearchModal(true); // Keep modal open on error
+    } finally {
+      setAiLoading(false);
+      setAiLoadingType(null);
+    }
+  };
+
+  const handleInsertResearch = () => {
+    if (researchResults) {
+      handleInsertAIText(researchResults.report, false);
+      setResearchResults(null);
+      setSuccess('Research results inserted into notes!');
+    }
+  };
+
 
   const handleExtractDocumentContent = async (documentName) => {
     if (!storeName) {
@@ -843,18 +945,27 @@ function SmartNoteMaker({ employeeName, employeeId }) {
           {/* Right Panel - Notes Editor with AI Tools */}
           <div className="right-panel">
             <div className="panel-section">
+              {/* Show AI Tools Toggle - Above Editor */}
+              <div className="editor-top-controls">
+                <button
+                  className={`btn-toggle-ai-top ${showAIPanel ? 'active' : ''}`}
+                  onClick={() => setShowAIPanel(!showAIPanel)}
+                  title={showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}
+                >
+                  <span className="ai-tools-icon-small">🤖</span>
+                  <span>{showAIPanel ? 'Hide AI Tools' : 'Show AI Tools'}</span>
+                  <span className="toggle-arrow">{showAIPanel ? '▲' : '▼'}</span>
+                </button>
+              </div>
 
             {showAIPanel && (
               <div className="ai-tools-panel">
                 <div className="ai-tools-header">
-                  <span className="ai-tools-title">AI Tools</span>
-                  <button
-                    className="btn-toggle-ai"
-                    onClick={() => setShowAIPanel(false)}
-                    title="Hide AI Tools"
-                  >
-                    −
-                  </button>
+                  <div className="ai-tools-title-wrapper">
+                    <span className="ai-tools-icon">🤖</span>
+                    <span className="ai-tools-title">AI Tools</span>
+                    <span className="ai-tools-badge">Powered by AI</span>
+                  </div>
                 </div>
                 
                 <div className="ai-tools-content">
@@ -901,6 +1012,15 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                     >
                       {isRecording ? '🔴 Stop' : '🎤 Voice'}
                     </button>
+                    <button
+                      className="ai-btn ai-btn-research"
+                      onClick={() => setShowResearchModal(true)}
+                      disabled={aiLoading}
+                      title="Research any topic using Perplexity Research API"
+                    >
+                      <span className="ai-logo">🤖</span>
+                      {aiLoadingType === 'research' ? '⏳' : '🔍'} Research
+                    </button>
                   </div>
 
                   {/* Transcription Display */}
@@ -940,39 +1060,68 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                       </button>
                     </div>
                   )}
+
+                  {/* Research Results */}
+                  {researchResults && (
+                    <div className="ai-suggestions" style={{ marginTop: '1rem' }}>
+                      <div className="suggestions-header">
+                        <span>🔍 Research Results: {researchResults.query}</span>
+                        <button
+                          className="btn-close-suggestions"
+                          onClick={() => setResearchResults(null)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="suggestions-content" style={{
+                        maxHeight: '400px',
+                        overflowY: 'auto',
+                        padding: '1rem',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '6px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        <ReactMarkdown>{researchResults.report}</ReactMarkdown>
+                      </div>
+                      <button
+                        className="btn-insert-suggestion"
+                        onClick={handleInsertResearch}
+                      >
+                        Insert into Notes
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-
-              <ReactQuill
-                ref={quillRef}
-                theme="snow"
-                value={notes}
-                onChange={setNotes}
-                onSelectionChange={handleTextSelection}
-                placeholder="Create notes that will enhance your AI assistant's knowledge. Extract content from documents, write manually, or use AI tools to improve and structure your notes. These notes will be saved to your knowledge source and used by your AI assistant to answer questions."
-                modules={{
-                  toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link'],
-                    ['clean']
-                  ],
-                }}
-              />
-
-              {!showAIPanel && (
-                <div className="notes-footer">
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setShowAIPanel(true)}
-                  >
-                    Show AI Tools
-                  </button>
-                </div>
               )}
+
+              <div 
+                ref={editorWrapperRef}
+                className="resizable-editor-wrapper"
+                style={editorHeight ? { height: `${editorHeight}px` } : {}}
+              >
+                <div className="resizable-editor">
+                  <ReactQuill
+                    ref={quillRef}
+                    theme="snow"
+                    value={notes}
+                    onChange={setNotes}
+                    onSelectionChange={handleTextSelection}
+                    placeholder="Create notes that will enhance your AI assistant's knowledge. Extract content from documents, write manually, or use AI tools to improve and structure your notes. These notes will be saved to your knowledge source and used by your AI assistant to answer questions."
+                    modules={{
+                      toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        ['link'],
+                        ['clean']
+                    ],
+                  }}
+                />
+                </div>
+                <div ref={resizeHandleRef} className="resize-handle"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1128,6 +1277,75 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                 disabled={!fileNameInput.trim() || selectedStoresForSave.length === 0}
               >
                 Save {selectedStoresForSave.length > 0 && `(${selectedStoresForSave.length} store${selectedStoresForSave.length > 1 ? 's' : ''})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Research Modal */}
+      {showResearchModal && (
+        <div className="modal-overlay" onClick={() => {
+          if (!aiLoading) {
+            setShowResearchModal(false);
+            setResearchQuery('');
+          }
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🔍 Research Tool</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowResearchModal(false);
+                  setResearchQuery('');
+                }}
+                disabled={aiLoading}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <label htmlFor="researchQueryInput" className="modal-label">
+                Enter your research query
+              </label>
+              <textarea
+                id="researchQueryInput"
+                value={researchQuery}
+                onChange={(e) => setResearchQuery(e.target.value)}
+                placeholder="e.g., What are the API endpoints for Stripe payment processing? What errors can occur?"
+                rows={4}
+                autoFocus
+                disabled={aiLoading}
+                className="modal-input"
+                style={{
+                  resize: 'vertical',
+                  fontFamily: 'inherit',
+                  fontSize: '0.875rem'
+                }}
+              />
+              <p className="modal-hint">
+                Research any topic, API documentation, errors, or technical information. Results will be inserted into your notes.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowResearchModal(false);
+                  setResearchQuery('');
+                }}
+                disabled={aiLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleResearch}
+                disabled={aiLoading || !researchQuery.trim()}
+              >
+                {aiLoadingType === 'research' ? 'Researching...' : 'Research'}
               </button>
             </div>
           </div>
