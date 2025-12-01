@@ -250,6 +250,7 @@ export const importFileToStore = async (
  * @param {number} options.topP - Top P (0.0-1.0, default: 0.95)
  * @param {number} options.topK - Top K (default: 40)
  * @param {number} options.maxOutputTokens - Max output tokens (default: 8192)
+ * @param {Array} options.attachedFiles - Optional array of attached files with { uri, mimeType }
  * @returns {Promise<Object>} Generated content response
  */
 export const generateContentWithStore = async (
@@ -266,6 +267,7 @@ export const generateContentWithStore = async (
       topP = null,
       topK = null,
       maxOutputTokens = null,
+      attachedFiles = [],
     } = options;
 
     // Normalize storeNames to array
@@ -298,10 +300,27 @@ export const generateContentWithStore = async (
       });
     });
 
-    // Add current user query
+    // Build parts array for current user query
+    const userParts = [{ text: query }];
+    
+    // Add attached files as fileData parts
+    if (attachedFiles && attachedFiles.length > 0) {
+      attachedFiles.forEach((file) => {
+        if (file.uri && file.mimeType) {
+          userParts.push({
+            fileData: {
+              mimeType: file.mimeType,
+              fileUri: file.uri,
+            },
+          });
+        }
+      });
+    }
+
+    // Add current user query with attached files
     contents.push({
       role: "user",
-      parts: [{ text: query }],
+      parts: userParts,
     });
 
     const requestBody = {
@@ -360,6 +379,7 @@ export const generateContentWithStore = async (
  * @param {string} voiceName - Voice name (default: "Kore")
  * @param {string} textModel - Model for text generation (default: "gemini-2.5-flash")
  * @param {string} ttsModel - Model for TTS (default: "gemini-2.5-flash-preview-tts")
+ * @param {Array} attachedFiles - Optional array of attached files with { uri, mimeType }
  * @returns {Promise<Object>} Generated audio response with base64 audio data
  */
 export const generateAudioWithStore = async (
@@ -368,7 +388,8 @@ export const generateAudioWithStore = async (
   conversationHistory = [],
   voiceName = "Kore",
   textModel = "gemini-2.5-flash",
-  ttsModel = "gemini-2.5-flash-preview-tts"
+  ttsModel = "gemini-2.5-flash-preview-tts",
+  attachedFiles = []
 ) => {
   try {
     // Normalize storeNames to array
@@ -376,7 +397,7 @@ export const generateAudioWithStore = async (
       ? storeNames
       : [storeNames];
 
-    // Step 1: Generate text response with conversation history
+    // Step 1: Generate text response with conversation history and file attachments
     const textContents = [];
     conversationHistory.forEach((msg) => {
       const role = msg.role === "assistant" ? "model" : msg.role || "user";
@@ -385,9 +406,25 @@ export const generateAudioWithStore = async (
         parts: [{ text: msg.text }],
       });
     });
+    
+    // Build parts array for current user query with file attachments
+    const userParts = [{ text: query }];
+    if (attachedFiles && attachedFiles.length > 0) {
+      attachedFiles.forEach((file) => {
+        if (file.uri && file.mimeType) {
+          userParts.push({
+            fileData: {
+              mimeType: file.mimeType,
+              fileUri: file.uri,
+            },
+          });
+        }
+      });
+    }
+    
     textContents.push({
       role: "user",
-      parts: [{ text: query }],
+      parts: userParts,
     });
 
     const textRequestBody = {

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
 import { getEmployeeConfig } from '../services/employeeConfigService';
+import { uploadFile } from '../services/filesService';
 import './ChatInterface.css';
 
 const CHAT_STORAGE_PREFIX = 'chat_messages_';
@@ -53,9 +54,12 @@ function ChatInterface({ employeeName, employeeId }) {
   const [outputMode, setOutputMode] = useState('text');
   const [isRecording, setIsRecording] = useState(false);
   const [showSources, setShowSources] = useState(null);
+  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [uploadingFiles, setUploadingFiles] = useState({});
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
   const isInitialLoadRef = useRef(true);
+  const fileInputRef = useRef(null);
 
   // Load messages from localStorage whenever component mounts or employeeId changes
   useEffect(() => {
@@ -275,25 +279,125 @@ function ChatInterface({ employeeName, employeeId }) {
     setLoading(false);
   };
 
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Process each file
+    for (const file of files) {
+      const fileId = Date.now() + Math.random();
+      
+      // Add file to uploading state
+      setUploadingFiles(prev => ({
+        ...prev,
+        [fileId]: { name: file.name, status: 'uploading' }
+      }));
+
+      try {
+        // Upload file to Google Files API
+        const uploadResponse = await uploadFile(file, file.name);
+        
+        // Get file URI from response - handle different response structures
+        // Response structure: { file: { name, uri, mimeType } } or { name, uri, mimeType }
+        let fileUri = uploadResponse.file?.uri || uploadResponse.uri;
+        let mimeType = uploadResponse.file?.mimeType || uploadResponse.mimeType || file.type || 'application/octet-stream';
+        
+        // If we have name but no URI, use name (Gemini API accepts both formats)
+        // Name format: "files/{file_id}" - this works with Gemini API
+        if (!fileUri) {
+          fileUri = uploadResponse.file?.name || uploadResponse.name;
+        }
+        
+        if (!fileUri) {
+          throw new Error('File upload did not return a valid file identifier');
+        }
+
+        // Add to attached files
+        setAttachedFiles(prev => [...prev, {
+          id: fileId,
+          name: file.name,
+          uri: fileUri,
+          mimeType: mimeType,
+          size: file.size
+        }]);
+
+        // Remove from uploading state
+        setUploadingFiles(prev => {
+          const updated = { ...prev };
+          delete updated[fileId];
+          return updated;
+        });
+      } catch (err) {
+        console.error('Error uploading file:', err);
+        setUploadingFiles(prev => ({
+          ...prev,
+          [fileId]: { name: file.name, status: 'error', error: err.message }
+        }));
+        setError(`Failed to upload ${file.name}: ${err.message}`);
+      }
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveFile = (fileId) => {
+    setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (mimeType) => {
+    if (mimeType?.includes('pdf')) return '📄';
+    if (mimeType?.includes('image')) return '🖼️';
+    if (mimeType?.includes('text') || mimeType?.includes('json')) return '📝';
+    if (mimeType?.includes('word') || mimeType?.includes('document')) return '📘';
+    if (mimeType?.includes('spreadsheet') || mimeType?.includes('excel')) return '📊';
+    return '📎';
+  };
+
   const processMessage = async (userMessage, inputType = 'text') => {
-    if (!userMessage.trim() || loading) return;
+    if ((!userMessage.trim() && attachedFiles.length === 0) || loading) return;
 
     if (selectedStores.length === 0) {
       setError('No knowledge source configured. Please set up a knowledge source in Settings first.');
       return;
     }
 
+    // Prepare attached files for API call
+    const filesForAPI = attachedFiles.map(f => ({
+      uri: f.uri,
+      mimeType: f.mimeType
+    }));
+
     const newUserMessage = {
       id: Date.now(),
-      text: userMessage,
+      text: userMessage || (attachedFiles.length > 0 ? `[Sent ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]` : ''),
       sender: 'user',
       timestamp: new Date(),
       sources: [],
-      inputType: inputType
+      inputType: inputType,
+      attachedFiles: attachedFiles.map(f => ({
+        name: f.name,
+        uri: f.uri,
+        mimeType: f.mimeType,
+        size: f.size
+      }))
     };
 
     setMessages(prev => [...prev, newUserMessage]);
-    const currentInput = userMessage;
+    const currentInput = userMessage || '';
+    
+    // Clear attached files and input
+    setAttachedFiles([]);
     setInputValue('');
     setLoading(true);
     setError(null);
@@ -314,7 +418,7 @@ function ChatInterface({ employeeName, employeeId }) {
         // Step 1: Generate text response first (for grounding)
         const textResponse = await generateContentWithStore(
           selectedStores,
-          currentInput,
+          currentInput || 'Please analyze the attached files.',
           conversationHistory,
           {
             model: chatConfig?.model || 'gemini-2.5-flash',
@@ -323,6 +427,7 @@ function ChatInterface({ employeeName, employeeId }) {
             topP: chatConfig?.topP !== undefined ? chatConfig.topP : null,
             topK: chatConfig?.topK !== undefined ? chatConfig.topK : null,
             maxOutputTokens: chatConfig?.maxOutputTokens !== undefined ? chatConfig.maxOutputTokens : null,
+            attachedFiles: filesForAPI,
           }
         );
 
@@ -363,7 +468,8 @@ function ChatInterface({ employeeName, employeeId }) {
             [],
             "Kore",
             "gemini-2.5-flash",
-            "gemini-2.5-flash-preview-tts"
+            "gemini-2.5-flash-preview-tts",
+            [] // No file attachments for audio conversion
           );
 
           // Extract audio data
@@ -438,7 +544,7 @@ function ChatInterface({ employeeName, employeeId }) {
         // Generate text response
         response = await generateContentWithStore(
           selectedStores,
-          currentInput,
+          currentInput || 'Please analyze the attached files.',
           conversationHistory,
           {
             model: chatConfig?.model || 'gemini-2.5-flash',
@@ -447,6 +553,7 @@ function ChatInterface({ employeeName, employeeId }) {
             topP: chatConfig?.topP !== undefined ? chatConfig.topP : null,
             topK: chatConfig?.topK !== undefined ? chatConfig.topK : null,
             maxOutputTokens: chatConfig?.maxOutputTokens !== undefined ? chatConfig.maxOutputTokens : null,
+            attachedFiles: filesForAPI,
           }
         );
 
@@ -562,6 +669,21 @@ function ChatInterface({ employeeName, employeeId }) {
                   <span className="input-type-badge">🎤 Voice</span>
                 )}
               </div>
+              {message.attachedFiles && message.attachedFiles.length > 0 && (
+                <div className="message-attached-files">
+                  {message.attachedFiles.map((file, idx) => (
+                    <div key={idx} className="attached-file-item">
+                      <span className="file-icon">{getFileIcon(file.mimeType)}</span>
+                      <div className="file-info">
+                        <span className="file-name">{file.name}</span>
+                        {file.size && (
+                          <span className="file-size">{formatFileSize(file.size)}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="message-text">
                 {message.sender === 'ai' ? (
                   <ReactMarkdown>{message.text}</ReactMarkdown>
@@ -635,6 +757,54 @@ function ChatInterface({ employeeName, employeeId }) {
       </div>
 
       <div className="chat-input-container">
+        {/* Attached Files Preview */}
+        {attachedFiles.length > 0 && (
+          <div className="attached-files-preview">
+            <div className="attached-files-header">
+              <span>Attached Files ({attachedFiles.length})</span>
+            </div>
+            <div className="attached-files-list">
+              {attachedFiles.map((file) => (
+                <div key={file.id} className="attached-file-preview">
+                  <span className="file-icon">{getFileIcon(file.mimeType)}</span>
+                  <div className="file-info">
+                    <span className="file-name">{file.name}</span>
+                    {file.size && (
+                      <span className="file-size">{formatFileSize(file.size)}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="remove-file-button"
+                    onClick={() => handleRemoveFile(file.id)}
+                    title="Remove file"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upload Progress */}
+        {Object.keys(uploadingFiles).length > 0 && (
+          <div className="upload-progress-container">
+            {Object.entries(uploadingFiles).map(([fileId, file]) => (
+              <div key={fileId} className="upload-progress-item">
+                <span className="file-icon">{getFileIcon('')}</span>
+                <div className="file-info">
+                  <span className="file-name">{file.name}</span>
+                  <span className="upload-status">
+                    {file.status === 'uploading' && '⏳ Uploading...'}
+                    {file.status === 'error' && `❌ Error: ${file.error}`}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="input-mode-toggles">
           <div className="mode-toggle-group">
             <span className="mode-label">Input:</span>
@@ -675,6 +845,26 @@ function ChatInterface({ employeeName, employeeId }) {
         {inputMode === 'text' ? (
           <form onSubmit={handleSend} className="chat-input-form">
             <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="file-input-hidden"
+              accept=".pdf,.doc,.docx,.txt,.md,.json,.csv,.jpg,.jpeg,.png,.gif,.webp"
+              id="file-input"
+            />
+            <button
+              type="button"
+              className="file-attach-button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach files"
+              disabled={loading || selectedStores.length === 0}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+              </svg>
+            </button>
+            <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -685,7 +875,7 @@ function ChatInterface({ employeeName, employeeId }) {
             <button 
               type="submit" 
               className="chat-send-button"
-              disabled={!inputValue.trim() || loading || selectedStores.length === 0}
+              disabled={(!inputValue.trim() && attachedFiles.length === 0) || loading || selectedStores.length === 0}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="22" y1="2" x2="11" y2="13"></line>

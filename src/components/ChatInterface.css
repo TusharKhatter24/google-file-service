@@ -721,3 +721,197 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+/* File Attachment Styles */
+.file-input-hidden {
+  display: none;
+}
+
+.file-attach-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem;
+  background: var(--color-white, #ffffff);
+  color: var(--color-text-secondary, #6b7280);
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms cubic-bezier(0.4, 0, 0.2, 1));
+  flex-shrink: 0;
+}
+
+.file-attach-button:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f9fafb);
+  border-color: var(--color-primary, #4F46E5);
+  color: var(--color-primary, #4F46E5);
+}
+
+.file-attach-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.file-attach-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Attached Files Preview */
+.attached-files-preview {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+}
+
+.attached-files-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attached-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attached-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 1px solid var(--color-border-light, #f3f4f6);
+  border-radius: var(--radius-md, 8px);
+  transition: all 0.2s;
+}
+
+.attached-file-preview:hover {
+  border-color: var(--color-primary, #4F46E5);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.1);
+}
+
+.file-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text, #111827);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.remove-file-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.remove-file-button:hover {
+  background: var(--color-danger-light, #FEF2F2);
+  color: var(--color-danger, #EF4444);
+}
+
+/* Upload Progress */
+.upload-progress-container {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface, #f9fafb);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+}
+
+.upload-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 1px solid var(--color-border-light, #f3f4f6);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 0.5rem;
+}
+
+.upload-progress-item:last-child {
+  margin-bottom: 0;
+}
+
+.upload-status {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+/* Message Attached Files */
+.message-attached-files {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attached-file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+}
+
+.user-message .attached-file-item {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.ai-message .attached-file-item {
+  background: var(--color-surface, #f9fafb);
+  border: 1px solid var(--color-border-light, #f3f4f6);
+}
+
+.ai-message .attached-file-item .file-name {
+  color: var(--color-text, #111827);
+}
+
+.ai-message .attached-file-item .file-size {
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.user-message .attached-file-item .file-name,
+.user-message .attached-file-item .file-size {
+  color: rgba(255, 255, 255, 0.9);
+}
+
