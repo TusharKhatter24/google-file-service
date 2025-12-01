@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   uploadFile,
   listFiles,
@@ -321,37 +322,111 @@ function Files() {
 
   if (loading && files.length === 0) {
     return (
-      <div className="container">
-        <div className="loading">Loading files...</div>
-      </div>
+      <motion.div 
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="loading"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          Loading files...
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container">
-      <div className="header-section">
+    <motion.div 
+      className="container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.div 
+        className="header-section"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
         <div>
-          <h2>Files</h2>
-          <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            Files
+          </motion.h2>
+          <motion.p 
+            style={{ color: '#6b7280', marginTop: '0.5rem' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
             Upload and manage files using Google Files API
-          </p>
+          </motion.p>
         </div>
-        <Link to="/" className="btn btn-secondary">
-          ← Back to Stores
-        </Link>
-      </div>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Link to="/" className="btn btn-secondary">
+            ← Back to Stores
+          </Link>
+        </motion.div>
+      </motion.div>
 
-      {error && <div className="error">{error}</div>}
-      {success && <div className="success">{success}</div>}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            className="error"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {error}
+          </motion.div>
+        )}
+        {success && (
+          <motion.div 
+            className="success"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {success}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div style={{ marginTop: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Upload File</h3>
+      <motion.div 
+        style={{ marginTop: '2rem' }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <motion.h3 
+          style={{ marginBottom: '1rem', color: '#374151' }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
+          Upload File
+        </motion.h3>
         
-        <div
+        <motion.div
           className="file-upload-area"
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          whileHover={{ scale: 1.02, borderColor: '#667eea' }}
+          transition={{ duration: 0.2 }}
         >
           <input
             type="file"
@@ -378,7 +453,7 @@ function Files() {
               </div>
             )}
           </label>
-        </div>
+        </motion.div>
 
         {selectedFile && (
           <div className="form-group">
@@ -393,14 +468,17 @@ function Files() {
           </div>
         )}
 
-        <button
+        <motion.button
           className="btn btn-primary"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
+          whileHover={{ scale: selectedFile && !uploading ? 1.05 : 1 }}
+          whileTap={{ scale: selectedFile && !uploading ? 0.95 : 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
           {uploading ? 'Uploading...' : 'Upload File'}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       <div style={{ marginTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -422,8 +500,15 @@ function Files() {
         ) : (
           <>
             <div className="file-list">
-              {files.map((file) => (
-                <div key={file.name} className="file-card">
+              {files.map((file, index) => (
+                <motion.div 
+                  key={file.name} 
+                  className="file-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(0,0,0,0.15)" }}
+                >
                   <div className="file-info">
                     <div className="file-name-row">
                       <div className="file-name">{file.displayName || file.name}</div>
@@ -442,29 +527,35 @@ function Files() {
                     )}
                   </div>
                   <div className="file-actions">
-                    <button
+                    <motion.button
                       className="btn btn-primary"
                       onClick={() => handleExtractContent(file)}
                       disabled={extracting === file.name || file.state !== 'ACTIVE'}
+                      whileHover={{ scale: extracting !== file.name && file.state === 'ACTIVE' ? 1.05 : 1 }}
+                      whileTap={{ scale: extracting !== file.name && file.state === 'ACTIVE' ? 0.95 : 1 }}
                     >
                       {extracting === file.name ? 'Extracting...' : 'Extract Content'}
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       className="btn btn-secondary"
                       onClick={() => handleAttachToStore(file)}
                       disabled={file.state !== 'ACTIVE'}
+                      whileHover={{ scale: file.state === 'ACTIVE' ? 1.05 : 1 }}
+                      whileTap={{ scale: file.state === 'ACTIVE' ? 0.95 : 1 }}
                     >
                       Attach to Store
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       className="btn btn-danger"
                       onClick={() => handleDeleteFile(file.name, file.displayName)}
                       disabled={deletingFile === file.name}
+                      whileHover={{ scale: deletingFile !== file.name ? 1.05 : 1 }}
+                      whileTap={{ scale: deletingFile !== file.name ? 0.95 : 1 }}
                     >
                       {deletingFile === file.name ? 'Deleting...' : 'Delete'}
-                    </button>
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
             {nextPageToken && (
@@ -482,9 +573,24 @@ function Files() {
         )}
       </div>
 
-      {showContentModal && extractedContent && (
-        <div className="modal" onClick={() => setShowContentModal(false)}>
-          <div className="modal-content content-modal" onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {showContentModal && extractedContent && (
+          <motion.div 
+            className="modal" 
+            onClick={() => setShowContentModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="modal-content content-modal" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <div className="modal-header">
               <h3>Extracted Content: {extractedContent.file.displayName || extractedContent.file.name}</h3>
               <button className="close-btn" onClick={() => setShowContentModal(false)}>
@@ -522,13 +628,29 @@ function Files() {
                 Close
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
 
-      {showAttachModal && selectedFileForAttach && (
-        <div className="modal" onClick={() => setShowAttachModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {showAttachModal && selectedFileForAttach && (
+          <motion.div 
+            className="modal" 
+            onClick={() => setShowAttachModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <div className="modal-header">
               <h3>Attach File to Store</h3>
               <button className="close-btn" onClick={() => setShowAttachModal(false)}>
@@ -600,10 +722,11 @@ function Files() {
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

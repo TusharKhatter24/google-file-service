@@ -1,24 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { createFileStore, listFileStores, deleteFileStore, generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
-import NotesEditor from './NotesEditor';
-import './FileStoreList.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  createFileStore,
+  listFileStores,
+  deleteFileStore,
+  generateContentWithStore,
+  generateAudioWithStore,
+} from "../services/fileStoreService";
+import NotesEditor from "./NotesEditor";
+import "./FileStoreList.css";
 
 function FileStoreList() {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newStoreName, setNewStoreName] = useState('');
+  const [newStoreName, setNewStoreName] = useState("");
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
+  const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [showSources, setShowSources] = useState(null);
-  const [inputMode, setInputMode] = useState('text');
-  const [outputMode, setOutputMode] = useState('text');
+  const [inputMode, setInputMode] = useState("text");
+  const [outputMode, setOutputMode] = useState("text");
   const [isRecording, setIsRecording] = useState(false);
   const [showNotesEditor, setShowNotesEditor] = useState(false);
   const [selectedStoreForNotes, setSelectedStoreForNotes] = useState(null);
@@ -44,7 +51,7 @@ function FileStoreList() {
   const handleCreateStore = async (e) => {
     e.preventDefault();
     if (!newStoreName.trim()) {
-      setError('Store name is required');
+      setError("Store name is required");
       return;
     }
 
@@ -52,7 +59,7 @@ function FileStoreList() {
       setCreating(true);
       setError(null);
       await createFileStore(newStoreName.trim());
-      setNewStoreName('');
+      setNewStoreName("");
       setShowCreateModal(false);
       await loadStores();
     } catch (err) {
@@ -63,7 +70,11 @@ function FileStoreList() {
   };
 
   const handleDeleteStore = async (storeName, displayName) => {
-    if (!window.confirm(`Are you sure you want to delete "${displayName}"? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${displayName}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -80,12 +91,12 @@ function FileStoreList() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
   };
 
   const formatBytes = (bytes) => {
-    if (!bytes || bytes === '0') return '0 B';
+    if (!bytes || bytes === "0") return "0 B";
     const b = parseInt(bytes);
     if (b < 1024) return `${b} B`;
     if (b < 1024 * 1024) return `${(b / 1024).toFixed(2)} KB`;
@@ -98,18 +109,24 @@ function FileStoreList() {
       setChatLoading(true);
       setError(null);
 
-      if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
-        setError('Speech recognition not supported in this browser. Please use text input.');
+      if (
+        !("SpeechRecognition" in window) &&
+        !("webkitSpeechRecognition" in window)
+      ) {
+        setError(
+          "Speech recognition not supported in this browser. Please use text input."
+        );
         setChatLoading(false);
         setIsRecording(false);
         return;
       }
 
-      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const Recognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new Recognition();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      recognition.lang = "en-US";
 
       let hasResult = false;
       const userMessage = await new Promise((resolve, reject) => {
@@ -121,48 +138,52 @@ function FileStoreList() {
         };
         recognition.onerror = (event) => {
           setIsRecording(false);
-          reject(new Error('Speech recognition error: ' + event.error));
+          reject(new Error("Speech recognition error: " + event.error));
         };
         recognition.onend = () => {
           setIsRecording(false);
           if (!hasResult) {
-            reject(new Error('No speech detected'));
+            reject(new Error("No speech detected"));
           }
         };
         recognition.start();
       });
 
       if (userMessage) {
-        await processMessage(userMessage, 'audio');
+        await processMessage(userMessage, "audio");
       }
     } catch (err) {
-      setError('Could not transcribe audio: ' + err.message + '. Please try typing your message.');
+      setError(
+        "Could not transcribe audio: " +
+          err.message +
+          ". Please try typing your message."
+      );
       setChatLoading(false);
       setIsRecording(false);
     }
   };
 
-  const processMessage = async (userMessage, inputType = 'text') => {
-    const newUserMessage = { 
+  const processMessage = async (userMessage, inputType = "text") => {
+    const newUserMessage = {
       id: Date.now(),
-      role: 'user', 
+      role: "user",
       text: userMessage,
-      inputType: inputType
+      inputType: inputType,
     };
-    setChatMessages(prev => [...prev, newUserMessage]);
+    setChatMessages((prev) => [...prev, newUserMessage]);
     setChatLoading(true);
     setError(null);
 
     try {
-      const allStoreNames = stores.map(store => store.name);
-      const conversationHistory = chatMessages.slice(-10).map(msg => ({
+      const allStoreNames = stores.map((store) => store.name);
+      const conversationHistory = chatMessages.slice(-10).map((msg) => ({
         role: msg.role,
         text: msg.text,
       }));
 
       let response;
-      
-      if (outputMode === 'audio') {
+
+      if (outputMode === "audio") {
         // Step 1: Generate text response first (this includes FileSearchStore search)
         const textResponse = await generateContentWithStore(
           allStoreNames,
@@ -173,30 +194,32 @@ function FileStoreList() {
         // Extract text response
         const candidate = textResponse.candidates?.[0];
         const textParts = candidate?.content?.parts || [];
-        const responseText = textParts
-          .filter((part) => part.text)
-          .map((part) => part.text)
-          .join('\n') || 'No response generated.';
+        const responseText =
+          textParts
+            .filter((part) => part.text)
+            .map((part) => part.text)
+            .join("\n") || "No response generated.";
 
         // Extract grounding metadata (sources)
         const groundingMetadata = candidate?.groundingMetadata;
-        const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
-          title: chunk.retrievedContext?.title || 'Unknown',
-          text: chunk.retrievedContext?.text || '',
-          fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
-        })) || [];
+        const sources =
+          groundingMetadata?.groundingChunks?.map((chunk) => ({
+            title: chunk.retrievedContext?.title || "Unknown",
+            text: chunk.retrievedContext?.text || "",
+            fileSearchStore: chunk.retrievedContext?.fileSearchStore || "",
+          })) || [];
 
         // Step 2: Show text response immediately with "Generating audio..." indicator
         const textMessageId = Date.now();
         const textMessage = {
           id: textMessageId,
-          role: 'model',
+          role: "model",
           text: responseText,
-          outputType: 'audio',
+          outputType: "audio",
           sources: sources,
-          generatingAudio: true
+          generatingAudio: true,
         };
-        setChatMessages(prev => [...prev, textMessage]);
+        setChatMessages((prev) => [...prev, textMessage]);
 
         // Step 3: Generate audio from the text response
         try {
@@ -210,68 +233,81 @@ function FileStoreList() {
           );
 
           const audioPart = response.candidates?.[0]?.content?.parts?.find(
-            part => part.inlineData && part.inlineData.mimeType?.startsWith('audio')
+            (part) =>
+              part.inlineData && part.inlineData.mimeType?.startsWith("audio")
           );
 
           if (audioPart?.inlineData?.data) {
             const audioData = audioPart.inlineData.data;
-            const pcmData = Uint8Array.from(atob(audioData), c => c.charCodeAt(0));
-            
+            const pcmData = Uint8Array.from(atob(audioData), (c) =>
+              c.charCodeAt(0)
+            );
+
             const sampleRate = 24000;
             const numChannels = 1;
             const bitsPerSample = 16;
             const dataLength = pcmData.length;
-            
+
             const wavHeader = new ArrayBuffer(44);
             const view = new DataView(wavHeader);
-            
+
             const writeString = (offset, string) => {
               for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
               }
             };
-            
-            writeString(0, 'RIFF');
+
+            writeString(0, "RIFF");
             view.setUint32(4, 36 + dataLength, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
+            writeString(8, "WAVE");
+            writeString(12, "fmt ");
             view.setUint32(16, 16, true);
             view.setUint16(20, 1, true);
             view.setUint16(22, numChannels, true);
             view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * numChannels * bitsPerSample / 8, true);
-            view.setUint16(32, numChannels * bitsPerSample / 8, true);
+            view.setUint32(
+              28,
+              (sampleRate * numChannels * bitsPerSample) / 8,
+              true
+            );
+            view.setUint16(32, (numChannels * bitsPerSample) / 8, true);
             view.setUint16(34, bitsPerSample, true);
-            writeString(36, 'data');
+            writeString(36, "data");
             view.setUint32(40, dataLength, true);
-            
-            const wavBlob = new Blob([wavHeader, pcmData], { type: 'audio/wav' });
+
+            const wavBlob = new Blob([wavHeader, pcmData], {
+              type: "audio/wav",
+            });
             const audioUrl = URL.createObjectURL(wavBlob);
-            
+
             // Step 4: Update the message with audio URL
-            setChatMessages(prev => prev.map(msg => 
-              msg.id === textMessageId
-                ? {
-                    ...msg,
-                    audioUrl: audioUrl,
-                    generatingAudio: false
-                  }
-                : msg
-            ));
+            setChatMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === textMessageId
+                  ? {
+                      ...msg,
+                      audioUrl: audioUrl,
+                      generatingAudio: false,
+                    }
+                  : msg
+              )
+            );
           } else {
-            throw new Error('No audio data received');
+            throw new Error("No audio data received");
           }
         } catch (audioError) {
           // Update message to show audio generation failed
-          setChatMessages(prev => prev.map(msg => 
-            msg.id === textMessageId
-              ? {
-                  ...msg,
-                  generatingAudio: false,
-                  audioError: audioError.message
-                }
-              : msg
-          ));
+          setChatMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === textMessageId
+                ? {
+                    ...msg,
+                    generatingAudio: false,
+                    audioError: audioError.message,
+                  }
+                : msg
+            )
+          );
           throw audioError;
         }
       } else {
@@ -283,37 +319,39 @@ function FileStoreList() {
 
         const candidate = response.candidates?.[0];
         const textParts = candidate?.content?.parts || [];
-        const responseText = textParts
-          .filter((part) => part.text)
-          .map((part) => part.text)
-          .join('\n') || 'No response generated.';
+        const responseText =
+          textParts
+            .filter((part) => part.text)
+            .map((part) => part.text)
+            .join("\n") || "No response generated.";
 
         const groundingMetadata = candidate?.groundingMetadata;
-        const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
-          title: chunk.retrievedContext?.title || 'Unknown',
-          text: chunk.retrievedContext?.text || '',
-          fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
-        })) || [];
+        const sources =
+          groundingMetadata?.groundingChunks?.map((chunk) => ({
+            title: chunk.retrievedContext?.title || "Unknown",
+            text: chunk.retrievedContext?.text || "",
+            fileSearchStore: chunk.retrievedContext?.fileSearchStore || "",
+          })) || [];
 
-        const modelMessage = { 
+        const modelMessage = {
           id: Date.now(),
-          role: 'model', 
+          role: "model",
           text: responseText,
           sources: sources,
-          outputType: 'text'
+          outputType: "text",
         };
-        setChatMessages(prev => [...prev, modelMessage]);
+        setChatMessages((prev) => [...prev, modelMessage]);
       }
     } catch (err) {
       setError(err.message);
-      const errorMessage = { 
+      const errorMessage = {
         id: Date.now(),
-        role: 'model', 
-        text: `Error: ${err.message}`, 
+        role: "model",
+        text: `Error: ${err.message}`,
         isError: true,
-        outputType: outputMode
+        outputType: outputMode,
       };
-      setChatMessages(prev => [...prev, errorMessage]);
+      setChatMessages((prev) => [...prev, errorMessage]);
     } finally {
       setChatLoading(false);
     }
@@ -324,8 +362,8 @@ function FileStoreList() {
     if (!chatInput.trim() || chatLoading || stores.length === 0) return;
 
     const userMessage = chatInput.trim();
-    setChatInput('');
-    await processMessage(userMessage, 'text');
+    setChatInput("");
+    await processMessage(userMessage, "text");
   };
 
   const startRecording = async () => {
@@ -333,7 +371,7 @@ function FileStoreList() {
       setIsRecording(true);
       await handleAudioInput();
     } catch (err) {
-      setError('Failed to start recording: ' + err.message);
+      setError("Failed to start recording: " + err.message);
       setIsRecording(false);
     }
   };
@@ -344,33 +382,75 @@ function FileStoreList() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading file stores...</div>
-      </div>
+      <motion.div
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div
+          className="loading"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          Loading file stores...
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container">
+    <motion.div
+      className="container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       <div className="header-section">
         <h2>File Search Stores</h2>
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+        <motion.button
+          className="btn btn-primary"
+          onClick={() => setShowCreateModal(true)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        >
           + Create New Store
-        </button>
+        </motion.button>
       </div>
 
-      {error && <div className="error">{error}</div>}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="error"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Chatbot Section */}
-      <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ color: '#374151' }}>Chat with All Stores</h3>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div style={{ marginTop: "2rem", marginBottom: "2rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <h3 style={{ color: "#374151" }}>Chat with All Stores</h3>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
             {chatMessages.length > 0 && (
               <button
                 className="btn btn-secondary"
                 onClick={handleClearChat}
-                style={{ fontSize: '0.875rem', padding: '0.5rem 1rem' }}
+                style={{ fontSize: "0.875rem", padding: "0.5rem 1rem" }}
               >
                 Clear Chat
               </button>
@@ -380,356 +460,506 @@ function FileStoreList() {
               onClick={() => setShowChatbot(!showChatbot)}
               disabled={stores.length === 0}
             >
-              {showChatbot ? 'Hide Chat' : 'Show Chat'}
+              {showChatbot ? "Hide Chat" : "Show Chat"}
             </button>
           </div>
         </div>
 
-        {showChatbot && (
-          <div style={{
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '600px',
-            maxHeight: '80vh'
-          }}>
-            {/* Chat Messages Area */}
-            <div 
-              className="chat-messages-container"
+        <AnimatePresence>
+          {showChatbot && (
+            <motion.div
               style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem'
+                border: "1px solid #e5e7eb",
+                borderRadius: "8px",
+                backgroundColor: "#ffffff",
+                display: "flex",
+                flexDirection: "column",
+                height: "600px",
+                maxHeight: "80vh",
               }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "600px" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              {chatMessages.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  color: '#6b7280',
-                  padding: '2rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%'
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
-                  <h4>Start a conversation</h4>
-                  <p>Ask questions about documents across all your stores. The AI will search through all stores to provide answers.</p>
-                  {stores.length > 0 && (
-                    <p style={{ fontSize: '0.875rem', marginTop: '0.5rem', color: '#9ca3af' }}>
-                      Searching {stores.length} store{stores.length !== 1 ? 's' : ''}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                chatMessages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className="chat-message"
+              {/* Chat Messages Area */}
+              <div
+                className="chat-messages-container"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "1rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                }}
+              >
+                {chatMessages.length === 0 ? (
+                  <motion.div
                     style={{
-                      display: 'flex',
-                      justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      width: '100%'
+                      textAlign: "center",
+                      color: "#6b7280",
+                      padding: "2rem",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
                     }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    <div style={{
-                      maxWidth: '75%',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '12px',
-                      backgroundColor: msg.role === 'user' 
-                        ? '#3b82f6' 
-                        : msg.isError 
-                        ? '#fee2e2' 
-                        : '#f3f4f6',
-                      color: msg.role === 'user' 
-                        ? '#ffffff' 
-                        : msg.isError 
-                        ? '#dc2626' 
-                        : '#1f2937',
-                      wordWrap: 'break-word',
-                      whiteSpace: 'pre-wrap',
-                      position: 'relative'
-                    }}>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        marginBottom: '0.25rem',
-                        opacity: 0.8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem'
-                      }}>
-                        <span>{msg.role === 'user' ? 'You' : 'Assistant'}</span>
-                        {msg.role === 'model' && msg.sources && msg.sources.length > 0 && (
-                          <button
-                            onClick={() => setShowSources(showSources === idx ? null : idx)}
+                    <motion.div
+                      style={{ fontSize: "3rem", marginBottom: "1rem" }}
+                      animate={{ rotate: [0, 10, -10, 0] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 2,
+                        repeatDelay: 3,
+                      }}
+                    >
+                      💬
+                    </motion.div>
+                    <h4>Start a conversation</h4>
+                    <p>
+                      Ask questions about documents across all your stores. The
+                      AI will search through all stores to provide answers.
+                    </p>
+                    {stores.length > 0 && (
+                      <p
+                        style={{
+                          fontSize: "0.875rem",
+                          marginTop: "0.5rem",
+                          color: "#9ca3af",
+                        }}
+                      >
+                        Searching {stores.length} store
+                        {stores.length !== 1 ? "s" : ""}
+                      </p>
+                    )}
+                  </motion.div>
+                ) : (
+                  chatMessages.map((msg, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="chat-message"
+                      style={{
+                        display: "flex",
+                        justifyContent:
+                          msg.role === "user" ? "flex-end" : "flex-start",
+                        width: "100%",
+                      }}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    >
+                      <div
+                        style={{
+                          maxWidth: "75%",
+                          padding: "0.75rem 1rem",
+                          borderRadius: "12px",
+                          backgroundColor:
+                            msg.role === "user"
+                              ? "#3b82f6"
+                              : msg.isError
+                              ? "#fee2e2"
+                              : "#f3f4f6",
+                          color:
+                            msg.role === "user"
+                              ? "#ffffff"
+                              : msg.isError
+                              ? "#dc2626"
+                              : "#1f2937",
+                          wordWrap: "break-word",
+                          whiteSpace: "pre-wrap",
+                          position: "relative",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: "600",
+                            marginBottom: "0.25rem",
+                            opacity: 0.8,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <span>
+                            {msg.role === "user" ? "You" : "Assistant"}
+                          </span>
+                          {msg.role === "model" &&
+                            msg.sources &&
+                            msg.sources.length > 0 && (
+                              <button
+                                onClick={() =>
+                                  setShowSources(
+                                    showSources === idx ? null : idx
+                                  )
+                                }
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  padding: "0.25rem",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  color: "inherit",
+                                  opacity: 0.7,
+                                }}
+                                title="View sources"
+                              >
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                              </button>
+                            )}
+                        </div>
+                        <div>{msg.text}</div>
+                        {msg.generatingAudio && (
+                          <div
                             style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: '0.25rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              color: 'inherit',
-                              opacity: 0.7
+                              marginTop: "0.5rem",
+                              fontSize: "0.75rem",
+                              opacity: 0.7,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
                             }}
-                            title="View sources"
                           >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <line x1="12" y1="16" x2="12" y2="12"></line>
-                              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                      <div>{msg.text}</div>
-                      {msg.generatingAudio && (
-                        <div style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.75rem', 
-                          opacity: 0.7,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}>
-                          <span style={{ animation: 'pulse 1s ease-in-out infinite' }}>●</span>
-                          Generating audio...
-                        </div>
-                      )}
-                      {msg.outputType === 'audio' && msg.audioUrl && (
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <audio
-                            controls
-                            src={msg.audioUrl}
-                            style={{ width: '100%', maxWidth: '300px' }}
-                          />
-                        </div>
-                      )}
-                      {msg.audioError && (
-                        <div style={{ 
-                          marginTop: '0.5rem', 
-                          fontSize: '0.75rem', 
-                          color: '#dc2626',
-                          opacity: 0.8
-                        }}>
-                          Audio generation failed: {msg.audioError}
-                        </div>
-                      )}
-                      {showSources === idx && msg.sources && msg.sources.length > 0 && (
-                        <div style={{
-                          marginTop: '0.75rem',
-                          paddingTop: '0.75rem',
-                          borderTop: '1px solid rgba(0,0,0,0.1)',
-                          fontSize: '0.75rem'
-                        }}>
-                          <div style={{ fontWeight: '600', marginBottom: '0.5rem', opacity: 0.8 }}>
-                            Sources ({msg.sources.length}):
-                          </div>
-                          {msg.sources.map((source, sourceIdx) => (
-                            <div 
-                              key={sourceIdx}
+                            <span
                               style={{
-                                marginBottom: '0.5rem',
-                                padding: '0.5rem',
-                                backgroundColor: 'rgba(0,0,0,0.05)',
-                                borderRadius: '4px',
-                                fontSize: '0.7rem'
+                                animation: "pulse 1s ease-in-out infinite",
                               }}
                             >
-                              {/* <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                              ●
+                            </span>
+                            Generating audio...
+                          </div>
+                        )}
+                        {msg.outputType === "audio" && msg.audioUrl && (
+                          <div style={{ marginTop: "0.5rem" }}>
+                            <audio
+                              controls
+                              src={msg.audioUrl}
+                              style={{ width: "100%", maxWidth: "300px" }}
+                            />
+                          </div>
+                        )}
+                        {msg.audioError && (
+                          <div
+                            style={{
+                              marginTop: "0.5rem",
+                              fontSize: "0.75rem",
+                              color: "#dc2626",
+                              opacity: 0.8,
+                            }}
+                          >
+                            Audio generation failed: {msg.audioError}
+                          </div>
+                        )}
+                        {showSources === idx &&
+                          msg.sources &&
+                          msg.sources.length > 0 && (
+                            <div
+                              style={{
+                                marginTop: "0.75rem",
+                                paddingTop: "0.75rem",
+                                borderTop: "1px solid rgba(0,0,0,0.1)",
+                                fontSize: "0.75rem",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  fontWeight: "600",
+                                  marginBottom: "0.5rem",
+                                  opacity: 0.8,
+                                }}
+                              >
+                                Sources ({msg.sources.length}):
+                              </div>
+                              {msg.sources.map((source, sourceIdx) => (
+                                <div
+                                  key={sourceIdx}
+                                  style={{
+                                    marginBottom: "0.5rem",
+                                    padding: "0.5rem",
+                                    backgroundColor: "rgba(0,0,0,0.05)",
+                                    borderRadius: "4px",
+                                    fontSize: "0.7rem",
+                                  }}
+                                >
+                                  {/* <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
                                 {source.title}
                               </div> */}
-                              <div style={{ 
-                                opacity: 0.7,
-                                maxHeight: '60px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}>
-                                {source.text.substring(0, 150)}...
-                              </div>
+                                  <div
+                                    style={{
+                                      opacity: 0.7,
+                                      maxHeight: "60px",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                    }}
+                                  >
+                                    {source.text.substring(0, 150)}...
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+                <AnimatePresence>
+                  {chatLoading && (
+                    <motion.div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        width: "100%",
+                      }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <motion.div
+                        style={{
+                          padding: "0.75rem 1rem",
+                          borderRadius: "12px",
+                          backgroundColor: "#f3f4f6",
+                          color: "#6b7280",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <span>Thinking</span>
+                          <motion.span
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                          >
+                            ...
+                          </motion.span>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-              {chatLoading && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'flex-start',
-                  width: '100%'
-                }}>
-                  <div style={{
-                    padding: '0.75rem 1rem',
-                    borderRadius: '12px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>Thinking</span>
-                      <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Chat Input Area */}
-            <div style={{
-              borderTop: '1px solid #e5e7eb',
-              padding: '1rem'
-            }}>
-              {/* Mode Toggles */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '1rem', 
-                marginBottom: '0.75rem',
-                fontSize: '0.875rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#6b7280' }}>Input:</span>
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('text')}
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      border: `1px solid ${inputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
-                      borderRadius: '4px',
-                      backgroundColor: inputMode === 'text' ? '#3b82f6' : 'transparent',
-                      color: inputMode === 'text' ? '#ffffff' : '#374151',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Text
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('audio')}
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      border: `1px solid ${inputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
-                      borderRadius: '4px',
-                      backgroundColor: inputMode === 'audio' ? '#3b82f6' : 'transparent',
-                      color: inputMode === 'audio' ? '#ffffff' : '#374151',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Audio
-                  </button>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ color: '#6b7280' }}>Output:</span>
-                  <button
-                    type="button"
-                    onClick={() => setOutputMode('text')}
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      border: `1px solid ${outputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
-                      borderRadius: '4px',
-                      backgroundColor: outputMode === 'text' ? '#3b82f6' : 'transparent',
-                      color: outputMode === 'text' ? '#ffffff' : '#374151',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Text
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOutputMode('audio')}
-                    style={{
-                      padding: '0.25rem 0.75rem',
-                      border: `1px solid ${outputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
-                      borderRadius: '4px',
-                      backgroundColor: outputMode === 'audio' ? '#3b82f6' : 'transparent',
-                      color: outputMode === 'audio' ? '#ffffff' : '#374151',
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    Audio
-                  </button>
-                </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {inputMode === 'text' ? (
-                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={stores.length === 0 ? "Create a store first to start chatting..." : "Ask a question across all stores..."}
-                    disabled={chatLoading || stores.length === 0}
+              {/* Chat Input Area */}
+              <div
+                style={{
+                  borderTop: "1px solid #e5e7eb",
+                  padding: "1rem",
+                }}
+              >
+                {/* Mode Toggles */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "1rem",
+                    marginBottom: "0.75rem",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  <div
                     style={{
-                      flex: 1,
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '8px',
-                      fontSize: '0.875rem',
-                      outline: 'none',
-                      opacity: stores.length === 0 ? 0.6 : 1
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage(e);
-                      }
+                  >
+                    <span style={{ color: "#6b7280" }}>Input:</span>
+                    <button
+                      type="button"
+                      onClick={() => setInputMode("text")}
+                      style={{
+                        padding: "0.25rem 0.75rem",
+                        border: `1px solid ${
+                          inputMode === "text" ? "#3b82f6" : "#d1d5db"
+                        }`,
+                        borderRadius: "4px",
+                        backgroundColor:
+                          inputMode === "text" ? "#3b82f6" : "transparent",
+                        color: inputMode === "text" ? "#ffffff" : "#374151",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Text
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputMode("audio")}
+                      style={{
+                        padding: "0.25rem 0.75rem",
+                        border: `1px solid ${
+                          inputMode === "audio" ? "#3b82f6" : "#d1d5db"
+                        }`,
+                        borderRadius: "4px",
+                        backgroundColor:
+                          inputMode === "audio" ? "#3b82f6" : "transparent",
+                        color: inputMode === "audio" ? "#ffffff" : "#374151",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Audio
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
                     }}
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={!chatInput.trim() || chatLoading || stores.length === 0}
-                    style={{ padding: '0.75rem 1.5rem' }}
                   >
-                    {chatLoading ? 'Sending...' : 'Send'}
-                  </button>
-                </form>
-              ) : (
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <button
-                    type="button"
-                    onClick={startRecording}
-                    className="btn btn-primary"
-                    disabled={chatLoading || stores.length === 0 || isRecording}
-                    style={{ padding: '0.75rem 1.5rem' }}
-                  >
-                    🎤 Speak
-                  </button>
-                  {isRecording && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '0.5rem',
-                      color: '#dc2626',
-                      fontSize: '0.875rem'
-                    }}>
-                      <span style={{ 
-                        width: '8px', 
-                        height: '8px', 
-                        borderRadius: '50%', 
-                        backgroundColor: '#dc2626',
-                        animation: 'pulse 1s ease-in-out infinite'
-                      }}></span>
-                      Listening...
-                    </div>
-                  )}
+                    <span style={{ color: "#6b7280" }}>Output:</span>
+                    <button
+                      type="button"
+                      onClick={() => setOutputMode("text")}
+                      style={{
+                        padding: "0.25rem 0.75rem",
+                        border: `1px solid ${
+                          outputMode === "text" ? "#3b82f6" : "#d1d5db"
+                        }`,
+                        borderRadius: "4px",
+                        backgroundColor:
+                          outputMode === "text" ? "#3b82f6" : "transparent",
+                        color: outputMode === "text" ? "#ffffff" : "#374151",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Text
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOutputMode("audio")}
+                      style={{
+                        padding: "0.25rem 0.75rem",
+                        border: `1px solid ${
+                          outputMode === "audio" ? "#3b82f6" : "#d1d5db"
+                        }`,
+                        borderRadius: "4px",
+                        backgroundColor:
+                          outputMode === "audio" ? "#3b82f6" : "transparent",
+                        color: outputMode === "audio" ? "#ffffff" : "#374151",
+                        cursor: "pointer",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      Audio
+                    </button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
+
+                {inputMode === "text" ? (
+                  <form
+                    onSubmit={handleSendMessage}
+                    style={{ display: "flex", gap: "0.5rem" }}
+                  >
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder={
+                        stores.length === 0
+                          ? "Create a store first to start chatting..."
+                          : "Ask a question across all stores..."
+                      }
+                      disabled={chatLoading || stores.length === 0}
+                      style={{
+                        flex: 1,
+                        padding: "0.75rem",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        fontSize: "0.875rem",
+                        outline: "none",
+                        opacity: stores.length === 0 ? 0.6 : 1,
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={
+                        !chatInput.trim() || chatLoading || stores.length === 0
+                      }
+                      style={{ padding: "0.75rem 1.5rem" }}
+                    >
+                      {chatLoading ? "Sending..." : "Send"}
+                    </button>
+                  </form>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={startRecording}
+                      className="btn btn-primary"
+                      disabled={
+                        chatLoading || stores.length === 0 || isRecording
+                      }
+                      style={{ padding: "0.75rem 1.5rem" }}
+                    >
+                      🎤 Speak
+                    </button>
+                    {isRecording && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          color: "#dc2626",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: "50%",
+                            backgroundColor: "#dc2626",
+                            animation: "pulse 1s ease-in-out infinite",
+                          }}
+                        ></span>
+                        Listening...
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {stores.length === 0 ? (
@@ -739,10 +969,19 @@ function FileStoreList() {
         </div>
       ) : (
         <div className="store-list">
-          {stores.map((store) => (
-            <div key={store.name} className="store-card">
+          {stores.map((store, index) => (
+            <motion.div
+              key={store.name}
+              className="store-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(0,0,0,0.15)" }}
+            >
               <div className="store-info">
-                <div className="store-name">{store.displayName || store.name}</div>
+                <div className="store-name">
+                  {store.displayName || store.name}
+                </div>
                 <div className="store-details">
                   <span>Created: {formatDate(store.createTime)}</span>
                   <span>Active Docs: {store.activeDocumentsCount || 0}</span>
@@ -752,73 +991,113 @@ function FileStoreList() {
                 </div>
               </div>
               <div className="store-actions">
-                <button
+                <motion.button
                   className="btn btn-secondary"
                   onClick={() => {
                     setSelectedStoreForNotes(store.name);
                     setShowNotesEditor(true);
                   }}
-                  style={{ marginRight: '0.5rem' }}
+                  style={{ marginRight: "0.5rem" }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   Write Notes
-                </button>
-                <Link
-                  to={`/store/${encodeURIComponent(store.name)}`}
-                  className="btn btn-primary"
+                </motion.button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  View
-                </Link>
-                <button
+                  <Link
+                    to={`/store/${encodeURIComponent(store.name)}`}
+                    className="btn btn-primary"
+                  >
+                    View
+                  </Link>
+                </motion.div>
+                <motion.button
                   className="btn btn-danger"
-                  onClick={() => handleDeleteStore(store.name, store.displayName)}
+                  onClick={() =>
+                    handleDeleteStore(store.name, store.displayName)
+                  }
                   disabled={deleting === store.name}
+                  whileHover={{ scale: deleting !== store.name ? 1.05 : 1 }}
+                  whileTap={{ scale: deleting !== store.name ? 0.95 : 1 }}
                 >
-                  {deleting === store.name ? 'Deleting...' : 'Delete'}
-                </button>
+                  {deleting === store.name ? "Deleting..." : "Delete"}
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
 
-      {showCreateModal && (
-        <div className="modal" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Create New File Store</h3>
-              <button className="close-btn" onClick={() => setShowCreateModal(false)}>
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleCreateStore}>
-              <div className="form-group">
-                <label htmlFor="storeName">Store Display Name</label>
-                <input
-                  id="storeName"
-                  type="text"
-                  value={newStoreName}
-                  onChange={(e) => setNewStoreName(e.target.value)}
-                  placeholder="e.g., My Document Store"
-                  required
-                  autoFocus
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            className="modal"
+            onClick={() => setShowCreateModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="modal-header">
+                <h3>Create New File Store</h3>
                 <button
-                  type="button"
-                  className="btn btn-secondary"
+                  className="close-btn"
                   onClick={() => setShowCreateModal(false)}
                 >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create'}
+                  ×
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <form onSubmit={handleCreateStore}>
+                <div className="form-group">
+                  <label htmlFor="storeName">Store Display Name</label>
+                  <input
+                    id="storeName"
+                    type="text"
+                    value={newStoreName}
+                    onChange={(e) => setNewStoreName(e.target.value)}
+                    placeholder="e.g., My Document Store"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    justifyContent: "flex-end",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowCreateModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={creating}
+                  >
+                    {creating ? "Creating..." : "Create"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {selectedStoreForNotes && (
         <NotesEditor
@@ -833,9 +1112,8 @@ function FileStoreList() {
           }}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
 
 export default FileStoreList;
-

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   getFileStore,
   uploadFileToStore,
@@ -596,36 +597,113 @@ function FileStoreDetail() {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="loading">Loading store details...</div>
-      </div>
+      <motion.div 
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="loading"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          Loading store details...
+        </motion.div>
+      </motion.div>
     );
   }
 
   if (!store) {
     return (
-      <div className="container">
-        <div className="error">Store not found</div>
-        <Link to="/" className="back-link">← Back to Stores</Link>
-      </div>
+      <motion.div 
+        className="container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="error"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          Store not found
+        </motion.div>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Link to="/" className="back-link">← Back to Stores</Link>
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="container">
-      <Link to="/" className="back-link">← Back to Stores</Link>
+    <motion.div 
+      className="container"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Link to="/" className="back-link">← Back to Stores</Link>
+      </motion.div>
 
-      <div className="header-section">
+      <motion.div 
+        className="header-section"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
         <div>
-          <h2>{store.displayName || store.name}</h2>
-          <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            {store.displayName || store.name}
+          </motion.h2>
+          <motion.p 
+            style={{ color: '#6b7280', marginTop: '0.5rem' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
             {store.name}
-          </p>
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
 
-      {error && <div className="error">{error}</div>}
-      {success && <div className="success">{success}</div>}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            className="error"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {error}
+          </motion.div>
+        )}
+        {success && (
+          <motion.div 
+            className="success"
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            {success}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {operationStatus && (
         <div className={`operation-status ${operationStatus.done ? (operationStatus.error ? 'error' : 'success') : ''}`}>
@@ -641,24 +719,38 @@ function FileStoreDetail() {
         </div>
       )}
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Active Documents</div>
-          <div className="stat-value">{store.activeDocumentsCount || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Pending Documents</div>
-          <div className="stat-value">{store.pendingDocumentsCount || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Failed Documents</div>
-          <div className="stat-value">{store.failedDocumentsCount || 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Total Size</div>
-          <div className="stat-value">{formatBytes(store.sizeBytes)}</div>
-        </div>
-      </div>
+      <motion.div 
+        className="stats-grid"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        {[
+          { label: 'Active Documents', value: store.activeDocumentsCount || 0 },
+          { label: 'Pending Documents', value: store.pendingDocumentsCount || 0 },
+          { label: 'Failed Documents', value: store.failedDocumentsCount || 0 },
+          { label: 'Total Size', value: formatBytes(store.sizeBytes) }
+        ].map((stat, index) => (
+          <motion.div 
+            key={stat.label}
+            className="stat-card"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+            whileHover={{ scale: 1.05, y: -4 }}
+          >
+            <div className="stat-label">{stat.label}</div>
+            <motion.div 
+              className="stat-value"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.4 + index * 0.1 }}
+            >
+              {stat.value}
+            </motion.div>
+          </motion.div>
+        ))}
+      </motion.div>
 
       <div style={{ marginTop: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -765,8 +857,15 @@ function FileStoreDetail() {
         ) : (
           <>
             <div className="document-list">
-              {documents.map((doc) => (
-                <div key={doc.name} className="document-card">
+              {documents.map((doc, index) => (
+                <motion.div 
+                  key={doc.name} 
+                  className="document-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(0,0,0,0.15)" }}
+                >
                   <div className="document-info">
                     <div className="document-name-row">
                       <div className="document-name">{doc.displayName || doc.name}</div>
@@ -789,21 +888,25 @@ function FileStoreDetail() {
                     )}
                   </div>
                   <div className="document-actions">
-                    <button
+                    <motion.button
                       className="btn btn-primary"
                       onClick={() => handleViewDocument(doc.name)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       View
-                    </button>
-                    <button
+                    </motion.button>
+                    <motion.button
                       className="btn btn-danger"
                       onClick={() => handleDeleteDocument(doc.name, doc.displayName)}
                       disabled={deletingDoc === doc.name}
+                      whileHover={{ scale: deletingDoc !== doc.name ? 1.05 : 1 }}
+                      whileTap={{ scale: deletingDoc !== doc.name ? 0.95 : 1 }}
                     >
                       {deletingDoc === doc.name ? 'Deleting...' : 'Delete'}
-                    </button>
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
             {nextPageToken && (
@@ -844,16 +947,23 @@ function FileStoreDetail() {
           </div>
         </div>
 
-        {showChatbot && (
-          <div style={{
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '600px',
-            maxHeight: '80vh'
-          }}>
+        <AnimatePresence>
+          {showChatbot && (
+            <motion.div 
+              style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                backgroundColor: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '600px',
+                maxHeight: '80vh'
+              }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: '600px' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
             {/* Chat Messages Area */}
             <div 
               className="chat-messages-container"
@@ -867,23 +977,34 @@ function FileStoreDetail() {
               }}
             >
               {chatMessages.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  color: '#6b7280',
-                  padding: '2rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100%'
-                }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+                <motion.div 
+                  style={{
+                    textAlign: 'center',
+                    color: '#6b7280',
+                    padding: '2rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%'
+                  }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.div 
+                    style={{ fontSize: '3rem', marginBottom: '1rem' }}
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
+                  >
+                    💬
+                  </motion.div>
                   <h4>Start a conversation</h4>
                   <p>Ask questions about the documents in this store. The AI will search through your documents to provide answers.</p>
-                </div>
+                </motion.div>
               ) : (
                 chatMessages.map((msg, idx) => (
-                  <div
+                  <motion.div
                     key={idx}
                     className="chat-message"
                     style={{
@@ -891,6 +1012,9 @@ function FileStoreDetail() {
                       justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
                       width: '100%'
                     }}
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
                   >
                     <div style={{
                       maxWidth: '75%',
@@ -1013,28 +1137,43 @@ function FileStoreDetail() {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
-              {chatLoading && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'flex-start',
-                  width: '100%'
-                }}>
-                  <div style={{
-                    padding: '0.75rem 1rem',
-                    borderRadius: '12px',
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span>Thinking</span>
-                      <span style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <AnimatePresence>
+                {chatLoading && (
+                  <motion.div 
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      width: '100%'
+                    }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <motion.div 
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '12px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>Thinking</span>
+                        <motion.span
+                          animate={{ opacity: [1, 0.3, 1] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                          ...
+                        </motion.span>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Chat Input Area */}
@@ -1181,13 +1320,29 @@ function FileStoreDetail() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+          </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {showDocumentModal && selectedDocument && (
-        <div className="modal" onClick={() => setShowDocumentModal(false)}>
-          <div className="modal-content document-modal" onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {showDocumentModal && selectedDocument && (
+          <motion.div 
+            className="modal" 
+            onClick={() => setShowDocumentModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="modal-content document-modal" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <div className="modal-header">
               <h3>Document Details</h3>
               <button className="close-btn" onClick={() => setShowDocumentModal(false)}>
@@ -1263,13 +1418,29 @@ function FileStoreDetail() {
                 Close
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
 
-      {showImportModal && (
-        <div className="modal" onClick={() => setShowImportModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {showImportModal && (
+          <motion.div 
+            className="modal" 
+            onClick={() => setShowImportModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <div className="modal-header">
               <h3>Import File from Files List</h3>
               <button className="close-btn" onClick={() => setShowImportModal(false)}>
@@ -1351,9 +1522,10 @@ function FileStoreDetail() {
                 Close
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       <NotesEditor
         isOpen={showNotesEditor}
@@ -1365,7 +1537,7 @@ function FileStoreDetail() {
           setSuccess('Notes saved and attached to store successfully!');
         }}
       />
-    </div>
+    </motion.div>
   );
 }
 

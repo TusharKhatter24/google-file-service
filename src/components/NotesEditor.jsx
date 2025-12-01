@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { motion, AnimatePresence } from 'framer-motion';
 import { generatePDFFromHTML } from '../utils/pdfGenerator';
 import { uploadFile } from '../services/filesService';
 import { importFileToStore, listFileStores } from '../services/fileStoreService';
@@ -437,8 +438,22 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="notes-editor-modal" onClick={onClose}>
-      <div className="notes-editor-content" onClick={(e) => e.stopPropagation()}>
+    <motion.div 
+      className="notes-editor-modal" 
+      onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+        <motion.div 
+          className="notes-editor-content" 
+          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
         <div className="notes-editor-header">
           <h3>Smart Notes Taker</h3>
           <div className="notes-editor-header-actions">
@@ -455,11 +470,30 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
           </div>
         </div>
 
-        {error && <div className="notes-editor-error">{error}</div>}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              className="notes-editor-error"
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* AI Tools Panel */}
-        {showAIPanel && (
-          <div className="ai-tools-panel">
+        <AnimatePresence>
+          {showAIPanel && (
+            <motion.div 
+              className="ai-tools-panel"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
             <div className="ai-tools-header">
               <span className="ai-tools-title">AI Tools</span>
               {selectedStores.length > 0 && (
@@ -492,54 +526,29 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
 
               {/* AI Action Buttons */}
               <div className="ai-actions">
-                <button
-                  className="ai-btn"
-                  onClick={handleSummarize}
-                  disabled={aiLoading || !content.trim()}
-                  title={selectedText.trim() ? "Summarize selected text" : "Summarize all text"}
-                >
-                  {aiLoadingType === 'summarize' ? '⏳' : '📝'} Summarize
-                </button>
-                <button
-                  className="ai-btn"
-                  onClick={handleRewrite}
-                  disabled={aiLoading || !content.trim()}
-                  title={selectedText.trim() ? "Rewrite/improve selected text" : "Rewrite/improve all text"}
-                >
-                  {aiLoadingType === 'rewrite' ? '⏳' : '✏️'} Rewrite
-                </button>
-                <button
-                  className="ai-btn"
-                  onClick={handleExtractKeyPoints}
-                  disabled={aiLoading || !content.trim()}
-                  title={selectedText.trim() ? "Extract key points from selected text" : "Extract key points from all text"}
-                >
-                  {aiLoadingType === 'extract' ? '⏳' : '🔑'} Extract Key Points
-                </button>
-                <button
-                  className="ai-btn"
-                  onClick={handleImproveText}
-                  disabled={aiLoading || !content.trim()}
-                  title={selectedText.trim() ? "Improve selected text" : "Improve all text"}
-                >
-                  {aiLoadingType === 'improve' ? '⏳' : '✨'} Improve
-                </button>
-                <button
-                  className="ai-btn"
-                  onClick={handleAutoComplete}
-                  disabled={aiLoading}
-                  title="Auto-complete text"
-                >
-                  {aiLoadingType === 'autocomplete' ? '⏳' : '⚡'} Auto-Complete
-                </button>
-                <button
-                  className={`ai-btn ${isRecording ? 'recording' : ''}`}
-                  onClick={isRecording ? handleStopRecording : handleStartRecording}
-                  disabled={aiLoading}
-                  title={isRecording ? 'Stop recording' : 'Start voice transcription'}
-                >
-                  {isRecording ? '🔴' : '🎤'} {isRecording ? 'Stop' : 'Voice'}
-                </button>
+                {[
+                  { handler: handleSummarize, icon: '📝', loadingIcon: '⏳', text: 'Summarize', loadingType: 'summarize', title: selectedText.trim() ? "Summarize selected text" : "Summarize all text" },
+                  { handler: handleRewrite, icon: '✏️', loadingIcon: '⏳', text: 'Rewrite', loadingType: 'rewrite', title: selectedText.trim() ? "Rewrite/improve selected text" : "Rewrite/improve all text" },
+                  { handler: handleExtractKeyPoints, icon: '🔑', loadingIcon: '⏳', text: 'Extract Key Points', loadingType: 'extract', title: selectedText.trim() ? "Extract key points from selected text" : "Extract key points from all text" },
+                  { handler: handleImproveText, icon: '✨', loadingIcon: '⏳', text: 'Improve', loadingType: 'improve', title: selectedText.trim() ? "Improve selected text" : "Improve all text" },
+                  { handler: handleAutoComplete, icon: '⚡', loadingIcon: '⏳', text: 'Auto-Complete', loadingType: 'autocomplete', title: "Auto-complete text" },
+                  { handler: isRecording ? handleStopRecording : handleStartRecording, icon: isRecording ? '🔴' : '🎤', loadingIcon: '⏳', text: isRecording ? 'Stop' : 'Voice', loadingType: null, title: isRecording ? 'Stop recording' : 'Start voice transcription', special: isRecording }
+                ].map((btn, index) => (
+                  <motion.button
+                    key={btn.text}
+                    className={`ai-btn ${btn.special ? 'recording' : ''}`}
+                    onClick={btn.handler}
+                    disabled={aiLoading || (btn.loadingType !== 'autocomplete' && btn.loadingType !== null && !content.trim())}
+                    title={btn.title}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ scale: !aiLoading ? 1.05 : 1 }}
+                    whileTap={{ scale: !aiLoading ? 0.95 : 1 }}
+                  >
+                    {aiLoadingType === btn.loadingType ? btn.loadingIcon : btn.icon} {btn.text}
+                  </motion.button>
+                ))}
               </div>
 
               {/* Transcription Display */}
@@ -556,8 +565,15 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               )}
 
               {/* AI Suggestions */}
-              {aiSuggestions && (
-                <div className="ai-suggestions">
+              <AnimatePresence>
+                {aiSuggestions && (
+                  <motion.div 
+                    className="ai-suggestions"
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                  >
                   <div className="suggestions-header">
                     <span>Suggestions:</span>
                     <button
@@ -577,13 +593,20 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                   >
                     Insert
                   </button>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
-        )}
+          </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="notes-editor-body">
+        <motion.div 
+          className="notes-editor-body"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
           <ReactQuill
             ref={quillRef}
             theme="snow"
@@ -611,9 +634,14 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               'link', 'image'
             ]}
           />
-        </div>
+        </motion.div>
 
-        <div className="notes-editor-footer">
+        <motion.div 
+          className="notes-editor-footer"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
           <div className="footer-info">
             {selectedText && (
               <span className="selection-info">
@@ -637,13 +665,27 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
               Save as PDF
             </button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* File Name Dialog */}
-      {showFileNameDialog && (
-        <div className="notes-editor-modal-overlay">
-          <div className="notes-editor-dialog" onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {showFileNameDialog && (
+          <motion.div 
+            className="notes-editor-modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div 
+              className="notes-editor-dialog" 
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <div className="notes-editor-dialog-header">
               <h4>Enter File Name</h4>
             </div>
@@ -684,10 +726,11 @@ function NotesEditor({ isOpen, onClose, storeName, onSuccess }) {
                 {saving ? 'Saving...' : 'Save & Upload'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          </motion.div>
+        </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
