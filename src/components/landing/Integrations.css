@@ -1,0 +1,76 @@
+.integrations-section {
+  padding: 120px 24px;
+  background: #FFFFFF;
+}
+
+.integrations-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  color: #4B5563;
+  margin: 0 0 64px 0;
+}
+
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.integration-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.integration-logo:hover {
+  background: #F8F9FB;
+  transform: translateY(-4px);
+}
+
+.logo-icon {
+  font-size: 48px;
+  filter: grayscale(100%);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.integration-logo:hover .logo-icon {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.logo-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4B5563;
+  transition: color 0.2s ease;
+}
+
+.integration-logo:hover .logo-name {
+  color: #111827;
+}
+
+@media (max-width: 768px) {
+  .integrations-section {
+    padding: 80px 16px;
+  }
+
+  .integrations-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+

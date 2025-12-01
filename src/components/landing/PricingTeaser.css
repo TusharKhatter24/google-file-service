@@ -1,0 +1,55 @@
+.pricing-teaser-section {
+  padding: 120px 24px;
+  background: #FFFFFF;
+}
+
+.pricing-teaser-container {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pricing-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.01em;
+}
+
+.pricing-subtitle {
+  font-size: 18px;
+  color: #4B5563;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.pricing-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 32px;
+  background: #4A6CF7;
+  color: white;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.pricing-cta:hover {
+  background: #3B5CE6;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(74, 108, 247, 0.3);
+}
+
+@media (max-width: 768px) {
+  .pricing-teaser-section {
+    padding: 80px 16px;
+  }
+
+  .pricing-title {
+    font-size: 28px;
+  }
+}
+

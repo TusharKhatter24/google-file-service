@@ -1,0 +1,35 @@
+.category-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.category-chip {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4B5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-chip:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.category-chip.active {
+  background: #4A6CF7;
+  border-color: #4A6CF7;
+  color: #FFFFFF;
+}
+
+.category-chip.active:hover {
+  background: #3B5CE6;
+  border-color: #3B5CE6;
+}
+

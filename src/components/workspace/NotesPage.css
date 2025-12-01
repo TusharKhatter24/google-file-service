@@ -1,0 +1,56 @@
+.notes-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.notes-page .page-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-primary, #ffffff);
+}
+
+.notes-page .page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 0.5rem 0;
+}
+
+.notes-page .page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0;
+}
+
+.notes-page .page-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.notes-page .smart-note-maker {
+  height: 100%;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.notes-page .smart-note-header {
+  display: none; /* Hide the header since we have page-header */
+}
+
+.notes-page .smart-note-maker > .workflow-section {
+  padding: 1.5rem 2rem;
+}
+
+.notes-page .smart-note-maker .workflow-section:first-child {
+  padding-top: 1.5rem;
+}
+
+/* Ensure proper spacing within workspace */
+.notes-page .smart-note-maker .smart-note-layout {
+  padding: 0;
+}
+

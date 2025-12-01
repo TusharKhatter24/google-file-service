@@ -1,0 +1,50 @@
+.recommended-section {
+  margin-bottom: 48px;
+}
+
+.recommended-header {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.recommended-ribbon {
+  display: inline-block;
+  background: linear-gradient(135deg, #4A6CF7 0%, #3B5CE6 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.ribbon-text {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recommended-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.recommended-subtitle {
+  font-size: 14px;
+  color: #4B5563;
+  margin: 0;
+}
+
+.recommended-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .recommended-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

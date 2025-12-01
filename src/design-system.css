@@ -5,7 +5,7 @@
  */
 
 :root {
-  /* Color Palette - Flat, modern colors */
+  /* Color Palette - Neutral, modern colors inspired by Linear/Notion */
   --color-primary: #4F46E5;
   --color-primary-hover: #4338CA;
   --color-primary-light: #EEF2FF;
@@ -26,15 +26,15 @@
   --color-warning-hover: #D97706;
   --color-warning-light: #FFFBEB;
   
-  /* Neutral Colors */
+  /* Neutral Colors - Refined grays */
   --color-white: #FFFFFF;
   --color-black: #000000;
-  --color-background: #FFFFFF;
-  --color-surface: #F9FAFB;
-  --color-surface-hover: #F3F4F6;
+  --color-background: #FAFBFC;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F9FAFB;
   
   /* Text Colors */
-  --color-text-primary: #111827;
+  --color-text-primary: #0D0D0D;
   --color-text-secondary: #6B7280;
   --color-text-tertiary: #9CA3AF;
   --color-text-inverse: #FFFFFF;
@@ -43,6 +43,15 @@
   --color-border: #E5E7EB;
   --color-border-light: #F3F4F6;
   --color-border-dark: #D1D5DB;
+  
+  /* Sidebar Colors */
+  --sidebar-width: 240px;
+  --sidebar-bg: #FFFFFF;
+  --sidebar-border: #E5E7EB;
+  
+  /* Right Sidebar */
+  --right-sidebar-width: 320px;
+  --right-sidebar-collapsed-width: 48px;
   
   /* Shadows - Subtle, modern */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -422,6 +431,13 @@ select:focus {
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 0px; /* Hidden on tablet/mobile */
+    --right-sidebar-width: 0px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --font-size-5xl: 2.5rem;   /* 40px */
