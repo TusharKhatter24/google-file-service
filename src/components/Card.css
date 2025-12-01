@@ -1,26 +1,29 @@
 .card-modern {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-base);
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: var(--radius-lg, 0.625rem);
+  transition: all var(--transition-base, 200ms);
 }
 
 /* Variants */
 .card-modern-default {
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs, 0 1px 2px 0 rgba(0, 0, 0, 0.03));
 }
 
 .card-modern-flat {
   box-shadow: none;
+  background: transparent;
 }
 
 .card-modern-elevated {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.04));
+  background: var(--color-white, #FFFFFF);
 }
 
 .card-modern-surface {
-  background: var(--color-surface);
-  border-color: var(--color-border-light);
+  background: var(--color-surface, #F8FAFC);
+  border-color: var(--color-border-light, #F1F5F9);
+  box-shadow: none;
 }
 
 /* Padding */
@@ -29,22 +32,21 @@
 }
 
 .card-modern-padding-sm {
-  padding: var(--spacing-4);
+  padding: var(--spacing-4, 1rem);
 }
 
 .card-modern-padding-md {
-  padding: var(--spacing-6);
+  padding: var(--spacing-6, 1.5rem);
 }
 
 .card-modern-padding-lg {
-  padding: var(--spacing-8);
+  padding: var(--spacing-8, 2rem);
 }
 
 /* Hover & Clickable states */
 .card-modern-hoverable:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md, 0 2px 4px -1px rgba(0, 0, 0, 0.06));
+  border-color: var(--color-border-medium, #CBD5E1);
 }
 
 .card-modern-clickable {
@@ -52,12 +54,12 @@
 }
 
 .card-modern-clickable:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md, 0 2px 4px -1px rgba(0, 0, 0, 0.06));
   transform: translateY(-2px);
+  border-color: var(--color-border-medium, #CBD5E1);
 }
 
 .card-modern-clickable:active {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.04));
 }
-

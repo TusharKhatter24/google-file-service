@@ -4,6 +4,38 @@ import { createFileStore, listFileStores, deleteFileStore, generateContentWithSt
 import NotesEditor from './NotesEditor';
 import './FileStoreList.css';
 
+// Icon Components
+const KeyboardIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" />
+  </svg>
+);
+
+const MicrophoneIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+  </svg>
+);
+
+const DocumentIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
+const SpeakerIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+  </svg>
+);
+
 function FileStoreList() {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -601,6 +633,9 @@ function FileStoreList() {
                     type="button"
                     onClick={() => setInputMode('text')}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
                       padding: '0.25rem 0.75rem',
                       border: `1px solid ${inputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
                       borderRadius: '4px',
@@ -610,12 +645,16 @@ function FileStoreList() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Text
+                    <KeyboardIcon />
+                    <span>Text</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setInputMode('audio')}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
                       padding: '0.25rem 0.75rem',
                       border: `1px solid ${inputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
                       borderRadius: '4px',
@@ -625,7 +664,8 @@ function FileStoreList() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Audio
+                    <MicrophoneIcon />
+                    <span>Audio</span>
                   </button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -634,6 +674,9 @@ function FileStoreList() {
                     type="button"
                     onClick={() => setOutputMode('text')}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
                       padding: '0.25rem 0.75rem',
                       border: `1px solid ${outputMode === 'text' ? '#3b82f6' : '#d1d5db'}`,
                       borderRadius: '4px',
@@ -643,12 +686,16 @@ function FileStoreList() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Text
+                    <DocumentIcon />
+                    <span>Text</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setOutputMode('audio')}
                     style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
                       padding: '0.25rem 0.75rem',
                       border: `1px solid ${outputMode === 'audio' ? '#3b82f6' : '#d1d5db'}`,
                       borderRadius: '4px',
@@ -658,7 +705,8 @@ function FileStoreList() {
                       fontSize: '0.875rem'
                     }}
                   >
-                    Audio
+                    <SpeakerIcon />
+                    <span>Audio</span>
                   </button>
                 </div>
               </div>

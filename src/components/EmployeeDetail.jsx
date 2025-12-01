@@ -23,6 +23,8 @@ import TaskManagement from './skills/TaskManagement';
 import CalendarManagement from './skills/CalendarManagement';
 import KnowledgeBaseSearch from './skills/KnowledgeBaseSearch';
 import Research from './skills/Research';
+import GuidedTour from './GuidedTour';
+import { employeeDetailTour } from '../data/tourSteps';
 import './EmployeeDetail.css';
 
 function EmployeeDetail() {
@@ -35,6 +37,8 @@ function EmployeeDetail() {
   const [skillFilter, setSkillFilter] = useState('all'); // 'all', 'enabled', 'disabled'
   const [enabledSkills, setEnabledSkills] = useState(new Set());
   const [skillConfigs, setSkillConfigs] = useState({});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const tabs = [
     { id: 'chat', label: 'Chat', icon: '💬' },
@@ -58,6 +62,15 @@ function EmployeeDetail() {
       setSkillConfigs(assignment.skillConfigs || {});
     }
   }, [employeeId]);
+
+  // Auto-start tour on page load
+  useEffect(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      setShowTour(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSkillToggle = (skillId) => {
     try {
@@ -128,6 +141,16 @@ function EmployeeDetail() {
     return <SkillComponent employeeName={employee.name} employeeId={employeeId} />;
   };
 
+  // Filter tour steps based on current UI state
+  // Show all steps - users can follow along and switch tabs as needed
+  const getFilteredTourSteps = () => {
+    if (!employeeDetailTour) return [];
+    
+    // For now, return all steps. The tour will handle missing elements gracefully.
+    // Users can follow the tour and switch tabs when instructed.
+    return employeeDetailTour;
+  };
+
   return (
     <div className="employee-detail-page">
       <header className="detail-header">
@@ -142,28 +165,48 @@ function EmployeeDetail() {
               <p className="employee-header-role">{employee.role}</p>
             </div>
           </div>
-          <button 
-            onClick={() => navigate(`/employees/${employeeId}/settings`)} 
-            className="settings-button"
-          >
-            ⚙️ Settings
-          </button>
+          <div className="detail-header-actions">
+            <button 
+              onClick={() => setShowTour(true)} 
+              className="help-button"
+              title="How to use this page"
+            >
+              ❓ Help
+            </button>
+            <button 
+              onClick={() => navigate(`/employees/${employeeId}/settings`)} 
+              className="settings-button"
+            >
+              ⚙️ Settings
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="detail-main">
         <div className="detail-container">
-          <div className="tabs-container">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <span className="tab-icon">{tab.icon}</span>
-                <span className="tab-label">{tab.label}</span>
-              </button>
-            ))}
+          <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+            <button 
+              className="sidebar-toggle"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? '→' : '←'}
+            </button>
+            <div className="tabs-container" data-tour-target="tabs-container">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  title={sidebarCollapsed ? tab.label : ''}
+                  data-tab={tab.id}
+                >
+                  <span className="tab-icon">{tab.icon}</span>
+                  {!sidebarCollapsed && <span className="tab-label">{tab.label}</span>}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="tab-content">
@@ -179,12 +222,14 @@ function EmployeeDetail() {
                   <button
                     className={`subtab-button ${educateSubTab === 'notes' ? 'active' : ''}`}
                     onClick={() => setEducateSubTab('notes')}
+                    data-subtab="notes"
                   >
                     ✍️ Smart Note Maker
                   </button>
                   <button
                     className={`subtab-button ${educateSubTab === 'upload' ? 'active' : ''}`}
                     onClick={() => setEducateSubTab('upload')}
+                    data-subtab="upload"
                   >
                     📤 Upload Documents
                   </button>
@@ -214,7 +259,7 @@ function EmployeeDetail() {
                       </div>
                     </div>
                     
-                    <div className="skills-filter-bar">
+                    <div className="skills-filter-bar" data-tour-target="skills-filter-bar">
                       <button
                         className={`filter-button ${skillFilter === 'all' ? 'active' : ''}`}
                         onClick={() => setSkillFilter('all')}
@@ -243,7 +288,7 @@ function EmployeeDetail() {
                       Object.entries(filteredSkillsByCategory).map(([category, categorySkills]) => (
                         <div key={category} className="skills-category-section">
                           <h4 className="skills-category-header">{category}</h4>
-                          <div className="skills-grid">
+                          <div className="skills-grid" data-tour-target="skills-grid">
                             {categorySkills.map((skill) => (
                               <SkillCard
                                 key={skill.id}
@@ -273,6 +318,14 @@ function EmployeeDetail() {
           </div>
         </div>
       </main>
+
+      {/* Guided Tour */}
+      <GuidedTour
+        steps={getFilteredTourSteps()}
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        storageKey="employee-detail"
+      />
     </div>
   );
 }

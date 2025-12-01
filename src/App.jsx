@@ -10,6 +10,7 @@ import FileStoreList from './components/FileStoreList';
 import FileStoreDetail from './components/FileStoreDetail';
 import Files from './components/Files';
 import ProtectedRoute from './components/ProtectedRoute';
+import './design-system.css';
 import './App.css';
 
 function App() {

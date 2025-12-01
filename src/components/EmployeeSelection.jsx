@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { employees } from '../data/employees';
 import { logout } from '../utils/auth';
+import GuidedTour from './GuidedTour';
+import { employeeSelectionTour } from '../data/tourSteps';
 import './EmployeeSelection.css';
 
 function EmployeeSelection() {
@@ -15,6 +17,7 @@ function EmployeeSelection() {
     icon: '🦸',
     color: '#667eea'
   });
+  const [showTour, setShowTour] = useState(false);
 
   // Load custom employees from localStorage on mount
   useEffect(() => {
@@ -34,6 +37,15 @@ function EmployeeSelection() {
       localStorage.setItem('customEmployees', JSON.stringify(customEmployees));
     }
   }, [customEmployees]);
+
+  // Auto-start tour on page load
+  useEffect(() => {
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      setShowTour(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleEmployeeClick = (employeeId) => {
     navigate(`/employees/${employeeId}`);
@@ -94,6 +106,13 @@ function EmployeeSelection() {
           <h1 className="selection-title">AI Concierges</h1>
           <div className="selection-nav-actions">
             <button 
+              onClick={() => setShowTour(true)} 
+              className="help-button"
+              title="How to use this platform"
+            >
+              ❓ Help
+            </button>
+            <button 
               onClick={() => navigate('/organization/settings')} 
               className="org-settings-button"
             >
@@ -111,7 +130,7 @@ function EmployeeSelection() {
           <h2 className="page-title">Choose your employee</h2>
           <p className="page-subtitle">Select an AI employee to start working with</p>
 
-          <div className="employees-grid">
+          <div className="employees-grid" data-tour-target="employees-grid">
             {allEmployees.map((employee) => (
               <div
                 key={employee.id}
@@ -149,6 +168,7 @@ function EmployeeSelection() {
               className="employee-card create-card"
               onClick={() => setShowCreateModal(true)}
               style={{ '--employee-color': '#9333ea' }}
+              data-tour-target="create-card"
             >
               <div className="employee-icon-wrapper">
                 <div className="employee-icon create-icon">+</div>
@@ -258,6 +278,14 @@ function EmployeeSelection() {
           </div>
         </div>
       )}
+
+      {/* Guided Tour */}
+      <GuidedTour
+        steps={employeeSelectionTour}
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        storageKey="employee-selection"
+      />
     </div>
   );
 }

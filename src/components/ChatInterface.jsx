@@ -7,6 +7,38 @@ import './ChatInterface.css';
 
 const CHAT_STORAGE_PREFIX = 'chat_messages_';
 
+// Icon Components
+const KeyboardIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10" />
+  </svg>
+);
+
+const MicrophoneIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+  </svg>
+);
+
+const DocumentIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
+const SpeakerIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+  </svg>
+);
+
 function ChatInterface({ employeeName, employeeId }) {
   const getDefaultMessage = (name) => ({
     id: 1,
@@ -635,19 +667,15 @@ function ChatInterface({ employeeName, employeeId }) {
         </div>
       )}
       {selectedStores.length > 0 && (
-        <div className="chat-stores-info" style={{
-          padding: '0.75rem 1rem',
-          background: '#f0f4ff',
-          borderBottom: '1px solid #e5e7eb',
-          fontSize: '0.875rem',
-          color: '#667eea'
-        }}>
-          <strong>Searching across {selectedStores.length} knowledge base{selectedStores.length > 1 ? 's' : ''}:</strong>{' '}
-          {selectedStores.map((store, idx) => (
-            <span key={store}>
-              {store.split('/').pop()}{idx < selectedStores.length - 1 ? ', ' : ''}
-            </span>
-          ))}
+        <div className="chat-stores-info">
+          <span className="chat-stores-label">Searching across {selectedStores.length} knowledge base{selectedStores.length > 1 ? 's' : ''}</span>
+          <div className="chat-stores-list">
+            {selectedStores.map((store, idx) => (
+              <span key={store} className="chat-store-badge">
+                {store.split('/').pop()}
+              </span>
+            ))}
+          </div>
         </div>
       )}
       <div className="chat-messages">
@@ -813,14 +841,16 @@ function ChatInterface({ employeeName, employeeId }) {
               className={`mode-toggle ${inputMode === 'text' ? 'active' : ''}`}
               onClick={() => setInputMode('text')}
             >
-              Text
+              <KeyboardIcon />
+              <span>Text</span>
             </button>
             <button
               type="button"
               className={`mode-toggle ${inputMode === 'audio' ? 'active' : ''}`}
               onClick={() => setInputMode('audio')}
             >
-              Voice
+              <MicrophoneIcon />
+              <span>Voice</span>
             </button>
           </div>
           <div className="mode-toggle-group">
@@ -830,14 +860,16 @@ function ChatInterface({ employeeName, employeeId }) {
               className={`mode-toggle ${outputMode === 'text' ? 'active' : ''}`}
               onClick={() => setOutputMode('text')}
             >
-              Text
+              <DocumentIcon />
+              <span>Text</span>
             </button>
             <button
               type="button"
               className={`mode-toggle ${outputMode === 'audio' ? 'active' : ''}`}
               onClick={() => setOutputMode('audio')}
             >
-              Audio
+              <SpeakerIcon />
+              <span>Audio</span>
             </button>
           </div>
         </div>
