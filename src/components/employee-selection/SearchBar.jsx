@@ -29,3 +29,5 @@ function SearchBar({ value, onChange, placeholder = "Search employees..." }) {
 
 export default SearchBar;
 
+
+

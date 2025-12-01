@@ -130,3 +130,5 @@ function RightSidebar({ employee, employeeId, collapsed, onToggleCollapse }) {
 
 export default RightSidebar;
 
+
+
