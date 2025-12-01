@@ -278,6 +278,70 @@
   line-height: 1.6;
 }
 
+.steps-rail-wrapper {
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 0;
+}
+
+.steps-rail-wrapper::before,
+.steps-rail-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.steps-rail-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+}
+
+.steps-rail-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+}
+
+.steps-rail {
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-behavior: auto; /* Changed to auto for programmatic scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  cursor: grab;
+  position: relative;
+  will-change: scroll-position;
+  width: 100%;
+}
+
+.steps-rail::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.steps-rail:active {
+  cursor: grabbing;
+}
+
+.steps-rail-track {
+  display: flex;
+  gap: 2rem;
+  width: fit-content;
+  padding: 0 1rem;
+  animation: none; /* Animation handled by JS */
+}
+
+.steps-rail-spacer {
+  flex: 0 0 4rem;
+  min-width: 4rem;
+  height: 1px;
+  pointer-events: none;
+}
+
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -296,8 +360,11 @@
   position: relative;
   overflow: hidden;
   border: 2px solid transparent;
-  opacity: 0;
-  transform: translateY(30px);
+  flex: 0 0 280px;
+  min-width: 280px;
+  max-width: 280px;
+  opacity: 1;
+  transform: translateY(0);
   animation: fadeInUp 0.6s ease forwards;
 }
 
@@ -472,6 +539,70 @@
   margin: 0 auto;
 }
 
+.powerful-features-rail-wrapper {
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 0;
+}
+
+.powerful-features-rail-wrapper::before,
+.powerful-features-rail-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.powerful-features-rail-wrapper::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(248, 249, 255, 1), rgba(248, 249, 255, 0));
+}
+
+.powerful-features-rail-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(248, 249, 255, 1), rgba(248, 249, 255, 0));
+}
+
+.powerful-features-rail {
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  cursor: grab;
+  position: relative;
+  will-change: scroll-position;
+  width: 100%;
+}
+
+.powerful-features-rail::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.powerful-features-rail:active {
+  cursor: grabbing;
+}
+
+.powerful-features-rail-track {
+  display: flex;
+  gap: 1.25rem;
+  width: fit-content;
+  padding: 0 1rem;
+  animation: none; /* Animation handled by JS */
+}
+
+.powerful-features-rail-spacer {
+  flex: 0 0 4rem;
+  min-width: 4rem;
+  height: 1px;
+  pointer-events: none;
+}
+
 .powerful-features-grid {
   display: flex;
   gap: 1.25rem;
@@ -519,6 +650,12 @@
   display: flex;
   flex-direction: column;
   backdrop-filter: blur(10px);
+}
+
+.powerful-features-rail-track .powerful-feature-card {
+  flex: 0 0 360px;
+  min-width: 360px;
+  max-width: 360px;
 }
 
 .powerful-feature-card::before {
@@ -842,6 +979,19 @@
 
   .step-card {
     padding: 1.5rem;
+    flex: 0 0 260px;
+    min-width: 260px;
+    max-width: 260px;
+  }
+
+  .steps-rail-wrapper {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 1rem 0;
+  }
+
+  .steps-rail-track {
+    padding: 0 1rem;
   }
 
   .step-icon {
@@ -867,6 +1017,22 @@
 
   .powerful-feature-card {
     padding: 2rem;
+  }
+
+  .powerful-features-rail-wrapper {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 1rem 0;
+  }
+
+  .powerful-features-rail-track {
+    padding: 0 1rem;
+  }
+
+  .powerful-features-rail-track .powerful-feature-card {
+    flex: 0 0 320px;
+    min-width: 320px;
+    max-width: 320px;
   }
 
   .powerful-feature-name {
