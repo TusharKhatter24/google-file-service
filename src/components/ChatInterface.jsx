@@ -635,13 +635,7 @@ function ChatInterface({ employeeName, employeeId }) {
         </div>
       )}
       {selectedStores.length > 0 && (
-        <div className="chat-stores-info" style={{
-          padding: '0.75rem 1rem',
-          background: '#f0f4ff',
-          borderBottom: '1px solid #e5e7eb',
-          fontSize: '0.875rem',
-          color: '#667eea'
-        }}>
+        <div className="chat-stores-info">
           <strong>Searching across {selectedStores.length} knowledge base{selectedStores.length > 1 ? 's' : ''}:</strong>{' '}
           {selectedStores.map((store, idx) => (
             <span key={store}>
