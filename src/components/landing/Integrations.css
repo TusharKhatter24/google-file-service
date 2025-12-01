@@ -6,61 +6,100 @@
 .integrations-container {
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.integrations-header {
   text-align: center;
+  margin-bottom: 64px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.01em;
 }
 
 .section-subtitle {
   font-size: 18px;
   color: #4B5563;
-  margin: 0 0 64px 0;
+  margin: 0;
+  line-height: 1.6;
 }
 
 .integrations-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 32px;
-  max-width: 1000px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px 32px;
+  align-items: start;
 }
 
-.integration-logo {
+.integration-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 24px;
-  border-radius: 12px;
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.integration-logo:hover {
-  background: #F8F9FB;
+.integration-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  border-color: #4A6CF7;
 }
 
-.logo-icon {
-  font-size: 48px;
-  filter: grayscale(100%);
-  opacity: 0.6;
+.integration-icon-container {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
   transition: all 0.2s ease;
 }
 
-.integration-logo:hover .logo-icon {
+.integration-card:hover .integration-icon-container {
+  background: #EEF2FF;
+  transform: scale(1.05);
+}
+
+.integration-icon {
+  font-size: 28px;
   filter: grayscale(0%);
-  opacity: 1;
+  transition: all 0.2s ease;
+}
+
+.integration-card:hover .integration-icon {
   transform: scale(1.1);
 }
 
-.logo-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #4B5563;
-  transition: color 0.2s ease;
+.integration-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 8px 0;
 }
 
-.integration-logo:hover .logo-name {
-  color: #111827;
+.integration-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4B5563;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .integrations-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 24px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -68,9 +107,34 @@
     padding: 80px 16px;
   }
 
+  .integrations-header {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-size: 28px;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+  }
+
   .integrations-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .integration-card {
+    padding: 24px 20px;
+  }
+
+  .integration-icon-container {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  .integration-icon {
+    font-size: 24px;
   }
 }
-

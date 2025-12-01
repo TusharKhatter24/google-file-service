@@ -23,9 +23,6 @@ const testimonials = [
   },
 ];
 
-const companyLogos = [
-  'Company A', 'Company B', 'Company C', 'Company D', 'Company E', 'Company F',
-];
 
 function SocialProof() {
   return (
@@ -51,16 +48,6 @@ function SocialProof() {
             </ScrollAnimation>
           ))}
         </div>
-
-        <ScrollAnimation>
-          <div className="company-logos">
-          {companyLogos.map((company, index) => (
-            <div key={index} className="company-logo">
-              {company}
-            </div>
-          ))}
-          </div>
-        </ScrollAnimation>
       </div>
     </section>
   );

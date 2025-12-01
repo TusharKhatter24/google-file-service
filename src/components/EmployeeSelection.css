@@ -1,4 +1,4 @@
-/* Employee Selection Page - Modern SaaS Design */
+/* Employee Selection Page - Premium SaaS Design */
 
 .employee-selection-page {
   min-height: 100vh;
@@ -11,14 +11,14 @@
 .selection-header {
   background: #FFFFFF;
   border-bottom: 1px solid #E5E7EB;
-  padding: 16px 24px;
+  padding: 12px 24px;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .selection-nav {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -84,100 +84,78 @@
   border-color: #FECACA;
 }
 
-/* Hero Section */
-.hero-section {
-  background: #FFFFFF;
-  border-bottom: 1px solid #E5E7EB;
-  padding: 48px 24px;
-}
-
-.hero-content {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.hero-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 12px 0;
-  text-align: center;
-}
-
-.hero-subtitle {
-  font-size: 16px;
-  color: #4B5563;
-  margin: 0 0 32px 0;
-  text-align: center;
-}
-
-.hero-search {
-  max-width: 800px;
-  margin: 0 auto 24px;
-}
-
-.hero-filters {
-  display: flex;
-  justify-content: center;
-}
-
-/* Main Content */
+/* Main Content Container */
 .selection-main {
   flex: 1;
-  padding: 32px 24px;
+  padding: 0;
+  background: #FFFFFF;
 }
 
 .selection-container {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  position: relative;
+  padding: 48px 24px;
 }
 
-.content-area {
-  flex: 1;
-  min-width: 0;
+/* Page Header */
+.page-header {
+  margin-bottom: 32px;
 }
 
-/* Recommended Section */
-.recommended-section {
-  margin-bottom: 48px;
+.header-content {
+  text-align: left;
 }
 
-/* Employees Section */
-.employees-section {
-  margin-top: 32px;
-}
-
-.section-header {
-  margin-bottom: 24px;
-}
-
-.section-title {
-  font-size: 24px;
-  font-weight: 600;
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
   color: #111827;
-  margin: 0;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.employee-count {
+.page-subtitle {
+  font-size: 16px;
   color: #4B5563;
-  font-weight: 400;
+  margin: 0;
+  line-height: 1.5;
 }
 
-/* Employees Grid */
+/* Search and Filters Section */
+.search-filters-section {
+  margin-bottom: 32px;
+}
+
+.search-wrapper {
+  margin-bottom: 16px;
+}
+
+.filters-wrapper {
+  margin-bottom: 16px;
+}
+
+.section-divider {
+  height: 1px;
+  background: #E5E7EB;
+  margin-top: 24px;
+}
+
+/* Employees Grid Section */
+.employees-grid-section {
+  margin-top: 8px;
+}
+
 .employees-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 64px 24px;
+  padding: 80px 24px;
   background: #F8F9FB;
   border-radius: 16px;
   border: 1px dashed #E5E7EB;
@@ -202,35 +180,45 @@
   margin: 0;
 }
 
-.filter-backdrop {
-  display: none;
-}
-
+/* Responsive Design */
 @media (max-width: 1024px) {
   .selection-container {
-    flex-direction: column;
-    position: relative;
+    padding: 32px 20px;
   }
 
-  .filter-backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 199;
+  .page-title {
+    font-size: 28px;
+  }
+
+  .employees-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
   }
 }
 
 @media (max-width: 768px) {
-  .hero-title {
+  .selection-header {
+    padding: 10px 16px;
+  }
+
+  .selection-container {
+    padding: 24px 16px;
+  }
+
+  .page-header {
+    margin-bottom: 24px;
+  }
+
+  .page-title {
     font-size: 24px;
   }
 
-  .hero-subtitle {
+  .page-subtitle {
     font-size: 14px;
+  }
+
+  .search-filters-section {
+    margin-bottom: 24px;
   }
 
   .employees-grid {
@@ -238,11 +226,27 @@
     gap: 16px;
   }
 
-  .selection-main {
-    padding: 24px 16px;
+  .selection-nav-actions {
+    gap: 8px;
   }
 
-  .hero-section {
-    padding: 32px 16px;
+  .nav-action-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumbs {
+    font-size: 12px;
+  }
+
+  .nav-action-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .nav-action-btn span {
+    display: none;
   }
 }

@@ -32,13 +32,7 @@ function EmployeeCard({ employee, onSelect, onPreview, isFeatured = false }) {
           className="btn-primary"
           onClick={() => onSelect(employee.id)}
         >
-          Select Employee
-        </button>
-        <button 
-          className="btn-secondary"
-          onClick={() => onPreview(employee)}
-        >
-          Preview Role
+          See Details
         </button>
       </div>
     </div>

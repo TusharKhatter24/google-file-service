@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useParams, useNavigate } from 'react-router-dom';
+import { useParams, Outlet } from 'react-router-dom';
 import { getEmployeeById } from '../data/employees';
 import LeftSidebar from './workspace/LeftSidebar';
 import RightSidebar from './workspace/RightSidebar';
@@ -7,26 +7,32 @@ import './EmployeeWorkspaceLayout.css';
 
 function EmployeeWorkspaceLayout() {
   const { employeeId } = useParams();
-  const navigate = useNavigate();
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  
   const employee = getEmployeeById(employeeId);
-  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
 
   if (!employee) {
-    navigate('/employees');
-    return null;
+    return (
+      <div className="employee-workspace-error">
+        <h2>Employee not found</h2>
+        <p>The employee you're looking for doesn't exist.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="employee-workspace">
+    <div className="employee-workspace-layout">
       <LeftSidebar employee={employee} employeeId={employeeId} />
+      
       <main className="workspace-main">
         <Outlet />
       </main>
+      
       <RightSidebar 
-        employee={employee} 
+        employee={employee}
         employeeId={employeeId}
-        collapsed={rightSidebarCollapsed}
-        onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+        collapsed={isRightSidebarCollapsed}
+        onToggleCollapse={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
       />
     </div>
   );

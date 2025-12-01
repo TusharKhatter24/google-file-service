@@ -1,26 +1,32 @@
 .employee-card {
-  background: #F8F9FB;
+  background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  border-radius: 16px;
-  padding: 24px;
+  border-radius: 20px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  min-height: 340px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .employee-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   border-color: #4A6CF7;
 }
 
 .employee-card.featured {
-  grid-column: span 2;
-  background: linear-gradient(135deg, #F8F9FB 0%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8F9FB 100%);
   border: 2px solid #4A6CF7;
+  box-shadow: 0 4px 16px rgba(74, 108, 247, 0.15);
+}
+
+.employee-card.featured:hover {
+  box-shadow: 0 12px 32px rgba(74, 108, 247, 0.2);
 }
 
 .employee-card-header {
@@ -106,37 +112,23 @@
   gap: 8px;
 }
 
-.btn-primary,
-.btn-secondary {
-  flex: 1;
-  padding: 10px 16px;
+.btn-primary {
+  width: 100%;
+  padding: 12px 20px;
+  background: #4A6CF7;
+  color: white;
+  border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: none;
-}
-
-.btn-primary {
-  background: #4A6CF7;
-  color: white;
 }
 
 .btn-primary:hover {
   background: #3B5CE6;
-  transform: scale(1.02);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: #4A6CF7;
-  border: 1px solid #E5E7EB;
-}
-
-.btn-secondary:hover {
-  background: #F3F4F6;
-  border-color: #4A6CF7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 108, 247, 0.3);
 }
 
 @media (max-width: 1024px) {

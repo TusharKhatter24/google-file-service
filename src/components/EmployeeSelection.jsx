@@ -9,9 +9,53 @@ import FilterPanel from './employee-selection/FilterPanel';
 import EmployeeCard from './employee-selection/EmployeeCard';
 import CreateCustomCard from './employee-selection/CreateCustomCard';
 import PreviewModal from './employee-selection/PreviewModal';
-import RecommendedSection from './employee-selection/RecommendedSection';
 import CreateEmployeeModal from './CreateEmployeeModal';
 import './EmployeeSelection.css';
+
+// Specific employees to showcase
+const showcaseEmployees = [
+  {
+    id: 'donna',
+    name: 'Donna',
+    role: 'AI Support Engineer',
+    description: 'Fast, accurate frontline support specialist who resolves customer issues instantly.',
+    icon: '🦸‍♀️💬',
+    color: '#667eea',
+    isRecommended: true,
+  },
+  {
+    id: 'marketer',
+    name: 'Maya',
+    role: 'AI Marketing Strategist',
+    description: 'Creates campaigns, content, and brand messaging that drives engagement.',
+    icon: '🦸📢',
+    color: '#f093fb',
+  },
+  {
+    id: 'integration',
+    name: 'Iris',
+    role: 'AI Integration Engineer',
+    description: 'Connects APIs, tools, and workflows—keeping your systems perfectly in sync.',
+    icon: '🦸‍♂️🔌',
+    color: '#4facfe',
+  },
+  {
+    id: 'onboarding',
+    name: 'Owen',
+    role: 'AI Onboarding Manager',
+    description: 'Welcomes new customers, guides setup, and ensures smooth onboarding.',
+    icon: '🦸👋',
+    color: '#43e97b',
+  },
+  {
+    id: 'implementation',
+    name: 'Ivan',
+    role: 'AI Implementation Manager',
+    description: 'Plans and delivers project implementations with clarity, speed, and precision.',
+    icon: '🦸🚀',
+    color: '#fa709a',
+  },
+];
 
 function EmployeeSelection() {
   const navigate = useNavigate();
@@ -61,7 +105,6 @@ function EmployeeSelection() {
     if (saved) {
       try {
         const customEmps = JSON.parse(saved);
-        // Add default properties to custom employees
         const enhancedCustomEmps = customEmps.map(emp => ({
           ...emp,
           category: 'custom',
@@ -84,19 +127,7 @@ function EmployeeSelection() {
     }
   }, [customEmployees]);
 
-  const defaultEmployees = employees.filter(emp => emp.id !== 'custom');
-  const allEmployees = [...defaultEmployees, ...customEmployees];
-
-  // Get recommended employees (last selected or most used)
-  const getRecommendedEmployees = () => {
-    const lastSelectedId = localStorage.getItem('lastSelectedEmployee');
-    if (lastSelectedId) {
-      const recommended = allEmployees.find(emp => emp.id === lastSelectedId);
-      return recommended ? [recommended] : [];
-    }
-    // Default to first employee if no history
-    return defaultEmployees.slice(0, 1);
-  };
+  const allEmployees = [...showcaseEmployees, ...customEmployees];
 
   // Filter employees based on search, category, and filters
   const getFilteredEmployees = () => {
@@ -137,32 +168,12 @@ function EmployeeSelection() {
       );
     }
 
-    // Model type filter (check employee config)
-    if (filters.models.length > 0) {
-      filtered = filtered.filter(emp => {
-        try {
-          const config = getEmployeeConfig(emp.id);
-          const modelDisplayNames = {
-            'gemini-2.5-flash': 'Gemini 2.5 Flash',
-            'gemini-2.0-flash-exp': 'Gemini 2.0 Flash Exp',
-            'gemini-1.5-pro': 'Gemini 1.5 Pro',
-          };
-          const empModelDisplay = modelDisplayNames[config?.chat?.model] || config?.chat?.model || 'Gemini 2.5 Flash';
-          return filters.models.includes(empModelDisplay);
-        } catch (e) {
-          return false;
-        }
-      });
-    }
-
     return filtered;
   };
 
   const filteredEmployees = getFilteredEmployees();
-  const recommendedEmployees = getRecommendedEmployees();
-  const regularEmployees = filteredEmployees.filter(emp => 
-    !recommendedEmployees.some(rec => rec.id === emp.id)
-  );
+  const recommendedEmployee = filteredEmployees.find(emp => emp.isRecommended);
+  const regularEmployees = filteredEmployees.filter(emp => !emp.isRecommended);
 
   const handleEmployeeClick = (employeeId) => {
     localStorage.setItem('lastSelectedEmployee', employeeId);
@@ -178,7 +189,6 @@ function EmployeeSelection() {
     logout();
     navigate('/login');
   };
-
 
   return (
     <div className="employee-selection-page">
@@ -204,95 +214,74 @@ function EmployeeSelection() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">Choose Your AI Employee</h1>
-          <p className="hero-subtitle">
-            Pick from ready-made AI employees or build one that fits your workflow.
-          </p>
-          
-          <div className="hero-search">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search employees by name, role, or description..."
-            />
-          </div>
-
-          <div className="hero-filters">
-            <CategoryFilter
-              activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Main Content */}
+      {/* Main Content Container */}
       <main className="selection-main">
         <div className="selection-container">
-          {/* Filter Panel */}
-          {!filterPanelCollapsed && isMobile && (
-            <div 
-              className="filter-backdrop"
-              onClick={() => setFilterPanelCollapsed(true)}
-            />
-          )}
-          <FilterPanel
-            filters={filters}
-            onFilterChange={setFilters}
-            isCollapsed={filterPanelCollapsed}
-            onToggleCollapse={() => setFilterPanelCollapsed(!filterPanelCollapsed)}
-            employees={allEmployees}
-          />
-
-          {/* Content Area */}
-          <div className="content-area">
-            {/* Recommended Section */}
-            {recommendedEmployees.length > 0 && activeCategory === 'all' && !searchQuery && (
-              <RecommendedSection
-                employees={recommendedEmployees}
-                onSelect={handleEmployeeClick}
-                onPreview={handlePreview}
-              />
-            )}
-
-            {/* Employee Grid */}
-            <div className="employees-section">
-              <div className="section-header">
-                <h2 className="section-title">
-                  {activeCategory === 'all' ? 'All Employees' : `${activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1)} Employees`}
-                  {filteredEmployees.length > 0 && (
-                    <span className="employee-count"> ({filteredEmployees.length})</span>
-                  )}
-                </h2>
-              </div>
-
-              {filteredEmployees.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">🔍</div>
-                  <h3 className="empty-title">No employees found</h3>
-                  <p className="empty-description">
-                    Try adjusting your search or filters to find what you're looking for.
-                  </p>
-                </div>
-              ) : (
-                <div className="employees-grid">
-                  {regularEmployees.map((employee) => (
-                    <EmployeeCard
-                      key={employee.id}
-                      employee={employee}
-                      onSelect={handleEmployeeClick}
-                      onPreview={handlePreview}
-                    />
-                  ))}
-                  
-                  {/* Create Custom Card */}
-                  <CreateCustomCard onClick={() => setShowCreateModal(true)} />
-                </div>
-              )}
+          {/* Header Section */}
+          <div className="page-header">
+            <div className="header-content">
+              <h1 className="page-title">Choose Your AI Employee</h1>
+              <p className="page-subtitle">
+                Pick from ready-made AI employees or build one tailored to your workflow.
+              </p>
             </div>
+          </div>
+
+          {/* Search and Filters Section */}
+          <div className="search-filters-section">
+            <div className="search-wrapper">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search employees by name or role…"
+              />
+            </div>
+            <div className="filters-wrapper">
+              <CategoryFilter
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+              />
+            </div>
+            <div className="section-divider"></div>
+          </div>
+
+          {/* Employee Grid */}
+          <div className="employees-grid-section">
+            {filteredEmployees.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">🔍</div>
+                <h3 className="empty-title">No employees found</h3>
+                <p className="empty-description">
+                  Try adjusting your search or filters to find what you're looking for.
+                </p>
+              </div>
+            ) : (
+              <div className="employees-grid">
+                {/* Recommended Employee Card */}
+                {recommendedEmployee && (
+                  <EmployeeCard
+                    key={recommendedEmployee.id}
+                    employee={recommendedEmployee}
+                    onSelect={handleEmployeeClick}
+                    onPreview={handlePreview}
+                    isFeatured={true}
+                  />
+                )}
+
+                {/* Regular Employee Cards */}
+                {regularEmployees.map((employee) => (
+                  <EmployeeCard
+                    key={employee.id}
+                    employee={employee}
+                    onSelect={handleEmployeeClick}
+                    onPreview={handlePreview}
+                  />
+                ))}
+                
+                {/* Create Custom Card */}
+                <CreateCustomCard onClick={() => setShowCreateModal(true)} />
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -325,7 +314,6 @@ function EmployeeSelection() {
           };
           setCustomEmployees(prev => [...prev, customEmployee]);
           setShowCreateModal(false);
-          // Refresh the page to show new employee
           window.location.reload();
         }}
       />

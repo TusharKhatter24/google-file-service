@@ -4,24 +4,20 @@ import './CreateCustomCard.css';
 function CreateCustomCard({ onClick }) {
   return (
     <div className="create-custom-card" onClick={onClick}>
-      <div className="create-custom-content">
-        <div className="create-custom-icon">🔧</div>
-        <div className="create-custom-text">
-          <h3 className="create-custom-title">Build Your Own AI Employee</h3>
-          <p className="create-custom-subtitle">
-            Define role, personality, skills, and knowledge.
-          </p>
-        </div>
-        <button className="create-custom-btn">
-          Create Custom
-        </button>
+      <div className="create-custom-icon-wrapper">
+        <div className="create-custom-icon">✨</div>
       </div>
-      <div className="create-custom-visual">
-        <div className="blueprint-icon">📐</div>
+      <div className="create-custom-content">
+        <h3 className="create-custom-title">Create Your Own AI Employee</h3>
+        <p className="create-custom-description">
+          Design a custom AI employee with your own role, skills, and knowledge.
+        </p>
+        <button className="create-custom-btn">
+          Build Custom AI Employee
+        </button>
       </div>
     </div>
   );
 }
 
 export default CreateCustomCard;
-
