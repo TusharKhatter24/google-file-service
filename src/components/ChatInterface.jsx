@@ -105,10 +105,28 @@ function ChatInterface({ employeeName, employeeId }) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.length > 0) {
           // Convert timestamp strings back to Date objects
-          const loadedMessages = parsed.map(msg => ({
+          let loadedMessages = parsed.map(msg => ({
             ...msg,
             timestamp: new Date(msg.timestamp)
           }));
+          
+          // Update the initial greeting message if the employee name has changed
+          if (loadedMessages[0]?.id === 1 && loadedMessages[0]?.sender === 'ai') {
+            const expectedGreeting = `Hello! I'm ${employeeName || 'your AI assistant'}. How can I help you today?`;
+            if (loadedMessages[0].text !== expectedGreeting) {
+              loadedMessages[0] = {
+                ...loadedMessages[0],
+                text: expectedGreeting
+              };
+              // Save updated messages back to localStorage
+              try {
+                localStorage.setItem(`${CHAT_STORAGE_PREFIX}${employeeId}`, JSON.stringify(loadedMessages));
+              } catch (e) {
+                console.error('Error updating greeting message:', e);
+              }
+            }
+          }
+          
           setMessages(loadedMessages);
           isInitialLoadRef.current = false;
           return;
