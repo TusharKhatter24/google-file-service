@@ -30,6 +30,7 @@ import {
   FaRobot, 
   FaDatabase,
   FaArrowRight,
+  FaRocket,
   FaChartBar,
   FaPencilAlt,
   FaEnvelope,
@@ -471,16 +472,17 @@ function EmployeeDetail() {
             <span className="workflow-icon"><FaFileAlt /></span>
             <span className="workflow-icon"><FaRobot /></span>
             <span className="workflow-icon"><FaDatabase /></span>
-            <span className="workflow-icon-badge">+2</span>
+            <span className="workflow-icon-badge">+400</span>
           </div>
-          <h2 className="workflow-hero-title">Build Your First AI Employee</h2>
+          <h2 className="workflow-hero-title">Give Your AI Employee Infinite Power with n8n Workflows</h2>
+          <p className="workflow-hero-subtitle">Connect to 400+ apps and services. Automate everything. Build workflows that never sleep.</p>
           <a 
             href="https://n8n.io/workflows/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="workflow-hero-button"
           >
-            Choose from templates <FaArrowRight />
+            <FaRocket /> Explore Workflow Templates
           </a>
         </div>
         <div className="workflow-hero-diagram">
