@@ -5,6 +5,7 @@ import { logout } from '../utils/auth';
 import { useTheme } from '../contexts/ThemeContext';
 import GuidedTour from './GuidedTour';
 import { employeeSelectionTour } from '../data/tourSteps';
+import ProfileCard from './ProfileCard';
 import './EmployeeSelection.css';
 
 function EmployeeSelection() {
@@ -141,52 +142,47 @@ function EmployeeSelection() {
 
           <div className="employees-grid" data-tour-target="employees-grid">
             {allEmployees.map((employee) => (
-              <div
-                key={employee.id}
-                className={`employee-card ${employee.id === 'donna' ? 'default-selected' : ''}`}
-                onClick={() => handleEmployeeClick(employee.id)}
-                style={{ '--employee-color': employee.color }}
-              >
-                <div className="employee-icon-wrapper">
-                  <div className="employee-icon">{employee.icon}</div>
-                </div>
-                <div className="employee-info">
-                  <h3 className="employee-name">{employee.name}</h3>
-                  <p className="employee-role">{employee.role}</p>
-                  <p className="employee-description">{employee.description}</p>
-                </div>
-                {employee.id === 'donna' && (
-                  <div className="default-badge">Default</div>
-                )}
-                {employee.isCustom && (
-                  <button
-                    className="delete-employee-btn"
-                    onClick={(e) => handleDeleteEmployee(employee.id, e)}
-                    title="Delete employee"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/>
-                    </svg>
-                  </button>
-                )}
+              <div key={employee.id} className="employee-card-wrapper" style={{ position: 'relative' }}>
+                <ProfileCard
+                  name={employee.name}
+                  title={employee.role}
+                  role={employee.role}
+                  handle={employee.id}
+                  status={employee.id === 'donna' ? 'Default' : 'Online'}
+                  contactText={employee.isCustom ? '🗑️ Delete' : 'Select'}
+                  icon={employee.icon}
+                  color={employee.color}
+                  showUserInfo={true}
+                  enableTilt={true}
+                  enableMobileTilt={false}
+                  isSelected={employee.id === 'donna'}
+                  onContactClick={(e) => {
+                    if (employee.isCustom) {
+                      handleDeleteEmployee(employee.id, e);
+                    } else {
+                      handleEmployeeClick(employee.id);
+                    }
+                  }}
+                />
               </div>
             ))}
             
             {/* Create New Employee Card */}
-            <div
-              className="employee-card create-card"
-              onClick={() => setShowCreateModal(true)}
-              style={{ '--employee-color': '#9333ea' }}
-              data-tour-target="create-card"
-            >
-              <div className="employee-icon-wrapper">
-                <div className="employee-icon create-icon">+</div>
-              </div>
-              <div className="employee-info">
-                <h3 className="employee-name">Create Custom</h3>
-                <p className="employee-role">Custom Employee</p>
-                <p className="employee-description">Build your own AI employee tailored to your exact needs</p>
-              </div>
+            <div className="employee-card-wrapper" data-tour-target="create-card">
+              <ProfileCard
+                name="Create Custom"
+                title="Custom Employee"
+                role="Custom Employee"
+                handle="custom"
+                status="New"
+                contactText="+ Create"
+                icon="➕"
+                color="#9333ea"
+                showUserInfo={true}
+                enableTilt={true}
+                enableMobileTilt={false}
+                onContactClick={() => setShowCreateModal(true)}
+              />
             </div>
           </div>
         </div>

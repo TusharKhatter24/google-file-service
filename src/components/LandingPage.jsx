@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { employees } from '../data/employees';
 import { useTheme } from '../contexts/ThemeContext';
+import ProfileCard from './ProfileCard';
 import './LandingPage.css';
 
 function LandingPage() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [allEmployees, setAllEmployees] = useState(employees);
   const stepsRailRef = useRef(null);
   const powerfulFeaturesRailRef = useRef(null);
@@ -289,18 +291,21 @@ function LandingPage() {
           <h2 className="features-title">Meet Your AI Team</h2>
           <div className="features-grid">
             {allEmployees.map((employee) => (
-              <div 
-                key={employee.id} 
-                className="feature-card"
-                style={{ '--employee-color': employee.color }}
-              >
-                <div className="feature-icon-wrapper">
-                  <div className="feature-icon">{employee.icon}</div>
-                </div>
-                <h3 className="feature-name">{employee.name}</h3>
-                <p className="feature-role">{employee.role}</p>
-                <p className="feature-description">{employee.description}</p>
-              </div>
+              <ProfileCard
+                key={employee.id}
+                name={employee.name}
+                title={employee.role}
+                role={employee.role}
+                handle={employee.id}
+                status="Online"
+                contactText="Select Employee"
+                icon={employee.icon}
+                color={employee.color}
+                showUserInfo={true}
+                enableTilt={true}
+                enableMobileTilt={false}
+                onContactClick={() => navigate('/login')}
+              />
             ))}
             <Link 
               to="/login"
