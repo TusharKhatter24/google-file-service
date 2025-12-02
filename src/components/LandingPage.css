@@ -827,6 +827,7 @@
   opacity: 0;
   transition: opacity var(--transition-base, 200ms);
   pointer-events: none;
+  z-index: 0;
 }
 
 .powerful-feature-card:hover::before {
@@ -834,7 +835,7 @@
 }
 
 .powerful-feature-card:hover::after {
-  opacity: 1;
+  opacity: 0.1;
 }
 
 .powerful-feature-card:hover {
@@ -890,6 +891,8 @@
   margin-bottom: var(--spacing-5, 1.25rem);
   padding-bottom: var(--spacing-4, 1rem);
   border-bottom: 1px solid var(--color-border, #E2E8F0);
+  position: relative;
+  z-index: 1;
 }
 
 .powerful-feature-icon {
@@ -946,6 +949,8 @@
   line-height: var(--line-height-snug, 1.375);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  position: relative;
+  z-index: 1;
 }
 
 .research-feature .powerful-feature-name {
@@ -964,6 +969,8 @@
   text-transform: uppercase;
   letter-spacing: 0.8px;
   opacity: 0.9;
+  position: relative;
+  z-index: 1;
 }
 
 .notes-feature .powerful-feature-tagline {
@@ -1002,12 +1009,16 @@
   flex: 1;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  position: relative;
+  z-index: 1;
 }
 
 .powerful-feature-benefits {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .powerful-feature-benefit {
