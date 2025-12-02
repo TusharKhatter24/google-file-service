@@ -15,7 +15,10 @@ const ProfileCard = ({
   enableTilt = true,
   enableMobileTilt = false,
   onContactClick,
-  isSelected = false
+  onCardClick,
+  onDeleteClick,
+  isSelected = false,
+  isCustom = false
 }) => {
   const [tiltStyle, setTiltStyle] = useState({});
   const cardRef = useRef(null);
@@ -61,9 +64,23 @@ const ProfileCard = ({
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onContactClick}
+      onClick={onCardClick || onContactClick}
     >
       <div className="profile-card-inner">
+        {/* Delete button for custom employees */}
+        {isCustom && onDeleteClick && (
+          <button
+            className="profile-card-delete-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteClick(e);
+            }}
+            title="Delete custom employee"
+          >
+            🗑️
+          </button>
+        )}
+
         {/* Background Gradient */}
         <div 
           className="profile-card-gradient"

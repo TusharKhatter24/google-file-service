@@ -148,16 +148,8 @@ function LandingPage() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
-    // Load custom employees from localStorage
-    const customEmployeesJson = localStorage.getItem('customEmployees');
-    if (customEmployeesJson) {
-      try {
-        const customEmployees = JSON.parse(customEmployeesJson);
-        setAllEmployees([...employees, ...customEmployees]);
-      } catch (e) {
-        console.error('Failed to parse custom employees:', e);
-      }
-    }
+    // Don't load custom employees on landing page - only show default employees
+    setAllEmployees(employees);
   }, []);
 
   useEffect(() => {

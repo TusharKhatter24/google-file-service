@@ -171,20 +171,17 @@ function EmployeeSelection() {
                   role={employee.role}
                   handle={employee.id}
                   status={employee.id === 'donna' ? 'Default' : 'Online'}
-                  contactText={employee.isCustom ? '🗑️ Delete' : 'Select'}
+                  contactText="Select"
                   icon={employee.icon}
                   color={employee.color}
                   showUserInfo={true}
                   enableTilt={true}
                   enableMobileTilt={false}
                   isSelected={employee.id === 'donna'}
-                  onContactClick={(e) => {
-                    if (employee.isCustom) {
-                      handleDeleteEmployee(employee.id, e);
-                    } else {
-                      handleEmployeeClick(employee.id);
-                    }
-                  }}
+                  isCustom={employee.isCustom}
+                  onCardClick={() => handleEmployeeClick(employee.id)}
+                  onContactClick={() => handleEmployeeClick(employee.id)}
+                  onDeleteClick={(e) => handleDeleteEmployee(employee.id, e)}
                 />
               </div>
             ))}

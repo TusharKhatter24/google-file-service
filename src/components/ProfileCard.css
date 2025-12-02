@@ -185,6 +185,47 @@
   margin: 0;
 }
 
+/* Delete Button for Custom Employees */
+.profile-card-delete-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 2px solid var(--color-border, #E2E8F0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card-delete-btn:hover {
+  background: #FEE2E2;
+  border-color: #EF4444;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.profile-card-delete-btn:active {
+  transform: scale(0.95);
+}
+
+:root[data-theme="dark"] .profile-card-delete-btn {
+  background: var(--color-surface, #1E293B);
+  border-color: var(--color-border, #334155);
+}
+
+:root[data-theme="dark"] .profile-card-delete-btn:hover {
+  background: #7F1D1D;
+  border-color: #EF4444;
+}
+
 /* Action Button */
 .profile-card-button {
   width: 100%;
