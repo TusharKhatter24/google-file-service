@@ -29,13 +29,16 @@
   background: var(--color-surface-elevated, #FFFFFF);
   border-radius: var(--radius-lg, 0.625rem);
   box-shadow: var(--shadow-xl, 0 10px 25px -5px rgba(0, 0, 0, 0.1));
-  max-width: 320px;
-  min-width: 280px;
+  max-width: min(320px, calc(100vw - 40px));
+  min-width: min(280px, calc(100vw - 40px));
   width: max-content;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   z-index: 2;
   pointer-events: auto;
   animation: tooltipFadeIn var(--transition-base, 200ms) ease-out;
   transform: translateZ(0); /* Force hardware acceleration */
+  border: 1px solid var(--color-border, #E2E8F0);
 }
 
 @keyframes tooltipFadeIn {
@@ -187,10 +190,11 @@
 /* Responsive */
 @media (max-width: 768px) {
   .guided-tour-tooltip {
-    max-width: calc(100vw - 2rem);
-    min-width: auto;
+    max-width: calc(100vw - 2rem) !important;
+    min-width: auto !important;
+    width: calc(100vw - 2rem) !important;
     left: 1rem !important;
-    right: 1rem !important;
+    right: auto !important;
     transform: none !important;
   }
 
@@ -205,6 +209,21 @@
 
   .guided-tour-btn {
     flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .guided-tour-tooltip {
+    max-width: calc(100vw - 1rem) !important;
+    width: calc(100vw - 1rem) !important;
+    left: 0.5rem !important;
+  }
+  
+  .guided-tour-tooltip-header,
+  .guided-tour-tooltip-description,
+  .guided-tour-tooltip-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 
