@@ -306,51 +306,37 @@ function DocumentUpload({ employeeName, employeeId }) {
           </div>
         )}
         {availableStores.length > 0 && (
-          <div className="store-selection-section" style={{ marginTop: '1rem', padding: '1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-            <h4 style={{ marginTop: 0, marginBottom: '0.75rem', fontSize: '1rem', fontWeight: '600' }}>
+          <div className="store-selection-section">
+            <h4 className="store-selection-title">
               Select Knowledge Sources ({selectedStores.length} selected)
             </h4>
-            <p style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: '#6b7280' }}>
+            <p className="store-selection-description">
               Choose which knowledge sources to upload files to. Files will be uploaded to all selected sources.
             </p>
-            <div className="store-checkboxes" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="store-checkboxes">
               {availableStores.map((store) => {
                 const isSelected = selectedStores.includes(store.name);
                 return (
                   <label
                     key={store.name}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '0.75rem',
-                      border: `2px solid ${isSelected ? '#667eea' : '#e5e7eb'}`,
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      backgroundColor: isSelected ? '#f0f4ff' : 'white',
-                      transition: 'all 0.2s'
-                    }}
+                    className={`store-checkbox-label ${isSelected ? 'selected' : ''}`}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleStoreToggle(store.name)}
-                      style={{
-                        marginRight: '0.75rem',
-                        width: '18px',
-                        height: '18px',
-                        cursor: 'pointer'
-                      }}
+                      className="store-checkbox-input"
                     />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: isSelected ? '600' : '500', color: '#111827' }}>
+                    <div className="store-checkbox-content">
+                      <div className="store-checkbox-name">
                         {store.displayName || store.name.split('/').pop()}
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                      <div className="store-checkbox-count">
                         {store.activeDocumentsCount || 0} active documents
                       </div>
                     </div>
                     {isSelected && (
-                      <span style={{ color: '#667eea', fontSize: '1.25rem' }}>✓</span>
+                      <span className="store-checkbox-check">✓</span>
                     )}
                   </label>
                 );

@@ -174,18 +174,7 @@ function Research({ employeeName, employeeId }) {
             </div>
           </div>
           <div className="research-results-content">
-            <div style={{
-              padding: '1rem',
-              backgroundColor: '#f9fafb',
-              border: '1px solid #e5e7eb',
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              lineHeight: '1.6',
-              maxHeight: '500px',
-              overflowY: 'auto'
-            }}>
-              <ReactMarkdown>{researchResults.result}</ReactMarkdown>
-            </div>
+            <ReactMarkdown>{researchResults.result}</ReactMarkdown>
           </div>
         </div>
       )}
@@ -218,30 +207,13 @@ function Research({ employeeName, employeeId }) {
               key={idx}
               className="example-query-item"
               onClick={() => handleQuickResearch(example.query, example.type)}
-              style={{
-                cursor: 'pointer',
-                padding: '0.75rem',
-                marginBottom: '0.5rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-                backgroundColor: '#ffffff',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f9fafb';
-                e.currentTarget.style.borderColor = '#8b5cf6';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ffffff';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-              }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{example.query}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{example.category}</div>
+              <div className="example-query-content">
+                <div className="example-query-text">
+                  <div className="example-query-title">{example.query}</div>
+                  <div className="example-query-category">{example.category}</div>
                 </div>
-                <span style={{ fontSize: '1.2rem' }}>→</span>
+                <span className="example-query-arrow">→</span>
               </div>
             </div>
           ))}

@@ -1063,7 +1063,7 @@ function SmartNoteMaker({ employeeName, employeeId }) {
 
                   {/* Research Results */}
                   {researchResults && (
-                    <div className="ai-suggestions" style={{ marginTop: '1rem' }}>
+                    <div className="ai-suggestions research-results-suggestions">
                       <div className="suggestions-header">
                         <span>🔍 Research Results: {researchResults.query}</span>
                         <button
@@ -1073,14 +1073,7 @@ function SmartNoteMaker({ employeeName, employeeId }) {
                           ×
                         </button>
                       </div>
-                      <div className="suggestions-content" style={{
-                        maxHeight: '400px',
-                        overflowY: 'auto',
-                        padding: '1rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '6px',
-                        border: '1px solid #e5e7eb'
-                      }}>
+                      <div className="suggestions-content research-markdown-content">
                         <ReactMarkdown>{researchResults.report}</ReactMarkdown>
                       </div>
                       <button
