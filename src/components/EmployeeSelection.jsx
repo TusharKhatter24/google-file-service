@@ -113,7 +113,22 @@ function EmployeeSelection() {
     <div className="employee-selection-page">
       <header className="selection-header">
         <div className="selection-nav">
-          <h1 className="selection-title">AI Concierges</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button
+              onClick={() => navigate('/')}
+              className="home-icon-button"
+              title="Go to home page"
+            >
+              🏠
+            </button>
+            <h1 
+              className="selection-title"
+              onClick={() => navigate('/')}
+              style={{ cursor: 'pointer' }}
+            >
+              AI Concierges
+            </h1>
+          </div>
           <div className="selection-nav-actions">
             <button 
               onClick={() => setShowTour(true)} 
