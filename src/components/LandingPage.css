@@ -442,12 +442,12 @@
 
 .steps-rail-wrapper::before {
   left: 0;
-  background: linear-gradient(to right, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+  background: linear-gradient(to right, var(--color-background, #FAFAFA), transparent);
 }
 
 .steps-rail-wrapper::after {
   right: 0;
-  background: linear-gradient(to left, rgba(249, 250, 251, 1), rgba(249, 250, 251, 0));
+  background: linear-gradient(to left, var(--color-background, #FAFAFA), transparent);
 }
 
 .steps-rail {
@@ -706,12 +706,12 @@
 
 .powerful-features-rail-wrapper::before {
   left: 0;
-  background: linear-gradient(to right, rgba(248, 249, 255, 1), rgba(248, 249, 255, 0));
+  background: linear-gradient(to right, var(--color-primary-light, #EEF2FF), transparent);
 }
 
 .powerful-features-rail-wrapper::after {
   right: 0;
-  background: linear-gradient(to left, rgba(248, 249, 255, 1), rgba(248, 249, 255, 0));
+  background: linear-gradient(to left, var(--color-primary-light, #EEF2FF), transparent);
 }
 
 .powerful-features-rail {
@@ -949,11 +949,11 @@
 }
 
 .research-feature .powerful-feature-name {
-  color: #8b5cf6;
+  color: var(--color-text-primary, #0F172A);
 }
 
 .notes-feature .powerful-feature-name {
-  color: var(--color-accent, #10B981);
+  color: var(--color-text-primary, #0F172A);
 }
 
 .powerful-feature-tagline {
@@ -967,23 +967,23 @@
 }
 
 .notes-feature .powerful-feature-tagline {
-  color: #34a853;
+  color: var(--color-accent, #10B981);
 }
 
 .slack-feature .powerful-feature-name {
-  color: #4a154b;
+  color: var(--color-text-primary, #0F172A);
 }
 
 .slack-feature .powerful-feature-tagline {
-  color: #4a154b;
+  color: var(--color-primary, #4F46E5);
 }
 
 .jira-feature .powerful-feature-name {
-  color: #0052cc;
+  color: var(--color-text-primary, #0F172A);
 }
 
 .jira-feature .powerful-feature-tagline {
-  color: #0052cc;
+  color: var(--color-primary, #4F46E5);
 }
 
 .workflow-feature .powerful-feature-name {
