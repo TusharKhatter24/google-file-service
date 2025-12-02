@@ -41,9 +41,9 @@
 
 .org-settings-button {
   padding: 0.375rem 0.75rem;
-  background: var(--color-text-primary, #0F172A);
-  color: var(--color-surface-elevated, #FFFFFF);
-  border: none;
+  background: var(--color-surface-elevated, #FFFFFF);
+  color: var(--color-text-primary, #0F172A);
+  border: 1px solid var(--color-border, #E2E8F0);
   border-radius: var(--radius-md, 0.5rem);
   font-weight: var(--font-weight-medium, 500);
   font-size: var(--font-size-sm, 0.8125rem);
@@ -53,13 +53,14 @@
 }
 
 .org-settings-button:hover {
-  background: var(--color-text-secondary, #64748B);
+  background: var(--color-surface-hover, #F1F5F9);
+  border-color: var(--color-border-medium, #CBD5E1);
 }
 
 .logout-button {
   padding: 0.375rem 0.75rem;
   background: var(--color-danger, #EF4444);
-  color: var(--color-surface-elevated, #FFFFFF);
+  color: #FFFFFF;
   border: none;
   border-radius: var(--radius-md, 0.5rem);
   font-weight: var(--font-weight-medium, 500);

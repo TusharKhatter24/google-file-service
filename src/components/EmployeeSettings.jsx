@@ -326,7 +326,7 @@ function EmployeeSettings() {
 
               {stores.length > 0 && (
                 <>
-                  <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f0f4ff', borderRadius: '6px', fontSize: '0.875rem', color: '#667eea' }}>
+                  <div className="knowledge-sources-info">
                     <strong>Select knowledge bases to use:</strong> Check the boxes below to select which knowledge bases should be used for chat queries. You can select up to 5 knowledge bases (currently {selectedStores.length}/5 selected). Don't forget to click "Save Selection" after making your choices.
                   </div>
                   <div className="stores-grid">
@@ -335,11 +335,7 @@ function EmployeeSettings() {
                       return (
                         <div 
                           key={store.name} 
-                          className={`store-card ${isSelected ? 'selected' : ''}`}
-                          style={{
-                            border: isSelected ? '2px solid #667eea' : '1px solid #e5e7eb',
-                            backgroundColor: isSelected ? '#f0f4ff' : 'white'
-                          }}
+                          className={`store-card ${isSelected ? 'store-card-selected' : ''}`}
                         >
                           <div className="store-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <input
@@ -680,7 +676,7 @@ function EmployeeSettings() {
                   className="config-input"
                 />
                 {n8nWorkflowUrl && (
-                  <p className="config-hint" style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                  <p className="config-hint">
                     Workflow will be accessible at: {n8nWorkflowUrl}
                   </p>
                 )}
