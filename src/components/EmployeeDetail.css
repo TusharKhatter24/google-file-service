@@ -888,7 +888,6 @@
 .workflows-panel {
   padding: 0;
   overflow-y: auto;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -917,9 +916,9 @@
 .workflow-hero-card {
   background: linear-gradient(
     135deg,
-    rgba(255, 107, 157, 0.8) 0%,
-    rgba(196, 69, 105, 0.8) 50%,
-    rgba(139, 58, 98, 0.8) 100%
+    rgba(255, 107, 157, 0.6) 0%,
+    rgba(196, 69, 105, 0.6) 50%,
+    rgba(139, 58, 98, 0.6) 100%
   );
   border-radius: 1.25rem;
   padding: 2.5rem;
@@ -1167,7 +1166,7 @@
 }
 
 .workflow-card {
-  background: rgba(42, 42, 62, 0.6);
+  background: rgba(42, 42, 62, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   padding: 1.75rem;

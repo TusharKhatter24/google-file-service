@@ -367,7 +367,7 @@ function LandingPage() {
             </motion.button>
           </nav>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <motion.button 
+            {/* <motion.button 
               onClick={toggleTheme} 
               className="theme-toggle-landing"
               title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
@@ -375,7 +375,7 @@ function LandingPage() {
               whileTap={{ scale: 0.9 }}
             >
               {theme === 'light' ? '🌙' : '☀️'}
-            </motion.button>
+            </motion.button> */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -491,6 +491,20 @@ function LandingPage() {
             ></motion.div>
           ))}
         </div>
+        <div className="hero-video-background">
+          <video 
+            className="hero-background-video" 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+          >
+            <source src="https://d1oil5daeuar1j.cloudfront.net/vizzy_waving.mp4" type="video/mp4" />
+            <source src="https://d1oil5daeuar1j.cloudfront.net/vizzy_waving.webm" type="video/webm" />
+          </video>
+          <div className="hero-video-overlay"></div>
+        </div>
+
         <motion.div 
           className="hero-content"
           initial="hidden"
@@ -544,12 +558,6 @@ function LandingPage() {
           >
             Build, grow, and scale your business with a team of AI employees.
           </motion.p>
-          <motion.p 
-            className="hero-tagline"
-            variants={fadeInUp}
-          >
-            AI Concierges. World's first AI helpers, personalized for your business. These AI employees can be integrated into any workforce, helping businesses of all sizes prepare for the future. Making work feel like play.
-          </motion.p>
           <motion.div variants={scaleIn}>
             <motion.div
               whileHover={{ 
@@ -571,7 +579,7 @@ function LandingPage() {
                     ease: "easeInOut"
                   }}
                 >
-            Get Started
+            Get AI Concierges
                 </motion.span>
           </Link>
             </motion.div>

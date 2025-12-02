@@ -337,20 +337,19 @@ function EmployeeSettings() {
                           key={store.name} 
                           className={`store-card ${isSelected ? 'store-card-selected' : ''}`}
                         >
-                          <div className="store-card-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div className="store-card-header">
                             <input
                               type="checkbox"
+                              className="store-checkbox"
                               checked={isSelected}
                               onChange={() => handleStoreToggle(store.name)}
-                              style={{
-                                width: '20px',
-                                height: '20px',
-                                cursor: 'pointer'
-                              }}
+                              id={`store-${store.name}`}
                             />
-                            <h4 className="store-name" style={{ flex: 1, margin: 0 }}>
-                              {store.displayName || store.name.split('/').pop()}
-                            </h4>
+                            <label htmlFor={`store-${store.name}`} className="store-checkbox-label">
+                              <h4 className="store-name">
+                                {store.displayName || store.name.split('/').pop()}
+                              </h4>
+                            </label>
                           </div>
                           
                           <div className="store-details">
