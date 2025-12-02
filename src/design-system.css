@@ -125,6 +125,60 @@
   --z-tooltip: 1070;
 }
 
+/* Dark Theme Overrides */
+:root[data-theme="dark"] {
+  /* Color Palette - Dark Mode */
+  --color-primary: #818CF8;
+  --color-primary-hover: #A5B4FC;
+  --color-primary-light: #1E293B;
+  --color-primary-dark: #6366F1;
+  
+  --color-secondary: #38BDF8;
+  --color-secondary-hover: #7DD3FC;
+  --color-secondary-light: #1E293B;
+  
+  --color-accent: #34D399;
+  --color-accent-hover: #6EE7B7;
+  --color-accent-light: #1E293B;
+  
+  --color-danger: #F87171;
+  --color-danger-hover: #FCA5A5;
+  --color-danger-light: #1E293B;
+  
+  --color-warning: #FBBF24;
+  --color-warning-hover: #FCD34D;
+  --color-warning-light: #1E293B;
+  
+  /* Neutral Colors - Dark Mode */
+  --color-white: #0F172A;
+  --color-black: #FFFFFF;
+  --color-background: #0F172A;
+  --color-surface: #1E293B;
+  --color-surface-hover: #334155;
+  --color-surface-elevated: #1E293B;
+  
+  /* Text Colors - Dark Mode */
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary: #94A3B8;
+  --color-text-inverse: #0F172A;
+  --color-text-muted: #64748B;
+  
+  /* Border Colors - Dark Mode */
+  --color-border: #334155;
+  --color-border-light: #1E293B;
+  --color-border-medium: #475569;
+  --color-border-dark: #64748B;
+  
+  /* Shadows - Dark Mode (more pronounced) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px -1px rgba(0, 0, 0, 0.5), 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 6px -2px rgba(0, 0, 0, 0.6), 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+}
+
 /* Global Resets & Base Styles */
 * {
   box-sizing: border-box;
