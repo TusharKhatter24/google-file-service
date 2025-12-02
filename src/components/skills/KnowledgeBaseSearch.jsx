@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function KnowledgeBaseSearch({ employeeName, employeeId }) {
   const [searchQuery, setSearchQuery] = useState('');

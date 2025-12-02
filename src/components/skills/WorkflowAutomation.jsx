@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getEmployeeConfig } from '../../services/employeeConfigService';
+import './SkillsShared.css';
 
 function WorkflowAutomation({ employeeName, employeeId }) {
   const [n8nWorkflowUrl, setN8nWorkflowUrl] = useState('');

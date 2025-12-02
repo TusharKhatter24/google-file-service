@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function SlackIntegration({ employeeName, employeeId }) {
   const [selectedChannel, setSelectedChannel] = useState(null);

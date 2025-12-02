@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { performResearch, researchExternalTool } from '../../services/researchService';
+import './SkillsShared.css';
 import './Research.css';
 
 function Research({ employeeName, employeeId }) {

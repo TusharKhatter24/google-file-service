@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function JiraIntegration({ employeeName, employeeId }) {
   const [showCreateTicket, setShowCreateTicket] = useState(false);

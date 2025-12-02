@@ -35,6 +35,8 @@ function EmployeeDetail() {
   const [educateSubTab, setEducateSubTab] = useState('notes'); // 'notes' or 'upload'
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [skillFilter, setSkillFilter] = useState('all'); // 'all', 'enabled', 'disabled'
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [enabledSkills, setEnabledSkills] = useState(new Set());
   const [skillConfigs, setSkillConfigs] = useState({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -97,10 +99,26 @@ function EmployeeDetail() {
   const getFilteredSkills = () => {
     let filtered = skills;
     
+    // Apply status filter
     if (skillFilter === 'enabled') {
-      filtered = skills.filter(skill => enabledSkills.has(skill.id));
+      filtered = filtered.filter(skill => enabledSkills.has(skill.id));
     } else if (skillFilter === 'disabled') {
-      filtered = skills.filter(skill => !enabledSkills.has(skill.id));
+      filtered = filtered.filter(skill => !enabledSkills.has(skill.id));
+    }
+    
+    // Apply category filter
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(skill => skill.category === categoryFilter);
+    }
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(skill => 
+        skill.name.toLowerCase().includes(query) ||
+        skill.description.toLowerCase().includes(query) ||
+        skill.category.toLowerCase().includes(query)
+      );
     }
     
     // Group by category
@@ -114,6 +132,22 @@ function EmployeeDetail() {
     
     return grouped;
   };
+
+  // Get category counts
+  const getCategoryStats = () => {
+    const stats = {};
+    Object.values(skillCategories).forEach(category => {
+      const categorySkills = skills.filter(s => s.category === category);
+      const enabledCount = categorySkills.filter(s => enabledSkills.has(s.id)).length;
+      stats[category] = {
+        total: categorySkills.length,
+        enabled: enabledCount
+      };
+    });
+    return stats;
+  };
+
+  const categoryStats = getCategoryStats();
 
   const filteredSkillsByCategory = getFilteredSkills();
   const enabledCount = enabledSkills.size;
@@ -250,60 +284,156 @@ function EmployeeDetail() {
                 {!selectedSkill ? (
                   <div className="skills-overview">
                     <div className="skills-overview-header">
-                      <div>
+                      <div className="skills-header-content">
                         <h3>Available Skills</h3>
-                        <p>Choose a skill to empower {employee.name}</p>
+                        <p>Choose skills to empower {employee.name}</p>
                       </div>
-                      <div className="skills-stats">
-                        <span className="skills-count">{enabledCount} of {totalCount} skills enabled</span>
+                      <div className="skills-progress-card">
+                        <div className="progress-circle-wrapper">
+                          <svg className="progress-circle" viewBox="0 0 36 36">
+                            <path
+                              className="progress-circle-bg"
+                              d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <path
+                              className="progress-circle-fill"
+                              strokeDasharray={`${(enabledCount / totalCount) * 100}, 100`}
+                              d="M18 2.0845
+                                a 15.9155 15.9155 0 0 1 0 31.831
+                                a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                          </svg>
+                          <div className="progress-text">
+                            <span className="progress-count">{enabledCount}</span>
+                            <span className="progress-total">/{totalCount}</span>
+                          </div>
+                        </div>
+                        <div className="progress-label">Skills Active</div>
                       </div>
                     </div>
                     
-                    <div className="skills-filter-bar" data-tour-target="skills-filter-bar">
-                      <button
-                        className={`filter-button ${skillFilter === 'all' ? 'active' : ''}`}
-                        onClick={() => setSkillFilter('all')}
-                      >
-                        All Skills
-                      </button>
-                      <button
-                        className={`filter-button ${skillFilter === 'enabled' ? 'active' : ''}`}
-                        onClick={() => setSkillFilter('enabled')}
-                      >
-                        Enabled Only
-                      </button>
-                      <button
-                        className={`filter-button ${skillFilter === 'disabled' ? 'active' : ''}`}
-                        onClick={() => setSkillFilter('disabled')}
-                      >
-                        Disabled Only
-                      </button>
+                    {/* Search and Filters */}
+                    <div className="skills-controls">
+                      <div className="search-wrapper">
+                        <span className="search-icon">🔍</span>
+                        <input
+                          type="text"
+                          className="search-input"
+                          placeholder="Search skills..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                          <button 
+                            className="search-clear"
+                            onClick={() => setSearchQuery('')}
+                            aria-label="Clear search"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="skills-filter-bar" data-tour-target="skills-filter-bar">
+                        <div className="filter-group">
+                          <label className="filter-label">Status:</label>
+                          <button
+                            className={`filter-button ${skillFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setSkillFilter('all')}
+                          >
+                            All
+                          </button>
+                          <button
+                            className={`filter-button ${skillFilter === 'enabled' ? 'active' : ''}`}
+                            onClick={() => setSkillFilter('enabled')}
+                          >
+                            ✓ Enabled
+                          </button>
+                          <button
+                            className={`filter-button ${skillFilter === 'disabled' ? 'active' : ''}`}
+                            onClick={() => setSkillFilter('disabled')}
+                          >
+                            ○ Disabled
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
-                    {Object.keys(filteredSkillsByCategory).length === 0 ? (
-                      <div className="no-skills-message">
-                        <p>No skills match the selected filter.</p>
-                      </div>
-                    ) : (
-                      Object.entries(filteredSkillsByCategory).map(([category, categorySkills]) => (
-                        <div key={category} className="skills-category-section">
-                          <h4 className="skills-category-header">{category}</h4>
-                          <div className="skills-grid" data-tour-target="skills-grid">
-                            {categorySkills.map((skill) => (
-                              <SkillCard
-                                key={skill.id}
-                                skill={skill}
-                                onClick={handleSkillClick}
-                                isEnabled={enabledSkills.has(skill.id)}
-                                hasConfig={!!skillConfigs[skill.id]}
-                                onToggle={handleSkillToggle}
-                                employeeId={employeeId}
-                              />
-                            ))}
-                          </div>
+                    {/* Category Tabs */}
+                    <div className="category-tabs">
+                      <button
+                        className={`category-tab ${categoryFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setCategoryFilter('all')}
+                      >
+                        <span className="category-tab-name">All Categories</span>
+                        <span className="category-tab-badge">{skills.length}</span>
+                      </button>
+                      {Object.entries(skillCategories).map(([key, category]) => (
+                        <button
+                          key={key}
+                          className={`category-tab ${categoryFilter === category ? 'active' : ''}`}
+                          onClick={() => setCategoryFilter(category)}
+                        >
+                          <span className="category-tab-name">{category}</span>
+                          <span className="category-tab-badge">
+                            {categoryStats[category]?.enabled}/{categoryStats[category]?.total}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Skills Grid */}
+                    <div className="skills-content">
+                      {Object.keys(filteredSkillsByCategory).length === 0 ? (
+                        <div className="no-skills-message">
+                          <div className="no-skills-icon">🔍</div>
+                          <h4>No skills found</h4>
+                          <p>
+                            {searchQuery 
+                              ? `No skills match "${searchQuery}". Try a different search term.`
+                              : 'No skills match the selected filters.'}
+                          </p>
+                          {(searchQuery || skillFilter !== 'all' || categoryFilter !== 'all') && (
+                            <button 
+                              className="reset-filters-btn"
+                              onClick={() => {
+                                setSearchQuery('');
+                                setSkillFilter('all');
+                                setCategoryFilter('all');
+                              }}
+                            >
+                              Clear all filters
+                            </button>
+                          )}
                         </div>
-                      ))
-                    )}
+                      ) : (
+                        Object.entries(filteredSkillsByCategory).map(([category, categorySkills]) => (
+                          <div key={category} className="skills-category-section">
+                            <div className="skills-category-header-wrapper">
+                              <h4 className="skills-category-header">{category}</h4>
+                              <span className="category-skill-count">
+                                {categorySkills.filter(s => enabledSkills.has(s.id)).length} / {categorySkills.length} enabled
+                              </span>
+                            </div>
+                            <div className="skills-grid" data-tour-target="skills-grid">
+                              {categorySkills.map((skill) => (
+                                <SkillCard
+                                  key={skill.id}
+                                  skill={skill}
+                                  onClick={handleSkillClick}
+                                  isEnabled={enabledSkills.has(skill.id)}
+                                  hasConfig={!!skillConfigs[skill.id]}
+                                  onToggle={handleSkillToggle}
+                                  employeeId={employeeId}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="skill-detail-view">

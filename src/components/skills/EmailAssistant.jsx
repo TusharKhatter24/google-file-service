@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function EmailAssistant({ employeeName, employeeId }) {
   const [showCompose, setShowCompose] = useState(false);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function TaskManagement({ employeeName, employeeId }) {
   const [showCreateTask, setShowCreateTask] = useState(false);

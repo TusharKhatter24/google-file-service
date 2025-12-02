@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function MeetingAssistant({ employeeName, employeeId }) {
   const [selectedMeeting, setSelectedMeeting] = useState(null);

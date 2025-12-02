@@ -1,5 +1,6 @@
 import React from 'react';
 import SmartNoteMaker from '../SmartNoteMaker';
+import './SkillsShared.css';
 
 function NoteTaking({ employeeName, employeeId }) {
   return (

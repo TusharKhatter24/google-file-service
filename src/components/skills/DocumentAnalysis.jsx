@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function DocumentAnalysis({ employeeName, employeeId }) {
   const [selectedFile, setSelectedFile] = useState(null);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './SkillsShared.css';
 
 function CalendarManagement({ employeeName, employeeId }) {
   const [showScheduler, setShowScheduler] = useState(false);
