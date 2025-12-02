@@ -472,18 +472,17 @@ function EmployeeDetail() {
             <span className="workflow-icon"><FaFileAlt /></span>
             <span className="workflow-icon"><FaRobot /></span>
             <span className="workflow-icon"><FaDatabase /></span>
-            <span className="workflow-icon-badge">+400</span>
           </div>
-          <h2 className="workflow-hero-title">Give Your AI Employee Infinite Power with n8n Workflows</h2>
-          <p className="workflow-hero-subtitle">Connect to 400+ apps and services. Automate everything. Build workflows that never sleep.</p>
-          <a 
-            href="https://n8n.io/workflows/" 
+          <h2 className="workflow-hero-title">Give Your AI Employee Infinite Power with Custom Workflows</h2>
+          {/* <p className="workflow-hero-subtitle">Connect to 400+ apps and services. Automate everything. Build workflows that never sleep.</p> */}
+          {/* <a 
+            href="https://app.aiagent.com/workflows" 
             target="_blank" 
             rel="noopener noreferrer"
             className="workflow-hero-button"
           >
             <FaRocket /> Explore Workflow Templates
-          </a>
+          </a> */}
         </div>
         <div className="workflow-hero-diagram">
           <img 
@@ -502,7 +501,7 @@ function EmployeeDetail() {
             <span className="card-icon telegram"><SiTelegram /></span>
             <span className="card-icon-badge">+6</span>
           </div>
-          <h3 className="workflow-card-title">Personal Life Manager with Telegram, Google Services & Voice-Enabled AI</h3>
+          <h3 className="workflow-card-title">Personal Assistant to manage my calendar, emails, and tasks</h3>
         </div>
 
         <div className="workflow-card">
@@ -512,7 +511,7 @@ function EmployeeDetail() {
             <span className="card-icon sheets"><SiGooglesheets /></span>
             <span className="card-icon-badge">+2</span>
           </div>
-          <h3 className="workflow-card-title">Talk to Your Google Sheets Using ChatGPT-5</h3>
+          <h3 className="workflow-card-title">Attend meetings and take notes</h3>
         </div>
 
         <div className="workflow-card">
@@ -522,38 +521,10 @@ function EmployeeDetail() {
             <span className="card-icon"><FaEdit /></span>
             <span className="card-icon-badge">+8</span>
           </div>
-          <h3 className="workflow-card-title">Generate AI Viral Videos with VEO 3 and Upload to TikTok</h3>
+          <h3 className="workflow-card-title">Run you marketing campaigns and track your results</h3>
         </div>
 
-        <div className="workflow-card">
-          <div className="workflow-card-icons">
-            <span className="card-icon"><FaComments /></span>
-            <span className="card-icon"><FaRobot /></span>
-            <span className="card-icon"><FaEnvelope /></span>
-            <span className="card-icon-badge">+4</span>
-          </div>
-          <h3 className="workflow-card-title">AI Sales Assistant with CRM Integration & Email Follow-ups</h3>
-        </div>
-
-        <div className="workflow-card">
-          <div className="workflow-card-icons">
-            <span className="card-icon"><FaEnvelope /></span>
-            <span className="card-icon"><FaRobot /></span>
-            <span className="card-icon"><FaChartBar /></span>
-            <span className="card-icon-badge">+3</span>
-          </div>
-          <h3 className="workflow-card-title">Automated Email Responses with OpenAI & Sentiment Analysis</h3>
-        </div>
-
-        <div className="workflow-card">
-          <div className="workflow-card-icons">
-            <span className="card-icon"><FaComments /></span>
-            <span className="card-icon"><FaMicrophone /></span>
-            <span className="card-icon"><SiTelegram /></span>
-            <span className="card-icon-badge">+5</span>
-          </div>
-          <h3 className="workflow-card-title">Voice-Enabled Customer Support Bot with Slack Integration</h3>
-        </div>
+       
       </div>
 
       
