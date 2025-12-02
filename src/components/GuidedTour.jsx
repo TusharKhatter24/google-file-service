@@ -223,8 +223,12 @@ function GuidedTour({ steps, isOpen, onClose, storageKey }) {
   }, [currentStep]);
 
   const handleSkip = useCallback(() => {
+    // Mark tour as completed even when skipped
+    if (storageKey) {
+      localStorage.setItem(`tour_completed_${storageKey}`, 'true');
+    }
     handleClose();
-  }, []);
+  }, [storageKey]);
 
   const handleFinish = useCallback(() => {
     if (storageKey) {
@@ -234,10 +238,14 @@ function GuidedTour({ steps, isOpen, onClose, storageKey }) {
   }, [storageKey]);
 
   const handleClose = useCallback(() => {
+    // Mark tour as completed even when closed
+    if (storageKey) {
+      localStorage.setItem(`tour_completed_${storageKey}`, 'true');
+    }
     setCurrentStep(0);
     setSpotlightRect(null);
     onClose();
-  }, [onClose]);
+  }, [onClose, storageKey]);
 
   if (!isOpen || !steps || steps.length === 0) return null;
 

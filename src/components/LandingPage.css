@@ -63,6 +63,37 @@
   transform: scaleX(1);
 }
 
+.landing-nav-tab.active {
+  color: var(--color-primary, #4F46E5);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.landing-nav-tab.active::after {
+  transform: scaleX(1);
+}
+
+.help-button-landing {
+  padding: 0.5rem;
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-text-primary, #0F172A);
+}
+
+.help-button-landing:hover {
+  background: var(--color-surface-hover, #F1F5F9);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 .landing-logo {
   font-size: var(--font-size-2xl, 1.5rem);
   font-weight: var(--font-weight-bold, 700);

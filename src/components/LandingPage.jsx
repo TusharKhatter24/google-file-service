@@ -425,7 +425,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section id="skills" className="landing-powerful-features">
+      <section id="skills" className="landing-powerful-features" data-tour-target="skills-section">
         <div className="powerful-features-container">
           <div className="powerful-features-header">
             <h2 className="powerful-features-title">Powerful Skillsets</h2>
