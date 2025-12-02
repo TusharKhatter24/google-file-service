@@ -72,6 +72,44 @@
   background: var(--color-danger-hover, #DC2626);
 }
 
+.theme-toggle {
+  padding: 0.375rem 0.625rem;
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 32px;
+}
+
+.theme-toggle:hover {
+  background: var(--color-surface-hover, #F1F5F9);
+  transform: scale(1.05);
+}
+
+.help-button {
+  padding: 0.375rem 0.75rem;
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: var(--radius-md, 0.5rem);
+  font-weight: var(--font-weight-medium, 500);
+  font-size: var(--font-size-sm, 0.8125rem);
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms);
+  white-space: nowrap;
+  color: var(--color-text-primary, #0F172A);
+}
+
+.help-button:hover {
+  background: var(--color-surface-hover, #F1F5F9);
+  border-color: var(--color-border-medium, #CBD5E1);
+}
+
 /* Main Content */
 .selection-main {
   flex: 1;

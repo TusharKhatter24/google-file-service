@@ -5,6 +5,31 @@
   justify-content: center;
   background: var(--color-primary, #4F46E5) !important;
   padding: var(--spacing-8, 2rem);
+  position: relative;
+}
+
+.theme-toggle-login {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.theme-toggle-login:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .login-container {

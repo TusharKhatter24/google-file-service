@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { employees } from '../data/employees';
+import { useTheme } from '../contexts/ThemeContext';
 import './LandingPage.css';
 
 function LandingPage() {
+  const { theme, toggleTheme } = useTheme();
   const [allEmployees, setAllEmployees] = useState(employees);
   const stepsRailRef = useRef(null);
   const powerfulFeaturesRailRef = useRef(null);
@@ -207,7 +209,16 @@ function LandingPage() {
               Our Story
             </button>
           </nav>
-          <Link to="/login" className="landing-login-btn">Log In</Link>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <button 
+              onClick={toggleTheme} 
+              className="theme-toggle-landing"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+            <Link to="/login" className="landing-login-btn">Log In</Link>
+          </div>
         </div>
       </header>
 

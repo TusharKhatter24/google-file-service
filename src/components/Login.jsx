@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../utils/auth';
+import { useTheme } from '../contexts/ThemeContext';
 import './Login.css';
 
 function Login() {
+  const { theme, toggleTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,6 +24,13 @@ function Login() {
 
   return (
     <div className="login-page">
+      <button 
+        onClick={toggleTheme} 
+        className="theme-toggle-login"
+        title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      >
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
       <div className="login-container">
         <div className="login-header">
           <h1 className="login-title">AI Concierges</h1>

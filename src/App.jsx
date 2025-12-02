@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import EmployeeSelection from './components/EmployeeSelection';
@@ -15,69 +16,71 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/employees"
-          element={
-            <ProtectedRoute>
-              <EmployeeSelection />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employees/:employeeId"
-          element={
-            <ProtectedRoute>
-              <EmployeeDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/employees/:employeeId/settings"
-          element={
-            <ProtectedRoute>
-              <EmployeeSettings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/organization/settings"
-          element={
-            <ProtectedRoute>
-              <OrganizationSettings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/stores"
-          element={
-            <ProtectedRoute>
-              <FileStoreList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/store/:storeName"
-          element={
-            <ProtectedRoute>
-              <FileStoreDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/files"
-          element={
-            <ProtectedRoute>
-              <Files />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute>
+                <EmployeeSelection />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees/:employeeId"
+            element={
+              <ProtectedRoute>
+                <EmployeeDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees/:employeeId/settings"
+            element={
+              <ProtectedRoute>
+                <EmployeeSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/organization/settings"
+            element={
+              <ProtectedRoute>
+                <OrganizationSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stores"
+            element={
+              <ProtectedRoute>
+                <FileStoreList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/store/:storeName"
+            element={
+              <ProtectedRoute>
+                <FileStoreDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/files"
+            element={
+              <ProtectedRoute>
+                <Files />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

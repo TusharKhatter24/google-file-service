@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { employees } from '../data/employees';
 import { logout } from '../utils/auth';
+import { useTheme } from '../contexts/ThemeContext';
 import GuidedTour from './GuidedTour';
 import { employeeSelectionTour } from '../data/tourSteps';
 import './EmployeeSelection.css';
 
 function EmployeeSelection() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
   const [customEmployees, setCustomEmployees] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
@@ -117,6 +119,13 @@ function EmployeeSelection() {
               className="org-settings-button"
             >
               ⚙️ Organization Settings
+            </button>
+            <button 
+              onClick={toggleTheme} 
+              className="theme-toggle"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
             </button>
             <button onClick={handleLogout} className="logout-button">
               Logout

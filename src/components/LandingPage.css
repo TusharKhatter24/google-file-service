@@ -85,6 +85,25 @@
   box-shadow: var(--shadow-md, 0 2px 4px -1px rgba(0, 0, 0, 0.06));
 }
 
+.theme-toggle-landing {
+  padding: var(--spacing-2, 0.5rem) var(--spacing-3, 0.75rem);
+  background: var(--color-surface-elevated, #FFFFFF);
+  border: 1px solid var(--color-border, #E2E8F0);
+  border-radius: var(--radius-md, 0.5rem);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all var(--transition-base, 200ms);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-landing:hover {
+  background: var(--color-surface-hover, #F1F5F9);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 2px 4px -1px rgba(0, 0, 0, 0.06));
+}
+
 .landing-hero {
   background: var(--color-primary, #4F46E5) !important;
   color: var(--color-text-inverse, #FFFFFF);
