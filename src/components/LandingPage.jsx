@@ -4,6 +4,9 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { employees } from '../data/employees';
 import { useTheme } from '../contexts/ThemeContext';
 import ProfileCard from './ProfileCard';
+import Testimonials from './Testimonials';
+import FAQ from './FAQ';
+import FeatureSection from './FeatureSection';
 import './LandingPage.css';
 
 // Animation variants
@@ -53,12 +56,96 @@ const staggerItem = {
   }
 };
 
+// New cool animation variants
+const slideInLeft = {
+  hidden: { opacity: 0, x: -100 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] }
+  }
+};
+
+const slideInRight = {
+  hidden: { opacity: 0, x: 100 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] }
+  }
+};
+
+const rotateIn = {
+  hidden: { opacity: 0, rotate: -180, scale: 0.5 },
+  visible: { 
+    opacity: 1, 
+    rotate: 0,
+    scale: 1,
+    transition: { duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }
+  }
+};
+
+const bounceIn = {
+  hidden: { opacity: 0, y: -50, scale: 0.3 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    scale: 1,
+    transition: { 
+      duration: 0.6,
+      type: "spring",
+      stiffness: 200,
+      damping: 10
+    }
+  }
+};
+
+const floatAnimation = {
+  animate: {
+    y: [0, -20, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+};
+
+const pulseAnimation = {
+  animate: {
+    scale: [1, 1.05, 1],
+    opacity: [1, 0.8, 1],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
+};
+
+const rotateAnimation = {
+  animate: {
+    rotate: [0, 360],
+    transition: {
+      duration: 20,
+      repeat: Infinity,
+      ease: "linear"
+    }
+  }
+};
+
 function LandingPage() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [allEmployees, setAllEmployees] = useState(employees);
   const stepsRailRef = useRef(null);
   const powerfulFeaturesRailRef = useRef(null);
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll();
+  
+  // Parallax transforms
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
     // Load custom employees from localStorage
@@ -293,13 +380,17 @@ function LandingPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link to="/login" className="landing-login-btn">Log In</Link>
+            <Link to="/login" className="landing-login-btn">Log In</Link>
             </motion.div>
           </div>
         </div>
       </header>
 
-      <section className="landing-hero">
+      <motion.section 
+        className="landing-hero"
+        ref={heroRef}
+        style={{ y: heroY, opacity: heroOpacity }}
+      >
         <div className="hero-background-animation"></div>
         <div className="hero-sliding-stripes">
           <div className="hero-stripe hero-stripe-1"></div>
@@ -313,13 +404,39 @@ function LandingPage() {
           <div className="hero-wave hero-wave-3"></div>
         </div>
         <div className="hero-geometric-shapes">
-          <div className="hero-shape hero-shape-1"></div>
-          <div className="hero-shape hero-shape-2"></div>
-          <div className="hero-shape hero-shape-3"></div>
-          <div className="hero-shape hero-shape-4"></div>
-          <div className="hero-shape hero-shape-5"></div>
-          <div className="hero-shape hero-shape-6"></div>
-          <div className="hero-shape hero-shape-7"></div>
+          <motion.div 
+            className="hero-shape hero-shape-1"
+            {...floatAnimation}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-2"
+            {...floatAnimation}
+            transition={{ delay: 0.5 }}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-3"
+            {...floatAnimation}
+            transition={{ delay: 1 }}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-4"
+            {...floatAnimation}
+            transition={{ delay: 1.5 }}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-5"
+            {...floatAnimation}
+            transition={{ delay: 0.3 }}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-6"
+            {...pulseAnimation}
+          ></motion.div>
+          <motion.div 
+            className="hero-shape hero-shape-7"
+            {...floatAnimation}
+            transition={{ delay: 0.8 }}
+          ></motion.div>
         </div>
         <div className="hero-sliding-elements">
           <div className="hero-slide-element slide-left-1"></div>
@@ -327,9 +444,51 @@ function LandingPage() {
           <div className="hero-slide-element slide-left-2"></div>
           <div className="hero-slide-element slide-right-2"></div>
         </div>
+        <motion.div 
+          className="hero-rotating-elements"
+          {...rotateAnimation}
+        >
+          <div className="hero-rotate-element rotate-1"></div>
+          <div className="hero-rotate-element rotate-2"></div>
+        </motion.div>
         <div className="hero-particles">
-          {[...Array(40)].map((_, i) => (
-            <div key={i} className={`hero-particle particle-${i + 1}`}></div>
+          {[...Array(60)].map((_, i) => (
+            <motion.div 
+              key={i} 
+              className={`hero-particle particle-${i + 1}`}
+              animate={{
+                y: [0, -50, 0],
+                x: [0, Math.sin(i) * 30, 0],
+                opacity: [0.4, 1, 0.4],
+                scale: [0.8, 1.5, 0.8],
+                rotate: [0, 180, 360]
+              }}
+              transition={{
+                duration: 4 + (i % 4),
+                repeat: Infinity,
+                delay: i * 0.05,
+                ease: "easeInOut"
+              }}
+            ></motion.div>
+          ))}
+        </div>
+        <div className="hero-sparkles">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={`sparkle-${i}`}
+              className={`hero-sparkle sparkle-${i + 1}`}
+              animate={{
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360]
+              }}
+              transition={{
+                duration: 2 + (i % 2),
+                repeat: Infinity,
+                delay: i * 0.2,
+                ease: "easeInOut"
+              }}
+            ></motion.div>
           ))}
         </div>
         <motion.div 
@@ -340,28 +499,85 @@ function LandingPage() {
         >
           <motion.h1 
             className="hero-title"
-            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.05,
+                  delayChildren: 0.2
+                }
+              }
+            }}
           >
-            AI Concierges: Accelerate, Optimize, and Streamline Your Internal Workflow
+            {["AI", "Employees:", "Your", "Helpers", "That", "Never", "Sleep"].map((word, i) => (
+              <motion.span
+                key={i}
+                style={{ display: 'inline-block', marginRight: '0.3em' }}
+                variants={{
+                  hidden: { opacity: 0, y: 50, rotateX: -90 },
+                  visible: { 
+                    opacity: 1, 
+                    y: 0,
+                    rotateX: 0,
+                    transition: {
+                      duration: 0.5,
+                      ease: [0.6, -0.05, 0.01, 0.99]
+                    }
+                  }
+                }}
+                whileHover={{ 
+                  scale: 1.1,
+                  y: -5,
+                  transition: { duration: 0.2 }
+                }}
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.h1>
           <motion.p 
             className="hero-subtitle"
             variants={fadeInUp}
           >
-            Get an AI Team who run your inbox, integrations, onboarding, implementation, and support
+            Build, grow, and scale your business with a team of AI employees.
+          </motion.p>
+          <motion.p 
+            className="hero-tagline"
+            variants={fadeInUp}
+          >
+            AI Concierges. World's first AI helpers, personalized for your business. These AI employees can be integrated into any workforce, helping businesses of all sizes prepare for the future. Making work feel like play.
           </motion.p>
           <motion.div variants={scaleIn}>
             <motion.div
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ 
+                scale: 1.05, 
+                y: -2,
+                rotate: [0, -1, 1, -1, 0],
+                transition: { duration: 0.5 }
+              }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Link to="/login" className="hero-cta">
-                Get Started
-              </Link>
+          <Link to="/login" className="hero-cta">
+                <motion.span
+                  animate={{
+                    x: [0, 2, -2, 0]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+            Get Started
+                </motion.span>
+          </Link>
             </motion.div>
           </motion.div>
         </motion.div>
-      </section>
+      </motion.section>
 
       <motion.section 
         id="our-story" 
@@ -431,7 +647,7 @@ function LandingPage() {
               </p>
             </motion.div>
           </motion.div>
-        </div>
+            </div>
       </motion.section>
 
       <motion.section 
@@ -443,12 +659,16 @@ function LandingPage() {
         variants={fadeInUp}
       >
         <div className="features-container">
-          <motion.h2 
-            className="features-title"
+          <motion.div
             variants={fadeInUp}
           >
-            Meet Your AI Team
-          </motion.h2>
+            <h2 className="features-title">
+              Meet Your AI Team
+            </h2>
+            <p className="features-subtitle">
+              Your new team with infinite knowledge. AI for business has never been this personal—meet your new team, working hard so you don't have to.
+            </p>
+          </motion.div>
           <motion.div 
             className="features-grid"
             variants={staggerContainer}
@@ -457,44 +677,71 @@ function LandingPage() {
               <motion.div
                 key={employee.id}
                 variants={staggerItem}
-                whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                className="employee-showcase-card"
+                whileHover={{ 
+                  y: -12,
+                  scale: 1.02,
+                  rotateY: 5,
+                  rotateX: 5,
+                  transition: { duration: 0.3 }
+                }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ opacity: 0, rotateY: -15 }}
+                whileInView={{ 
+                  opacity: 1, 
+                  rotateY: 0,
+                  transition: { 
+                    duration: 0.6,
+                    delay: index * 0.1
+                  }
+                }}
+                viewport={{ once: true }}
+                style={{ 
+                  transformStyle: 'preserve-3d',
+                  perspective: '1000px'
+                }}
               >
-                <ProfileCard
-                  name={employee.name}
-                  title={employee.role}
-                  role={employee.role}
-                  handle={employee.id}
-                  status="Online"
-                  contactText="Select Employee"
-                  icon={employee.icon}
-                  color={employee.color}
-                  showUserInfo={true}
-                  enableTilt={true}
-                  enableMobileTilt={false}
-                  onContactClick={() => navigate('/login')}
-                />
+                <div className="employee-showcase-content">
+                  <div className="employee-showcase-header">
+                    <div className="employee-showcase-icon" style={{ background: `${employee.color}20` }}>
+                      <span style={{ fontSize: '3rem' }}>{employee.icon}</span>
+                    </div>
+                    <div>
+                      <h3 className="employee-showcase-name">{employee.name}</h3>
+                      <p className="employee-showcase-role">{employee.role}</p>
+                    </div>
+                  </div>
+                  <p className="employee-showcase-description">{employee.description}</p>
+                  <Link 
+                    to="/login" 
+                    className="employee-showcase-button"
+                    style={{ borderColor: employee.color, color: employee.color }}
+                  >
+                    Learn More →
+                  </Link>
+                </div>
               </motion.div>
             ))}
             <motion.div
               variants={staggerItem}
               whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
-              <Link 
-                to="/login"
-                className="feature-card create-employee-card"
-              >
-                <div className="feature-icon-wrapper">
-                  <div className="feature-icon">➕</div>
-                </div>
-                <h3 className="feature-name">Build a New Team Member</h3>
-                <p className="feature-role">Create Custom AI Employee</p>
-                <p className="feature-description">
-                  Design your own AI team member with custom role, personality, and expertise
-                </p>
-              </Link>
+            <Link 
+              to="/login"
+              className="feature-card create-employee-card"
+            >
+              <div className="feature-icon-wrapper">
+                <div className="feature-icon">➕</div>
+              </div>
+              <h3 className="feature-name">Build a New Team Member</h3>
+              <p className="feature-role">Create Custom AI Employee</p>
+              <p className="feature-description">
+                Design your own AI team member with custom role, personality, and expertise
+              </p>
+            </Link>
             </motion.div>
           </motion.div>
-        </div>
+          </div>
       </motion.section>
 
       <motion.section 
@@ -615,12 +862,12 @@ function LandingPage() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Link to="/login" className="steps-cta-button">
-                Get Started Now
-              </Link>
+            <Link to="/login" className="steps-cta-button">
+              Get Started Now
+            </Link>
             </motion.div>
           </motion.div>
-        </div>
+          </div>
       </motion.section>
 
       <motion.section 
@@ -983,51 +1230,107 @@ function LandingPage() {
         </div>
       </motion.section>
 
-      <motion.section 
-        className="landing-benefits"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={fadeInUp}
-      >
-        <div className="benefits-container">
-          <motion.h2 
-            className="benefits-title"
-            variants={fadeInUp}
-          >
-            Stop juggling. Start scaling.
-          </motion.h2>
-          <motion.div 
-            className="benefits-grid"
-            variants={staggerContainer}
-          >
-            <motion.div 
-              className="benefit-item"
-              variants={staggerItem}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            >
-              <h3>Automate Your Workflow</h3>
-              <p>Let AI handle repetitive tasks so you can focus on what matters</p>
-            </motion.div>
-            <motion.div 
-              className="benefit-item"
-              variants={staggerItem}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            >
-              <h3>24/7 Availability</h3>
-              <p>Your AI team never sleeps, ensuring continuous support and operations</p>
-            </motion.div>
-            <motion.div 
-              className="benefit-item"
-              variants={staggerItem}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            >
-              <h3>Customizable & Scalable</h3>
-              <p>Train and configure your AI employees to match your exact needs</p>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.section>
+      {/* Automates Work Section */}
+      <FeatureSection
+        title="Automates work. Even while you sleep."
+        subtitle="Automate tasks with business automation tools—create social media posts, respond to comments, and more—freeing your team from repetitive tasks so they can focus on more strategic work."
+        features={[
+          {
+            icon: '📱',
+            title: 'Soshie, schedule social media posts for me',
+            description: 'Automate your social media game with AI for marketing. Write, create, and post content effortlessly with AI-powered solutions.'
+          },
+          {
+            icon: '💬',
+            title: 'Cassie, check my Facebook comments',
+            description: 'Engage your audience with business automation tools. Use AI for customer support to analyze comments and craft personalized responses.'
+          },
+          {
+            icon: '📅',
+            title: 'Vizzy, help me prepare for today\'s meetings',
+            description: 'Boost productivity with AI. Streamline business processes with daily summaries based on your email and calendar to keep your schedule on track.'
+          }
+        ]}
+        backgroundColor="var(--color-surface-elevated, #FFFFFF)"
+      />
+
+      {/* 24/7 Availability Section */}
+      <FeatureSection
+        title="A co-worker who's always on the clock."
+        subtitle="Available 24/7. AI tools are always on and available around the clock to support your business. The only helpers who love overtime. Always ready to save your most valuable asset—your time."
+        features={[
+          {
+            icon: '🌍',
+            title: 'Speaks in 100+ languages',
+            description: 'Go global—select, communicate, and complete your work in over 100 languages.'
+          },
+          {
+            icon: '⏰',
+            title: 'Never sleeps',
+            description: 'Your AI team works around the clock, ensuring continuous support and operations.'
+          },
+          {
+            icon: '⚡',
+            title: 'Instant responses',
+            description: 'Get immediate answers and assistance whenever you need it, day or night.'
+          }
+        ]}
+        backgroundColor="var(--color-background, #FAFAFA)"
+      />
+
+      {/* Learning Section */}
+      <FeatureSection
+        title="They learn your business. Just like real helpers."
+        subtitle="Answer questions about your brand, add files, instructions, and your website for more unique results. The more information they have, the better the outcome. AI employees are designed to complement and enhance your human capabilities by handling routine tasks, allowing you to focus on higher-level and creative work."
+        features={[
+          {
+            icon: '📈',
+            title: 'Improves over time',
+            description: 'AI employees learn from interactions and continuously improve their responses and capabilities.'
+          },
+          {
+            icon: '💾',
+            title: 'Remembers files, websites, facts',
+            description: 'Your AI team remembers important information, documents, and context to provide better assistance.'
+          },
+          {
+            icon: '❓',
+            title: 'Asks guided questions',
+            description: 'AI employees ask thoughtful questions to better understand your needs and provide more accurate help.'
+          }
+        ]}
+        backgroundColor="var(--color-surface-elevated, #FFFFFF)"
+      />
+
+      {/* Integrations Section */}
+      <FeatureSection
+        title="Integrates with your favorite tools."
+        subtitle="Streamline business processes by bringing your favorite tools, systems, and AI employees together. AI for business makes working with integrations and existing systems easier than ever."
+        features={[
+          {
+            icon: '🔗',
+            title: 'Seamless integrations',
+            description: 'Connect with Google Calendar, Notion, Slack, Jira, and many more popular tools.'
+          },
+          {
+            icon: '🔄',
+            title: 'Sync across platforms',
+            description: 'Keep your data synchronized across all your business tools automatically.'
+          },
+          {
+            icon: '⚙️',
+            title: 'Easy setup',
+            description: 'Get started with integrations in minutes with our simple setup process.'
+          }
+        ]}
+        backgroundColor="var(--color-background, #FAFAFA)"
+      />
+
+      {/* Testimonials Section */}
+      <Testimonials />
+
+      {/* FAQ Section */}
+      <FAQ />
 
       <footer className="landing-footer">
         <div className="footer-content">
