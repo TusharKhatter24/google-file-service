@@ -501,11 +501,11 @@
   box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.04));
   transition: all var(--transition-slow, 300ms);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--color-border, #E2E8F0);
-  flex: 0 0 280px;
-  min-width: 280px;
-  max-width: 280px;
+  flex: 0 0 320px;
+  min-width: 320px;
+  max-width: 320px;
   opacity: 1;
   transform: translateY(0);
   animation: fadeInUp 0.6s ease forwards;
@@ -600,12 +600,17 @@
   color: var(--color-text-primary, #0F172A);
   margin-bottom: var(--spacing-4, 1rem);
   letter-spacing: -0.02em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .step-description {
   color: var(--color-text-secondary, #64748B);
   line-height: var(--line-height-normal, 1.5);
   font-size: var(--font-size-base, 0.9375rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .steps-cta {
@@ -939,6 +944,8 @@
   color: var(--color-text-primary, #0F172A);
   letter-spacing: -0.02em;
   line-height: var(--line-height-snug, 1.375);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .research-feature .powerful-feature-name {
@@ -993,6 +1000,8 @@
   font-size: var(--font-size-sm, 0.8125rem);
   margin-bottom: var(--spacing-5, 1.25rem);
   flex: 1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .powerful-feature-benefits {
@@ -1191,9 +1200,9 @@
 
   .step-card {
     padding: 1.5rem;
-    flex: 0 0 260px;
-    min-width: 260px;
-    max-width: 260px;
+    flex: 0 0 300px;
+    min-width: 300px;
+    max-width: 300px;
   }
 
   .steps-rail-wrapper {
