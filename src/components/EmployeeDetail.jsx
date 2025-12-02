@@ -25,6 +25,20 @@ import KnowledgeBaseSearch from './skills/KnowledgeBaseSearch';
 import Research from './skills/Research';
 import GuidedTour from './GuidedTour';
 import { employeeDetailTour } from '../data/tourSteps';
+import { 
+  FaFileAlt, 
+  FaRobot, 
+  FaDatabase,
+  FaArrowRight,
+  FaChartBar,
+  FaPencilAlt,
+  FaEnvelope,
+  FaComments,
+  FaMicrophone,
+  FaEdit,
+  FaGlobe
+} from 'react-icons/fa';
+import { SiTelegram, SiGooglesheets } from 'react-icons/si';
 import './EmployeeDetail.css';
 
 function EmployeeDetail() {
@@ -45,7 +59,8 @@ function EmployeeDetail() {
   const tabs = [
     { id: 'chat', label: 'Chat', icon: '💬' },
     { id: 'educate', label: 'Educate/Train', icon: '📚' },
-    { id: 'skillset', label: 'Skillset', icon: '🎯' }
+    { id: 'skillset', label: 'Skillset', icon: '🎯' },
+    { id: 'workflows', label: 'Workflows', icon: '⚡' }
   ];
 
   const handleSkillClick = (skill) => {
@@ -445,6 +460,104 @@ function EmployeeDetail() {
                 )}
               </div>
             )}
+
+{activeTab === 'workflows' && (
+  <div className="tab-panel workflows-panel">
+    <div className="workflows-container">
+      {/* Hero Card */}
+      <div className="workflow-hero-card">
+        <div className="workflow-hero-content">
+          <div className="workflow-hero-icons">
+            <span className="workflow-icon"><FaFileAlt /></span>
+            <span className="workflow-icon"><FaRobot /></span>
+            <span className="workflow-icon"><FaDatabase /></span>
+            <span className="workflow-icon-badge">+2</span>
+          </div>
+          <h2 className="workflow-hero-title">Build Your First AI Employee</h2>
+          <a 
+            href="https://n8n.io/workflows/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="workflow-hero-button"
+          >
+            Choose from templates <FaArrowRight />
+          </a>
+        </div>
+        <div className="workflow-hero-diagram">
+          <img 
+            src="https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/first_agent_58d4ee8882.png"
+            alt="AI Agent Workflow Diagram"
+            className="workflow-diagram-image"
+          />
+        </div>
+      </div>
+      {/* Workflow Template Grid */}
+      <div className="workflow-template-grid">
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaChartBar /></span>
+            <span className="card-icon"><FaPencilAlt /></span>
+            <span className="card-icon telegram"><SiTelegram /></span>
+            <span className="card-icon-badge">+6</span>
+          </div>
+          <h3 className="workflow-card-title">Personal Life Manager with Telegram, Google Services & Voice-Enabled AI</h3>
+        </div>
+
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaFileAlt /></span>
+            <span className="card-icon"><FaRobot /></span>
+            <span className="card-icon sheets"><SiGooglesheets /></span>
+            <span className="card-icon-badge">+2</span>
+          </div>
+          <h3 className="workflow-card-title">Talk to Your Google Sheets Using ChatGPT-5</h3>
+        </div>
+
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaChartBar /></span>
+            <span className="card-icon globe"><FaGlobe /></span>
+            <span className="card-icon"><FaEdit /></span>
+            <span className="card-icon-badge">+8</span>
+          </div>
+          <h3 className="workflow-card-title">Generate AI Viral Videos with VEO 3 and Upload to TikTok</h3>
+        </div>
+
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaComments /></span>
+            <span className="card-icon"><FaRobot /></span>
+            <span className="card-icon"><FaEnvelope /></span>
+            <span className="card-icon-badge">+4</span>
+          </div>
+          <h3 className="workflow-card-title">AI Sales Assistant with CRM Integration & Email Follow-ups</h3>
+        </div>
+
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaEnvelope /></span>
+            <span className="card-icon"><FaRobot /></span>
+            <span className="card-icon"><FaChartBar /></span>
+            <span className="card-icon-badge">+3</span>
+          </div>
+          <h3 className="workflow-card-title">Automated Email Responses with OpenAI & Sentiment Analysis</h3>
+        </div>
+
+        <div className="workflow-card">
+          <div className="workflow-card-icons">
+            <span className="card-icon"><FaComments /></span>
+            <span className="card-icon"><FaMicrophone /></span>
+            <span className="card-icon"><SiTelegram /></span>
+            <span className="card-icon-badge">+5</span>
+          </div>
+          <h3 className="workflow-card-title">Voice-Enabled Customer Support Bot with Slack Integration</h3>
+        </div>
+      </div>
+
+      
+    </div>
+  </div>
+)}
           </div>
         </div>
       </main>
