@@ -15,7 +15,7 @@
 }
 
 .notes-editor-content {
-  background: var(--color-white, #FFFFFF);
+  background: var(--color-surface-elevated, #FFFFFF);
   border-radius: var(--radius-xl, 0.75rem);
   width: 100%;
   max-width: 1200px;
@@ -190,7 +190,7 @@
 }
 
 .notes-editor-dialog {
-  background: var(--color-white, #FFFFFF);
+  background: var(--color-surface-elevated, #FFFFFF);
   border-radius: var(--radius-lg, 0.625rem);
   width: 100%;
   max-width: 500px;
@@ -302,7 +302,7 @@
 
 .btn-primary {
   background: var(--color-primary, #4F46E5);
-  color: var(--color-white, #FFFFFF);
+  color: var(--color-surface-elevated, #FFFFFF);
   border-color: var(--color-primary, #4F46E5);
 }
 
@@ -317,7 +317,7 @@
 }
 
 .btn-secondary {
-  background: var(--color-white, #FFFFFF);
+  background: var(--color-surface-elevated, #FFFFFF);
   color: var(--color-text-primary, #0F172A);
   border-color: var(--color-border, #E2E8F0);
 }

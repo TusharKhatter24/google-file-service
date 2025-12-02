@@ -73,7 +73,7 @@
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
+  background: var(--color-surface, #F8FAFC);
   color: #111827;
 }
 
@@ -162,7 +162,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9fafb;
+  background: var(--color-surface, #F8FAFC);
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 1.5rem;
@@ -278,7 +278,7 @@
 }
 
 .btn-secondary {
-  background: #f3f4f6;
+  background: var(--color-surface, #F8FAFC);
   color: #374151;
 }
 

@@ -23,7 +23,7 @@
 /* Variants */
 .btn-modern-primary {
   background-color: var(--color-primary, #4F46E5);
-  color: var(--color-white, #FFFFFF);
+  color: var(--color-surface-elevated, #FFFFFF);
   border-color: var(--color-primary, #4F46E5);
 }
 
@@ -56,7 +56,7 @@
 
 .btn-modern-danger {
   background-color: var(--color-danger, #EF4444);
-  color: var(--color-white, #FFFFFF);
+  color: var(--color-surface-elevated, #FFFFFF);
   border-color: var(--color-danger, #EF4444);
 }
 
@@ -67,7 +67,7 @@
 
 .btn-modern-success {
   background-color: var(--color-accent, #10B981);
-  color: var(--color-white, #FFFFFF);
+  color: var(--color-surface-elevated, #FFFFFF);
   border-color: var(--color-accent, #10B981);
 }
 
