@@ -41,8 +41,15 @@ function EmployeeSelection() {
     }
   }, [customEmployees]);
 
-  // Auto-start tour on page load
+  // Auto-start tour on page load (only if not completed before)
   useEffect(() => {
+    // Check if tour was already completed
+    const tourCompleted = localStorage.getItem('tour_completed_employee-selection');
+    if (tourCompleted === 'true') {
+      // Tour was already completed, don't show it
+      return;
+    }
+    
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
       setShowTour(true);
