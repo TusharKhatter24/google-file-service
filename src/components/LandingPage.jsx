@@ -1,39 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { employees } from '../data/employees';
-import { useTheme } from '../contexts/ThemeContext';
-import ProfileCard from './ProfileCard';
-import Testimonials from './Testimonials';
-import FAQ from './FAQ';
-import FeatureSection from './FeatureSection';
-import './LandingPage.css';
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { employees } from "../data/employees";
+import { useTheme } from "../contexts/ThemeContext";
+import ProfileCard from "./ProfileCard";
+import Testimonials from "./Testimonials";
+import FAQ from "./FAQ";
+import FeatureSection from "./FeatureSection";
+import "./LandingPage.css";
 
 // Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 60 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
-    transition: { duration: 0.6 }
-  }
+    transition: { duration: 0.6 },
+  },
 };
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
-    transition: { duration: 0.5, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.5, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 const staggerContainer = {
@@ -42,62 +42,62 @@ const staggerContainer = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
+      delayChildren: 0.2,
+    },
+  },
 };
 
 const staggerItem = {
   hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.5, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 // New cool animation variants
 const slideInLeft = {
   hidden: { opacity: 0, x: -100 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
-    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 const slideInRight = {
   hidden: { opacity: 0, x: 100 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
-    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.7, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 const rotateIn = {
   hidden: { opacity: 0, rotate: -180, scale: 0.5 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     rotate: 0,
     scale: 1,
-    transition: { duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] }
-  }
+    transition: { duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99] },
+  },
 };
 
 const bounceIn = {
   hidden: { opacity: 0, y: -50, scale: 0.3 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     scale: 1,
-    transition: { 
+    transition: {
       duration: 0.6,
       type: "spring",
       stiffness: 200,
-      damping: 10
-    }
-  }
+      damping: 10,
+    },
+  },
 };
 
 const floatAnimation = {
@@ -106,9 +106,9 @@ const floatAnimation = {
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
+      ease: "easeInOut",
+    },
+  },
 };
 
 const pulseAnimation = {
@@ -118,9 +118,9 @@ const pulseAnimation = {
     transition: {
       duration: 2,
       repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
+      ease: "easeInOut",
+    },
+  },
 };
 
 const rotateAnimation = {
@@ -129,9 +129,9 @@ const rotateAnimation = {
     transition: {
       duration: 20,
       repeat: Infinity,
-      ease: "linear"
-    }
-  }
+      ease: "linear",
+    },
+  },
 };
 
 function LandingPage() {
@@ -142,20 +142,20 @@ function LandingPage() {
   const powerfulFeaturesRailRef = useRef(null);
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll();
-  
+
   // Parallax transforms
   const heroY = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
     // Load custom employees from localStorage
-    const customEmployeesJson = localStorage.getItem('customEmployees');
+    const customEmployeesJson = localStorage.getItem("customEmployees");
     if (customEmployeesJson) {
       try {
         const customEmployees = JSON.parse(customEmployeesJson);
         setAllEmployees([...employees, ...customEmployees]);
       } catch (e) {
-        console.error('Failed to parse custom employees:', e);
+        console.error("Failed to parse custom employees:", e);
       }
     }
   }, []);
@@ -173,17 +173,17 @@ function LandingPage() {
 
     const autoScroll = () => {
       if (!isPaused && isScrolling) {
-        const track = rail.querySelector('.steps-rail-track');
+        const track = rail.querySelector(".steps-rail-track");
         if (!track) return;
 
         scrollPosition += scrollSpeed;
         const maxScroll = track.scrollWidth / 2; // Half because we duplicated the cards
-        
+
         // Reset scroll position when reaching the end (seamless loop)
         if (scrollPosition >= maxScroll) {
           scrollPosition = 0;
         }
-        
+
         rail.scrollLeft = scrollPosition;
       }
       animationFrameId = requestAnimationFrame(autoScroll);
@@ -200,7 +200,7 @@ function LandingPage() {
 
     // Check if rail is ready and start scrolling
     const checkAndStart = () => {
-      const track = rail.querySelector('.steps-rail-track');
+      const track = rail.querySelector(".steps-rail-track");
       if (track && track.scrollWidth > rail.clientWidth) {
         isScrolling = true;
         if (!animationFrameId) {
@@ -212,8 +212,8 @@ function LandingPage() {
       }
     };
 
-    rail.addEventListener('mouseenter', handleMouseEnter);
-    rail.addEventListener('mouseleave', handleMouseLeave);
+    rail.addEventListener("mouseenter", handleMouseEnter);
+    rail.addEventListener("mouseleave", handleMouseLeave);
 
     // Start checking after content loads
     const startTimeout = setTimeout(() => {
@@ -227,13 +227,13 @@ function LandingPage() {
       rail.scrollLeft = 0;
       setTimeout(checkAndStart, 100);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       clearTimeout(startTimeout);
-      window.removeEventListener('resize', handleResize);
-      rail.removeEventListener('mouseenter', handleMouseEnter);
-      rail.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener("resize", handleResize);
+      rail.removeEventListener("mouseenter", handleMouseEnter);
+      rail.removeEventListener("mouseleave", handleMouseLeave);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -253,17 +253,17 @@ function LandingPage() {
 
     const autoScroll = () => {
       if (!isPaused && isScrolling) {
-        const track = rail.querySelector('.powerful-features-rail-track');
+        const track = rail.querySelector(".powerful-features-rail-track");
         if (!track) return;
 
         scrollPosition += scrollSpeed;
         const maxScroll = track.scrollWidth / 2; // Half because we duplicated the cards
-        
+
         // Reset scroll position when reaching the end (seamless loop)
         if (scrollPosition >= maxScroll) {
           scrollPosition = 0;
         }
-        
+
         rail.scrollLeft = scrollPosition;
       }
       animationFrameId = requestAnimationFrame(autoScroll);
@@ -280,7 +280,7 @@ function LandingPage() {
 
     // Check if rail is ready and start scrolling
     const checkAndStart = () => {
-      const track = rail.querySelector('.powerful-features-rail-track');
+      const track = rail.querySelector(".powerful-features-rail-track");
       if (track && track.scrollWidth > rail.clientWidth) {
         isScrolling = true;
         if (!animationFrameId) {
@@ -292,8 +292,8 @@ function LandingPage() {
       }
     };
 
-    rail.addEventListener('mouseenter', handleMouseEnter);
-    rail.addEventListener('mouseleave', handleMouseLeave);
+    rail.addEventListener("mouseenter", handleMouseEnter);
+    rail.addEventListener("mouseleave", handleMouseLeave);
 
     // Start checking after content loads
     const startTimeout = setTimeout(() => {
@@ -307,13 +307,13 @@ function LandingPage() {
       rail.scrollLeft = 0;
       setTimeout(checkAndStart, 100);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
       clearTimeout(startTimeout);
-      window.removeEventListener('resize', handleResize);
-      rail.removeEventListener('mouseenter', handleMouseEnter);
-      rail.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener("resize", handleResize);
+      rail.removeEventListener("mouseenter", handleMouseEnter);
+      rail.removeEventListener("mouseleave", handleMouseLeave);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -323,7 +323,7 @@ function LandingPage() {
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -333,64 +333,82 @@ function LandingPage() {
         <div className="landing-nav">
           <div className="landing-logo">AI Concierges</div>
           <nav className="landing-nav-tabs">
-            <motion.button 
-              className="landing-nav-tab" 
-              onClick={() => scrollToSection('features')}
+            <motion.button
+              className="landing-nav-tab"
+              onClick={() => scrollToSection("features")}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               Features
             </motion.button>
-            <motion.button 
-              className="landing-nav-tab" 
-              onClick={() => scrollToSection('how-it-works')}
+            <motion.button
+              className="landing-nav-tab"
+              onClick={() => scrollToSection("how-it-works")}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               How It Works
             </motion.button>
-            <motion.button 
-              className="landing-nav-tab" 
-              onClick={() => scrollToSection('skills')}
+            <motion.button
+              className="landing-nav-tab"
+              onClick={() => scrollToSection("skills")}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               Skills
             </motion.button>
-            <motion.button 
-              className="landing-nav-tab" 
-              onClick={() => scrollToSection('our-story')}
+            <motion.button
+              className="landing-nav-tab"
+              onClick={() => scrollToSection("our-story")}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               Our Story
             </motion.button>
           </nav>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <motion.button 
-              onClick={toggleTheme} 
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            <motion.button
+              onClick={toggleTheme}
               className="theme-toggle-landing"
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
               whileHover={{ scale: 1.1, rotate: 15 }}
               whileTap={{ scale: 0.9 }}
             >
-              {theme === 'light' ? '🌙' : '☀️'}
+              {theme === "light" ? "🌙" : "☀️"}
             </motion.button>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-            <Link to="/login" className="landing-login-btn">Log In</Link>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link to="/login" className="landing-login-btn">
+                Log In
+              </Link>
             </motion.div>
           </div>
         </div>
       </header>
 
-      <motion.section 
+      <motion.section
         className="landing-hero"
         ref={heroRef}
         style={{ y: heroY, opacity: heroOpacity }}
       >
+        <div className="hero-background-video">
+          <video
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            autoPlay
+            loop
+            muted
+            playsInline
+          >
+            <source
+              src="https://d1oil5daeuar1j.cloudfront.net/vizzy_waving.mp4"
+              data-categories="essential"
+            />
+            <source
+              src="https://d1oil5daeuar1j.cloudfront.net/vizzy_waving.webm"
+              data-categories="essential"
+            />
+          </video>
+        </div>
+        <div className="hero-vignette-overlay"></div>
         <div className="hero-background-animation"></div>
         <div className="hero-sliding-stripes">
           <div className="hero-stripe hero-stripe-1"></div>
@@ -404,35 +422,35 @@ function LandingPage() {
           <div className="hero-wave hero-wave-3"></div>
         </div>
         <div className="hero-geometric-shapes">
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-1"
             {...floatAnimation}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-2"
             {...floatAnimation}
             transition={{ delay: 0.5 }}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-3"
             {...floatAnimation}
             transition={{ delay: 1 }}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-4"
             {...floatAnimation}
             transition={{ delay: 1.5 }}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-5"
             {...floatAnimation}
             transition={{ delay: 0.3 }}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-6"
             {...pulseAnimation}
           ></motion.div>
-          <motion.div 
+          <motion.div
             className="hero-shape hero-shape-7"
             {...floatAnimation}
             transition={{ delay: 0.8 }}
@@ -444,30 +462,27 @@ function LandingPage() {
           <div className="hero-slide-element slide-left-2"></div>
           <div className="hero-slide-element slide-right-2"></div>
         </div>
-        <motion.div 
-          className="hero-rotating-elements"
-          {...rotateAnimation}
-        >
+        <motion.div className="hero-rotating-elements" {...rotateAnimation}>
           <div className="hero-rotate-element rotate-1"></div>
           <div className="hero-rotate-element rotate-2"></div>
         </motion.div>
         <div className="hero-particles">
           {[...Array(60)].map((_, i) => (
-            <motion.div 
-              key={i} 
+            <motion.div
+              key={i}
               className={`hero-particle particle-${i + 1}`}
               animate={{
                 y: [0, -50, 0],
                 x: [0, Math.sin(i) * 30, 0],
                 opacity: [0.4, 1, 0.4],
                 scale: [0.8, 1.5, 0.8],
-                rotate: [0, 180, 360]
+                rotate: [0, 180, 360],
               }}
               transition={{
                 duration: 4 + (i % 4),
                 repeat: Infinity,
                 delay: i * 0.05,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             ></motion.div>
           ))}
@@ -480,24 +495,24 @@ function LandingPage() {
               animate={{
                 opacity: [0, 1, 0],
                 scale: [0, 1, 0],
-                rotate: [0, 180, 360]
+                rotate: [0, 180, 360],
               }}
               transition={{
                 duration: 2 + (i % 2),
                 repeat: Infinity,
                 delay: i * 0.2,
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             ></motion.div>
           ))}
         </div>
-        <motion.div 
+        <motion.div
           className="hero-content"
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
         >
-          <motion.h1 
+          <motion.h1
             className="hero-title"
             initial="hidden"
             animate="visible"
@@ -507,80 +522,85 @@ function LandingPage() {
                 opacity: 1,
                 transition: {
                   staggerChildren: 0.05,
-                  delayChildren: 0.2
-                }
-              }
+                  delayChildren: 0.2,
+                },
+              },
             }}
           >
-            {["AI", "Employees:", "Your", "Helpers", "That", "Never", "Sleep"].map((word, i) => (
+            {[
+              "AI",
+              "Employees:",
+              "Your",
+              "Helpers",
+              "That",
+              "Never",
+              "Sleep",
+            ].map((word, i) => (
               <motion.span
                 key={i}
-                style={{ display: 'inline-block', marginRight: '0.3em' }}
+                style={{ display: "inline-block", marginRight: "0.3em" }}
                 variants={{
                   hidden: { opacity: 0, y: 50, rotateX: -90 },
-                  visible: { 
-                    opacity: 1, 
+                  visible: {
+                    opacity: 1,
                     y: 0,
                     rotateX: 0,
                     transition: {
                       duration: 0.5,
-                      ease: [0.6, -0.05, 0.01, 0.99]
-                    }
-                  }
+                      ease: [0.6, -0.05, 0.01, 0.99],
+                    },
+                  },
                 }}
-                whileHover={{ 
+                whileHover={{
                   scale: 1.1,
                   y: -5,
-                  transition: { duration: 0.2 }
+                  transition: { duration: 0.2 },
                 }}
               >
                 {word}
               </motion.span>
             ))}
           </motion.h1>
-          <motion.p 
-            className="hero-subtitle"
-            variants={fadeInUp}
-          >
+          <motion.p className="hero-subtitle" variants={fadeInUp}>
             Build, grow, and scale your business with a team of AI employees.
           </motion.p>
-          <motion.p 
-            className="hero-tagline"
-            variants={fadeInUp}
-          >
-            AI Concierges. World's first AI helpers, personalized for your business. These AI employees can be integrated into any workforce, helping businesses of all sizes prepare for the future. Making work feel like play.
+          <motion.p className="hero-tagline" variants={fadeInUp}>
+            AI Concierges. World's first AI helpers, personalized for your
+            business. These AI employees can be integrated into any workforce,
+            helping businesses of all sizes prepare for the future. Making work
+            feel like play.
           </motion.p>
           <motion.div variants={scaleIn}>
             <motion.div
-              whileHover={{ 
-                scale: 1.05, 
+              whileHover={{
+                scale: 1.05,
                 y: -2,
                 rotate: [0, -1, 1, -1, 0],
-                transition: { duration: 0.5 }
+                transition: { duration: 0.5 },
               }}
               whileTap={{ scale: 0.95 }}
             >
-          <Link to="/login" className="hero-cta">
+              <Link to="/login" className="hero-cta">
                 <motion.span
                   animate={{
-                    x: [0, 2, -2, 0]
+                    x: [0, 2, -2, 0],
                   }}
                   transition={{
                     duration: 2,
                     repeat: Infinity,
-                    ease: "easeInOut"
+                    ease: "easeInOut",
                   }}
                 >
-            Get Started
+                  Get Started
                 </motion.span>
-          </Link>
+              </Link>
             </motion.div>
           </motion.div>
         </motion.div>
       </motion.section>
 
-      <motion.section 
-        id="our-story" 
+      <motion.section
+        id="our-story"
         className="landing-our-story"
         initial="hidden"
         whileInView="visible"
@@ -588,70 +608,75 @@ function LandingPage() {
         variants={fadeInUp}
       >
         <div className="our-story-container">
-          <motion.h2 
-            className="our-story-title"
-            variants={fadeInUp}
-          >
+          <motion.h2 className="our-story-title" variants={fadeInUp}>
             Our Story
           </motion.h2>
-          <motion.div 
-            className="our-story-content"
-            variants={staggerContainer}
-          >
-            <motion.div 
+          <motion.div className="our-story-content" variants={staggerContainer}>
+            <motion.div
               className="our-story-problem"
               variants={staggerItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
               <h3 className="our-story-subtitle">The Problem</h3>
               <p className="our-story-text">
-                Every day, organizations handle client calls, integrations, implementations, and product 
-                development—all while their knowledge base expands across documents, tickets, meetings, 
-                and internal discussions. Yet finding accurate answers quickly becomes increasingly difficult 
-                as information fragments across multiple systems and conversations.
+                Every day, organizations handle client calls, integrations,
+                implementations, and product development—all while their
+                knowledge base expands across documents, tickets, meetings, and
+                internal discussions. Yet finding accurate answers quickly
+                becomes increasingly difficult as information fragments across
+                multiple systems and conversations.
               </p>
               <p className="our-story-text">
-                This knowledge fragmentation slows down client responses, creates inconsistencies, and 
-                impacts overall team efficiency. Support and implementation teams waste valuable time 
-                searching through scattered information instead of delivering fast, confident responses.
+                This knowledge fragmentation slows down client responses,
+                creates inconsistencies, and impacts overall team efficiency.
+                Support and implementation teams waste valuable time searching
+                through scattered information instead of delivering fast,
+                confident responses.
               </p>
               <p className="our-story-text">
-                Critical information—integration details, product features, standard operating procedures, 
-                past issue resolutions, and client context—exists but isn't instantly accessible when 
-                teams need it most, within their existing workflows.
+                Critical information—integration details, product features,
+                standard operating procedures, past issue resolutions, and
+                client context—exists but isn't instantly accessible when teams
+                need it most, within their existing workflows.
               </p>
             </motion.div>
-            <motion.div 
+            <motion.div
               className="our-story-solution"
               variants={staggerItem}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
               <h3 className="our-story-subtitle">Our Solution</h3>
               <p className="our-story-text">
-                AI Concierges provides instant access to all relevant knowledge—integrations, product 
-                features, SOPs, past issues, and client context—through intelligent AI employees powered 
-                by your knowledge base. Each AI employee can be configured with custom system prompts, 
-                selected knowledge stores, and specialized skills to match your team's needs.
+                AI Concierges provides instant access to all relevant
+                knowledge—integrations, product features, SOPs, past issues, and
+                client context—through intelligent AI employees powered by your
+                knowledge base. Each AI employee can be configured with custom
+                system prompts, selected knowledge stores, and specialized
+                skills to match your team's needs.
               </p>
               <p className="our-story-text">
-                Our platform enables you to build, customize, and deploy AI team members with skills like 
-                meeting assistance, Slack and Jira integrations, email management, document analysis, 
-                research capabilities, and workflow automation. They access your uploaded documents and 
-                knowledge stores to provide accurate, contextual responses based on your company's information.
+                Our platform enables you to build, customize, and deploy AI team
+                members with skills like meeting assistance, Slack and Jira
+                integrations, email management, document analysis, research
+                capabilities, and workflow automation. They access your uploaded
+                documents and knowledge stores to provide accurate, contextual
+                responses based on your company's information.
               </p>
               <p className="our-story-text">
-                With pre-built AI employees for support, implementation, and marketing—or the ability to 
-                create custom ones—teams can get started quickly. The AI concierges learn from your knowledge 
-                base, answer questions with source citations, and can be extended with custom workflows. 
-                The result: teams that work smarter, respond faster, and maintain consistency at scale.
+                With pre-built AI employees for support, implementation, and
+                marketing—or the ability to create custom ones—teams can get
+                started quickly. The AI concierges learn from your knowledge
+                base, answer questions with source citations, and can be
+                extended with custom workflows. The result: teams that work
+                smarter, respond faster, and maintain consistency at scale.
               </p>
             </motion.div>
           </motion.div>
-            </div>
+        </div>
       </motion.section>
 
-      <motion.section 
-        id="features" 
+      <motion.section
+        id="features"
         className="landing-features"
         initial="hidden"
         whileInView="visible"
@@ -659,63 +684,68 @@ function LandingPage() {
         variants={fadeInUp}
       >
         <div className="features-container">
-          <motion.div
-            variants={fadeInUp}
-          >
-            <h2 className="features-title">
-              Meet Your AI Team
-            </h2>
+          <motion.div variants={fadeInUp}>
+            <h2 className="features-title">Meet Your AI Team</h2>
             <p className="features-subtitle">
-              Your new team with infinite knowledge. AI for business has never been this personal—meet your new team, working hard so you don't have to.
+              Your new team with infinite knowledge. AI for business has never
+              been this personal—meet your new team, working hard so you don't
+              have to.
             </p>
           </motion.div>
-          <motion.div 
-            className="features-grid"
-            variants={staggerContainer}
-          >
+          <motion.div className="features-grid" variants={staggerContainer}>
             {allEmployees.map((employee, index) => (
               <motion.div
                 key={employee.id}
                 variants={staggerItem}
                 className="employee-showcase-card"
-                whileHover={{ 
+                whileHover={{
                   y: -12,
                   scale: 1.02,
                   rotateY: 5,
                   rotateX: 5,
-                  transition: { duration: 0.3 }
+                  transition: { duration: 0.3 },
                 }}
                 whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, rotateY: -15 }}
-                whileInView={{ 
-                  opacity: 1, 
+                whileInView={{
+                  opacity: 1,
                   rotateY: 0,
-                  transition: { 
+                  transition: {
                     duration: 0.6,
-                    delay: index * 0.1
-                  }
+                    delay: index * 0.1,
+                  },
                 }}
                 viewport={{ once: true }}
-                style={{ 
-                  transformStyle: 'preserve-3d',
-                  perspective: '1000px'
+                style={{
+                  transformStyle: "preserve-3d",
+                  perspective: "1000px",
                 }}
               >
                 <div className="employee-showcase-content">
                   <div className="employee-showcase-header">
-                    <div className="employee-showcase-icon" style={{ background: `${employee.color}20` }}>
-                      <span style={{ fontSize: '3rem' }}>{employee.icon}</span>
+                    <div
+                      className="employee-showcase-icon"
+                      style={{ background: `${employee.color}20` }}
+                    >
+                      <span style={{ fontSize: "3rem" }}>{employee.icon}</span>
                     </div>
                     <div>
-                      <h3 className="employee-showcase-name">{employee.name}</h3>
+                      <h3 className="employee-showcase-name">
+                        {employee.name}
+                      </h3>
                       <p className="employee-showcase-role">{employee.role}</p>
                     </div>
                   </div>
-                  <p className="employee-showcase-description">{employee.description}</p>
-                  <Link 
-                    to="/login" 
+                  <p className="employee-showcase-description">
+                    {employee.description}
+                  </p>
+                  <Link
+                    to="/login"
                     className="employee-showcase-button"
-                    style={{ borderColor: employee.color, color: employee.color }}
+                    style={{
+                      borderColor: employee.color,
+                      color: employee.color,
+                    }}
                   >
                     Learn More →
                   </Link>
@@ -726,26 +756,24 @@ function LandingPage() {
               variants={staggerItem}
               whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
-            <Link 
-              to="/login"
-              className="feature-card create-employee-card"
-            >
-              <div className="feature-icon-wrapper">
-                <div className="feature-icon">➕</div>
-              </div>
-              <h3 className="feature-name">Build a New Team Member</h3>
-              <p className="feature-role">Create Custom AI Employee</p>
-              <p className="feature-description">
-                Design your own AI team member with custom role, personality, and expertise
-              </p>
-            </Link>
+              <Link to="/login" className="feature-card create-employee-card">
+                <div className="feature-icon-wrapper">
+                  <div className="feature-icon">➕</div>
+                </div>
+                <h3 className="feature-name">Build a New Team Member</h3>
+                <p className="feature-role">Create Custom AI Employee</p>
+                <p className="feature-description">
+                  Design your own AI team member with custom role, personality,
+                  and expertise
+                </p>
+              </Link>
             </motion.div>
           </motion.div>
-          </div>
+        </div>
       </motion.section>
 
-      <motion.section 
-        id="how-it-works" 
+      <motion.section
+        id="how-it-works"
         className="landing-steps"
         initial="hidden"
         whileInView="visible"
@@ -753,16 +781,10 @@ function LandingPage() {
         variants={fadeInUp}
       >
         <div className="steps-container">
-          <motion.h2 
-            className="steps-title"
-            variants={fadeInUp}
-          >
+          <motion.h2 className="steps-title" variants={fadeInUp}>
             How It Works
           </motion.h2>
-          <motion.p 
-            className="steps-subtitle"
-            variants={fadeInUp}
-          >
+          <motion.p className="steps-subtitle" variants={fadeInUp}>
             Get started with your AI team in just a few simple steps
           </motion.p>
           <div className="steps-rail-wrapper">
@@ -773,7 +795,8 @@ function LandingPage() {
                   <div className="step-icon">👤</div>
                   <h3 className="step-title">Choose Your AI Employee</h3>
                   <p className="step-description">
-                    Select from pre-built AI employees or create custom ones tailored to your needs
+                    Select from pre-built AI employees or create custom ones
+                    tailored to your needs
                   </p>
                 </div>
                 <div className="step-card" data-step="2">
@@ -781,7 +804,8 @@ function LandingPage() {
                   <div className="step-icon">📚</div>
                   <h3 className="step-title">Configure Knowledge Base</h3>
                   <p className="step-description">
-                    Upload documents and train your AI with your company's knowledge and information
+                    Upload documents and train your AI with your company's
+                    knowledge and information
                   </p>
                 </div>
                 <div className="step-card" data-step="3">
@@ -789,7 +813,8 @@ function LandingPage() {
                   <div className="step-icon">⚙️</div>
                   <h3 className="step-title">Customize Settings</h3>
                   <p className="step-description">
-                    Set system prompts, model parameters, and preferences to match your requirements
+                    Set system prompts, model parameters, and preferences to
+                    match your requirements
                   </p>
                 </div>
                 <div className="step-card" data-step="4">
@@ -797,7 +822,8 @@ function LandingPage() {
                   <div className="step-icon">💬</div>
                   <h3 className="step-title">Begin Collaboration</h3>
                   <p className="step-description">
-                    Work alongside your AI employee to accelerate productivity and streamline workflows
+                    Work alongside your AI employee to accelerate productivity
+                    and streamline workflows
                   </p>
                 </div>
                 <div className="step-card" data-step="5">
@@ -805,74 +831,77 @@ function LandingPage() {
                   <div className="step-icon">🎯</div>
                   <h3 className="step-title">Give Skills to AI Team</h3>
                   <p className="step-description">
-                    Empower your AI employees with skills like meeting assistance, task management, and integrations
+                    Empower your AI employees with skills like meeting
+                    assistance, task management, and integrations
                   </p>
                 </div>
                 {/* Spacer between sets for visual separation */}
                 <div className="steps-rail-spacer"></div>
                 {/* Duplicate cards for seamless infinite scroll */}
-            <div className="step-card" data-step="1">
-              <div className="step-number">1</div>
-              <div className="step-icon">👤</div>
-              <h3 className="step-title">Choose Your AI Employee</h3>
-              <p className="step-description">
-                Select from pre-built AI employees or create custom ones tailored to your needs
-              </p>
-            </div>
-            <div className="step-card" data-step="2">
-              <div className="step-number">2</div>
-              <div className="step-icon">📚</div>
-              <h3 className="step-title">Configure Knowledge Base</h3>
-              <p className="step-description">
-                Upload documents and train your AI with your company's knowledge and information
-              </p>
-            </div>
-            <div className="step-card" data-step="3">
-              <div className="step-number">3</div>
-              <div className="step-icon">⚙️</div>
-              <h3 className="step-title">Customize Settings</h3>
-              <p className="step-description">
-                Set system prompts, model parameters, and preferences to match your requirements
-              </p>
-            </div>
-            <div className="step-card" data-step="4">
-              <div className="step-number">4</div>
-              <div className="step-icon">💬</div>
-              <h3 className="step-title">Begin Collaboration</h3>
-              <p className="step-description">
-                Work alongside your AI employee to accelerate productivity and streamline workflows
-              </p>
-            </div>
-            <div className="step-card" data-step="5">
-              <div className="step-number">5</div>
-              <div className="step-icon">🎯</div>
-              <h3 className="step-title">Give Skills to AI Team</h3>
-              <p className="step-description">
-                Empower your AI employees with skills like meeting assistance, task management, and integrations
-              </p>
+                <div className="step-card" data-step="1">
+                  <div className="step-number">1</div>
+                  <div className="step-icon">👤</div>
+                  <h3 className="step-title">Choose Your AI Employee</h3>
+                  <p className="step-description">
+                    Select from pre-built AI employees or create custom ones
+                    tailored to your needs
+                  </p>
+                </div>
+                <div className="step-card" data-step="2">
+                  <div className="step-number">2</div>
+                  <div className="step-icon">📚</div>
+                  <h3 className="step-title">Configure Knowledge Base</h3>
+                  <p className="step-description">
+                    Upload documents and train your AI with your company's
+                    knowledge and information
+                  </p>
+                </div>
+                <div className="step-card" data-step="3">
+                  <div className="step-number">3</div>
+                  <div className="step-icon">⚙️</div>
+                  <h3 className="step-title">Customize Settings</h3>
+                  <p className="step-description">
+                    Set system prompts, model parameters, and preferences to
+                    match your requirements
+                  </p>
+                </div>
+                <div className="step-card" data-step="4">
+                  <div className="step-number">4</div>
+                  <div className="step-icon">💬</div>
+                  <h3 className="step-title">Begin Collaboration</h3>
+                  <p className="step-description">
+                    Work alongside your AI employee to accelerate productivity
+                    and streamline workflows
+                  </p>
+                </div>
+                <div className="step-card" data-step="5">
+                  <div className="step-number">5</div>
+                  <div className="step-icon">🎯</div>
+                  <h3 className="step-title">Give Skills to AI Team</h3>
+                  <p className="step-description">
+                    Empower your AI employees with skills like meeting
+                    assistance, task management, and integrations
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-          <motion.div 
-            className="steps-cta"
-            variants={fadeInUp}
-          >
+          <motion.div className="steps-cta" variants={fadeInUp}>
             <motion.div
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-            <Link to="/login" className="steps-cta-button">
-              Get Started Now
-            </Link>
+              <Link to="/login" className="steps-cta-button">
+                Get Started Now
+              </Link>
             </motion.div>
           </motion.div>
-          </div>
+        </div>
       </motion.section>
 
-      <motion.section 
-        id="skills" 
-        className="landing-powerful-features" 
+      <motion.section
+        id="skills"
+        className="landing-powerful-features"
         data-tour-target="skills-section"
         initial="hidden"
         whileInView="visible"
@@ -880,26 +909,27 @@ function LandingPage() {
         variants={fadeInUp}
       >
         <div className="powerful-features-container">
-          <motion.div 
+          <motion.div
             className="powerful-features-header"
             variants={staggerContainer}
           >
-            <motion.h2 
-              className="powerful-features-title"
-              variants={fadeInUp}
-            >
+            <motion.h2 className="powerful-features-title" variants={fadeInUp}>
               Powerful Skillsets
             </motion.h2>
-            <motion.p 
+            <motion.p
               className="powerful-features-subtitle"
               variants={fadeInUp}
             >
-              Equip your AI team with advanced capabilities for research, note-taking, and seamless integrations
+              Equip your AI team with advanced capabilities for research,
+              note-taking, and seamless integrations
             </motion.p>
           </motion.div>
-          
+
           <div className="powerful-features-rail-wrapper">
-            <div className="powerful-features-rail" ref={powerfulFeaturesRailRef}>
+            <div
+              className="powerful-features-rail"
+              ref={powerfulFeaturesRailRef}
+            >
               <div className="powerful-features-rail-track">
                 <div className="powerful-feature-card research-feature">
                   <div className="powerful-feature-icon-wrapper">
@@ -907,11 +937,15 @@ function LandingPage() {
                     <div className="powerful-feature-badge">NEW</div>
                   </div>
                   <h3 className="powerful-feature-name">AI Research Tool</h3>
-                  <p className="powerful-feature-tagline">Powered by Research API</p>
+                  <p className="powerful-feature-tagline">
+                    Powered by Research API
+                  </p>
                   <p className="powerful-feature-description">
-                    Instantly research any topic, API documentation, error codes, or technical information. 
-                    Get comprehensive research reports with citations and sources. Perfect for developers, 
-                    researchers, and knowledge workers who need accurate, up-to-date information fast.
+                    Instantly research any topic, API documentation, error
+                    codes, or technical information. Get comprehensive research
+                    reports with citations and sources. Perfect for developers,
+                    researchers, and knowledge workers who need accurate,
+                    up-to-date information fast.
                   </p>
                   <div className="powerful-feature-benefits">
                     <div className="powerful-feature-benefit">
@@ -939,12 +973,16 @@ function LandingPage() {
                     <div className="powerful-feature-badge">ENHANCED</div>
                   </div>
                   <h3 className="powerful-feature-name">Smart Notes Taker</h3>
-                  <p className="powerful-feature-tagline">AI-Powered Note Creation & Enhancement</p>
+                  <p className="powerful-feature-tagline">
+                    AI-Powered Note Creation & Enhancement
+                  </p>
                   <p className="powerful-feature-description">
-                    Create intelligent notes with AI assistance. Summarize, rewrite, extract key points, 
-                    and enhance your content. Extract text from documents, use voice transcription, and 
-                    leverage AI tools to transform raw content into polished, structured knowledge that 
-                    powers your AI assistant's responses.
+                    Create intelligent notes with AI assistance. Summarize,
+                    rewrite, extract key points, and enhance your content.
+                    Extract text from documents, use voice transcription, and
+                    leverage AI tools to transform raw content into polished,
+                    structured knowledge that powers your AI assistant's
+                    responses.
                   </p>
                   <div className="powerful-feature-benefits">
                     <div className="powerful-feature-benefit">
@@ -972,11 +1010,15 @@ function LandingPage() {
                     <div className="powerful-feature-badge">INTEGRATION</div>
                   </div>
                   <h3 className="powerful-feature-name">Slack Integration</h3>
-                  <p className="powerful-feature-tagline">Seamless Team Communication</p>
+                  <p className="powerful-feature-tagline">
+                    Seamless Team Communication
+                  </p>
                   <p className="powerful-feature-description">
-                    Connect your AI team directly to Slack channels. Monitor conversations, draft intelligent 
-                    replies, and stay connected with your team. Your AI employee can read messages, understand 
-                    context, and respond appropriately, ensuring seamless communication across your organization.
+                    Connect your AI team directly to Slack channels. Monitor
+                    conversations, draft intelligent replies, and stay connected
+                    with your team. Your AI employee can read messages,
+                    understand context, and respond appropriately, ensuring
+                    seamless communication across your organization.
                   </p>
                   <div className="powerful-feature-benefits">
                     <div className="powerful-feature-benefit">
@@ -1004,11 +1046,15 @@ function LandingPage() {
                     <div className="powerful-feature-badge">INTEGRATION</div>
                   </div>
                   <h3 className="powerful-feature-name">Jira Integration</h3>
-                  <p className="powerful-feature-tagline">Project Management Made Easy</p>
+                  <p className="powerful-feature-tagline">
+                    Project Management Made Easy
+                  </p>
                   <p className="powerful-feature-description">
-                    Empower your AI team to manage Jira tickets, update statuses, and track project workflows. 
-                    Create tickets automatically, update progress, and keep your team aligned. Perfect for 
-                    project managers and development teams who need intelligent task and issue management.
+                    Empower your AI team to manage Jira tickets, update
+                    statuses, and track project workflows. Create tickets
+                    automatically, update progress, and keep your team aligned.
+                    Perfect for project managers and development teams who need
+                    intelligent task and issue management.
                   </p>
                   <div className="powerful-feature-benefits">
                     <div className="powerful-feature-benefit">
@@ -1035,12 +1081,18 @@ function LandingPage() {
                     <div className="powerful-feature-icon">⚙️</div>
                     <div className="powerful-feature-badge">POWERFUL</div>
                   </div>
-                  <h3 className="powerful-feature-name">Infinite Building Capabilities</h3>
-                  <p className="powerful-feature-tagline">Create Your Own Workflows</p>
+                  <h3 className="powerful-feature-name">
+                    Infinite Building Capabilities
+                  </h3>
+                  <p className="powerful-feature-tagline">
+                    Create Your Own Workflows
+                  </p>
                   <p className="powerful-feature-description">
-                    Build unlimited custom workflows tailored to your specific needs. Design automated processes, 
-                    create custom integrations, and extend your AI team's capabilities without limits. From simple 
-                    task automation to complex multi-step workflows, the power to build is in your hands.
+                    Build unlimited custom workflows tailored to your specific
+                    needs. Design automated processes, create custom
+                    integrations, and extend your AI team's capabilities without
+                    limits. From simple task automation to complex multi-step
+                    workflows, the power to build is in your hands.
                   </p>
                   <div className="powerful-feature-benefits">
                     <div className="powerful-feature-benefit">
@@ -1064,165 +1116,187 @@ function LandingPage() {
                 {/* Spacer between sets for visual separation */}
                 <div className="powerful-features-rail-spacer"></div>
                 {/* Duplicate cards for seamless infinite scroll */}
-            <div className="powerful-feature-card research-feature">
-              <div className="powerful-feature-icon-wrapper">
-                <div className="powerful-feature-icon">🔍</div>
-                <div className="powerful-feature-badge">NEW</div>
-              </div>
-              <h3 className="powerful-feature-name">AI Research Tool</h3>
-              <p className="powerful-feature-tagline">Powered by Research API</p>
-              <p className="powerful-feature-description">
-                Instantly research any topic, API documentation, error codes, or technical information. 
-                Get comprehensive research reports with citations and sources. Perfect for developers, 
-                researchers, and knowledge workers who need accurate, up-to-date information fast.
-              </p>
-              <div className="powerful-feature-benefits">
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🌐</span>
-                  <span>Research external tools & APIs</span>
+                <div className="powerful-feature-card research-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">🔍</div>
+                    <div className="powerful-feature-badge">NEW</div>
+                  </div>
+                  <h3 className="powerful-feature-name">AI Research Tool</h3>
+                  <p className="powerful-feature-tagline">
+                    Powered by Research API
+                  </p>
+                  <p className="powerful-feature-description">
+                    Instantly research any topic, API documentation, error
+                    codes, or technical information. Get comprehensive research
+                    reports with citations and sources. Perfect for developers,
+                    researchers, and knowledge workers who need accurate,
+                    up-to-date information fast.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🌐</span>
+                      <span>Research external tools & APIs</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">📚</span>
+                      <span>Access technical documentation</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">⚡</span>
+                      <span>Get instant, accurate answers</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔗</span>
+                      <span>Citations and sources included</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">📚</span>
-                  <span>Access technical documentation</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">⚡</span>
-                  <span>Get instant, accurate answers</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🔗</span>
-                  <span>Citations and sources included</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="powerful-feature-card notes-feature">
-              <div className="powerful-feature-icon-wrapper">
-                <div className="powerful-feature-icon">✍️</div>
-                <div className="powerful-feature-badge">ENHANCED</div>
-              </div>
-              <h3 className="powerful-feature-name">Smart Notes Taker</h3>
-              <p className="powerful-feature-tagline">AI-Powered Note Creation & Enhancement</p>
-              <p className="powerful-feature-description">
-                Create intelligent notes with AI assistance. Summarize, rewrite, extract key points, 
-                and enhance your content. Extract text from documents, use voice transcription, and 
-                leverage AI tools to transform raw content into polished, structured knowledge that 
-                powers your AI assistant's responses.
-              </p>
-              <div className="powerful-feature-benefits">
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🤖</span>
-                  <span>AI-powered writing assistance</span>
+                <div className="powerful-feature-card notes-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">✍️</div>
+                    <div className="powerful-feature-badge">ENHANCED</div>
+                  </div>
+                  <h3 className="powerful-feature-name">Smart Notes Taker</h3>
+                  <p className="powerful-feature-tagline">
+                    AI-Powered Note Creation & Enhancement
+                  </p>
+                  <p className="powerful-feature-description">
+                    Create intelligent notes with AI assistance. Summarize,
+                    rewrite, extract key points, and enhance your content.
+                    Extract text from documents, use voice transcription, and
+                    leverage AI tools to transform raw content into polished,
+                    structured knowledge that powers your AI assistant's
+                    responses.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🤖</span>
+                      <span>AI-powered writing assistance</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">📄</span>
+                      <span>Extract content from documents</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🎤</span>
+                      <span>Voice transcription support</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">💾</span>
+                      <span>Save directly to knowledge base</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">📄</span>
-                  <span>Extract content from documents</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🎤</span>
-                  <span>Voice transcription support</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">💾</span>
-                  <span>Save directly to knowledge base</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="powerful-feature-card slack-feature">
-              <div className="powerful-feature-icon-wrapper">
-                <div className="powerful-feature-icon">💬</div>
-                <div className="powerful-feature-badge">INTEGRATION</div>
-              </div>
-              <h3 className="powerful-feature-name">Slack Integration</h3>
-              <p className="powerful-feature-tagline">Seamless Team Communication</p>
-              <p className="powerful-feature-description">
-                Connect your AI team directly to Slack channels. Monitor conversations, draft intelligent 
-                replies, and stay connected with your team. Your AI employee can read messages, understand 
-                context, and respond appropriately, ensuring seamless communication across your organization.
-              </p>
-              <div className="powerful-feature-benefits">
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">📢</span>
-                  <span>Monitor Slack channels</span>
+                <div className="powerful-feature-card slack-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">💬</div>
+                    <div className="powerful-feature-badge">INTEGRATION</div>
+                  </div>
+                  <h3 className="powerful-feature-name">Slack Integration</h3>
+                  <p className="powerful-feature-tagline">
+                    Seamless Team Communication
+                  </p>
+                  <p className="powerful-feature-description">
+                    Connect your AI team directly to Slack channels. Monitor
+                    conversations, draft intelligent replies, and stay connected
+                    with your team. Your AI employee can read messages,
+                    understand context, and respond appropriately, ensuring
+                    seamless communication across your organization.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">📢</span>
+                      <span>Monitor Slack channels</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">✍️</span>
+                      <span>Draft intelligent replies</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔔</span>
+                      <span>Real-time notifications</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🤝</span>
+                      <span>Team collaboration support</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">✍️</span>
-                  <span>Draft intelligent replies</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🔔</span>
-                  <span>Real-time notifications</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🤝</span>
-                  <span>Team collaboration support</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="powerful-feature-card jira-feature">
-              <div className="powerful-feature-icon-wrapper">
-                <div className="powerful-feature-icon">🎫</div>
-                <div className="powerful-feature-badge">INTEGRATION</div>
-              </div>
-              <h3 className="powerful-feature-name">Jira Integration</h3>
-              <p className="powerful-feature-tagline">Project Management Made Easy</p>
-              <p className="powerful-feature-description">
-                Empower your AI team to manage Jira tickets, update statuses, and track project workflows. 
-                Create tickets automatically, update progress, and keep your team aligned. Perfect for 
-                project managers and development teams who need intelligent task and issue management.
-              </p>
-              <div className="powerful-feature-benefits">
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🎯</span>
-                  <span>Create & manage tickets</span>
+                <div className="powerful-feature-card jira-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">🎫</div>
+                    <div className="powerful-feature-badge">INTEGRATION</div>
+                  </div>
+                  <h3 className="powerful-feature-name">Jira Integration</h3>
+                  <p className="powerful-feature-tagline">
+                    Project Management Made Easy
+                  </p>
+                  <p className="powerful-feature-description">
+                    Empower your AI team to manage Jira tickets, update
+                    statuses, and track project workflows. Create tickets
+                    automatically, update progress, and keep your team aligned.
+                    Perfect for project managers and development teams who need
+                    intelligent task and issue management.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🎯</span>
+                      <span>Create & manage tickets</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">📊</span>
+                      <span>Update ticket status</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔄</span>
+                      <span>Track project workflows</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">⚡</span>
+                      <span>Automate task management</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">📊</span>
-                  <span>Update ticket status</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🔄</span>
-                  <span>Track project workflows</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">⚡</span>
-                  <span>Automate task management</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="powerful-feature-card workflow-feature">
-              <div className="powerful-feature-icon-wrapper">
-                <div className="powerful-feature-icon">⚙️</div>
-                <div className="powerful-feature-badge">POWERFUL</div>
-              </div>
-              <h3 className="powerful-feature-name">Infinite Building Capabilities</h3>
-              <p className="powerful-feature-tagline">Create Your Own Workflows</p>
-              <p className="powerful-feature-description">
-                Build unlimited custom workflows tailored to your specific needs. Design automated processes, 
-                create custom integrations, and extend your AI team's capabilities without limits. From simple 
-                task automation to complex multi-step workflows, the power to build is in your hands.
-              </p>
-              <div className="powerful-feature-benefits">
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🔧</span>
-                  <span>Build custom workflows</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🔗</span>
-                  <span>Connect any tool or service</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">♾️</span>
-                  <span>Unlimited possibilities</span>
-                </div>
-                <div className="powerful-feature-benefit">
-                  <span className="benefit-icon">🚀</span>
-                  <span>Scale your automation</span>
-                </div>
-              </div>
+                <div className="powerful-feature-card workflow-feature">
+                  <div className="powerful-feature-icon-wrapper">
+                    <div className="powerful-feature-icon">⚙️</div>
+                    <div className="powerful-feature-badge">POWERFUL</div>
+                  </div>
+                  <h3 className="powerful-feature-name">
+                    Infinite Building Capabilities
+                  </h3>
+                  <p className="powerful-feature-tagline">
+                    Create Your Own Workflows
+                  </p>
+                  <p className="powerful-feature-description">
+                    Build unlimited custom workflows tailored to your specific
+                    needs. Design automated processes, create custom
+                    integrations, and extend your AI team's capabilities without
+                    limits. From simple task automation to complex multi-step
+                    workflows, the power to build is in your hands.
+                  </p>
+                  <div className="powerful-feature-benefits">
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔧</span>
+                      <span>Build custom workflows</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🔗</span>
+                      <span>Connect any tool or service</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">♾️</span>
+                      <span>Unlimited possibilities</span>
+                    </div>
+                    <div className="powerful-feature-benefit">
+                      <span className="benefit-icon">🚀</span>
+                      <span>Scale your automation</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1236,20 +1310,23 @@ function LandingPage() {
         subtitle="Automate tasks with business automation tools—create social media posts, respond to comments, and more—freeing your team from repetitive tasks so they can focus on more strategic work."
         features={[
           {
-            icon: '📱',
-            title: 'Soshie, schedule social media posts for me',
-            description: 'Automate your social media game with AI for marketing. Write, create, and post content effortlessly with AI-powered solutions.'
+            icon: "📱",
+            title: "Soshie, schedule social media posts for me",
+            description:
+              "Automate your social media game with AI for marketing. Write, create, and post content effortlessly with AI-powered solutions.",
           },
           {
-            icon: '💬',
-            title: 'Cassie, check my Facebook comments',
-            description: 'Engage your audience with business automation tools. Use AI for customer support to analyze comments and craft personalized responses.'
+            icon: "💬",
+            title: "Cassie, check my Facebook comments",
+            description:
+              "Engage your audience with business automation tools. Use AI for customer support to analyze comments and craft personalized responses.",
           },
           {
-            icon: '📅',
-            title: 'Vizzy, help me prepare for today\'s meetings',
-            description: 'Boost productivity with AI. Streamline business processes with daily summaries based on your email and calendar to keep your schedule on track.'
-          }
+            icon: "📅",
+            title: "Vizzy, help me prepare for today's meetings",
+            description:
+              "Boost productivity with AI. Streamline business processes with daily summaries based on your email and calendar to keep your schedule on track.",
+          },
         ]}
         backgroundColor="var(--color-surface-elevated, #FFFFFF)"
       />
@@ -1260,20 +1337,23 @@ function LandingPage() {
         subtitle="Available 24/7. AI tools are always on and available around the clock to support your business. The only helpers who love overtime. Always ready to save your most valuable asset—your time."
         features={[
           {
-            icon: '🌍',
-            title: 'Speaks in 100+ languages',
-            description: 'Go global—select, communicate, and complete your work in over 100 languages.'
+            icon: "🌍",
+            title: "Speaks in 100+ languages",
+            description:
+              "Go global—select, communicate, and complete your work in over 100 languages.",
           },
           {
-            icon: '⏰',
-            title: 'Never sleeps',
-            description: 'Your AI team works around the clock, ensuring continuous support and operations.'
+            icon: "⏰",
+            title: "Never sleeps",
+            description:
+              "Your AI team works around the clock, ensuring continuous support and operations.",
           },
           {
-            icon: '⚡',
-            title: 'Instant responses',
-            description: 'Get immediate answers and assistance whenever you need it, day or night.'
-          }
+            icon: "⚡",
+            title: "Instant responses",
+            description:
+              "Get immediate answers and assistance whenever you need it, day or night.",
+          },
         ]}
         backgroundColor="var(--color-background, #FAFAFA)"
       />
@@ -1284,20 +1364,23 @@ function LandingPage() {
         subtitle="Answer questions about your brand, add files, instructions, and your website for more unique results. The more information they have, the better the outcome. AI employees are designed to complement and enhance your human capabilities by handling routine tasks, allowing you to focus on higher-level and creative work."
         features={[
           {
-            icon: '📈',
-            title: 'Improves over time',
-            description: 'AI employees learn from interactions and continuously improve their responses and capabilities.'
+            icon: "📈",
+            title: "Improves over time",
+            description:
+              "AI employees learn from interactions and continuously improve their responses and capabilities.",
           },
           {
-            icon: '💾',
-            title: 'Remembers files, websites, facts',
-            description: 'Your AI team remembers important information, documents, and context to provide better assistance.'
+            icon: "💾",
+            title: "Remembers files, websites, facts",
+            description:
+              "Your AI team remembers important information, documents, and context to provide better assistance.",
           },
           {
-            icon: '❓',
-            title: 'Asks guided questions',
-            description: 'AI employees ask thoughtful questions to better understand your needs and provide more accurate help.'
-          }
+            icon: "❓",
+            title: "Asks guided questions",
+            description:
+              "AI employees ask thoughtful questions to better understand your needs and provide more accurate help.",
+          },
         ]}
         backgroundColor="var(--color-surface-elevated, #FFFFFF)"
       />
@@ -1308,20 +1391,23 @@ function LandingPage() {
         subtitle="Streamline business processes by bringing your favorite tools, systems, and AI employees together. AI for business makes working with integrations and existing systems easier than ever."
         features={[
           {
-            icon: '🔗',
-            title: 'Seamless integrations',
-            description: 'Connect with Google Calendar, Notion, Slack, Jira, and many more popular tools.'
+            icon: "🔗",
+            title: "Seamless integrations",
+            description:
+              "Connect with Google Calendar, Notion, Slack, Jira, and many more popular tools.",
           },
           {
-            icon: '🔄',
-            title: 'Sync across platforms',
-            description: 'Keep your data synchronized across all your business tools automatically.'
+            icon: "🔄",
+            title: "Sync across platforms",
+            description:
+              "Keep your data synchronized across all your business tools automatically.",
           },
           {
-            icon: '⚙️',
-            title: 'Easy setup',
-            description: 'Get started with integrations in minutes with our simple setup process.'
-          }
+            icon: "⚙️",
+            title: "Easy setup",
+            description:
+              "Get started with integrations in minutes with our simple setup process.",
+          },
         ]}
         backgroundColor="var(--color-background, #FAFAFA)"
       />
@@ -1342,4 +1428,3 @@ function LandingPage() {
 }
 
 export default LandingPage;
-
