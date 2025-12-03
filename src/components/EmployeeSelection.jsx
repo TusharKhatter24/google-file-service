@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HomeIcon } from '@heroicons/react/24/outline';
 import { employees } from '../data/employees';
 import { logout } from '../utils/auth';
 import { useTheme } from '../contexts/ThemeContext';
@@ -139,7 +140,7 @@ function EmployeeSelection() {
               className="home-icon-button"
               title="Go to home page"
             >
-              🏠
+              <HomeIcon style={{ width: '1.25rem', height: '1.25rem' }} />
             </button>
             <h1 
               className="selection-title"

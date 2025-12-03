@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SparklesIcon } from '@heroicons/react/24/outline';
 import { login } from '../utils/auth';
 import { useTheme } from '../contexts/ThemeContext';
 import './Login.css';
@@ -115,10 +116,19 @@ function Login() {
 
       <div className="login-container">
         <div className="login-header">
-          <div className="login-logo">🤖</div>
+          <div className="login-logo">
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+              <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#4F46E5" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <SparklesIcon style={{ width: '3rem', height: '3rem', stroke: 'url(#logoGradient)' }} />
+          </div>
           <h1 className="login-title">AI Concierges</h1>
           <p className="login-subtitle">Your intelligent workforce awaits</p>
-          <p className="login-description">Sign in to access your team of AI employees ready to assist with documents, research, scheduling, and more.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -153,13 +163,6 @@ function Login() {
             <span className="button-arrow">→</span>
           </button>
         </form>
-
-        <div className="login-footer">
-          <div className="demo-credentials">
-            <span className="demo-label">Demo Access:</span>
-            <code className="demo-code">admin / admin</code>
-          </div>
-        </div>
       </div>
     </div>
   );
