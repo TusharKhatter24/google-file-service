@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { generateContentWithStore, generateContentWithReranking, generateAudioWithStore } from '../services/fileStoreService';
+import { generateContentWithStore, generateContentWithReranking, generateAudioWithStore, listFileStores } from '../services/fileStoreService';
 import { getEmployeeConfig } from '../services/employeeConfigService';
 import { uploadFile } from '../services/filesService';
 import './ChatInterface.css';
@@ -81,6 +81,7 @@ function ChatInterface({ employeeName, employeeId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedStores, setSelectedStores] = useState([]);
+  const [stores, setStores] = useState([]); // Full stores list with display names
   const [chatConfig, setChatConfig] = useState(null);
   const [inputMode, setInputMode] = useState('text');
   const [outputMode, setOutputMode] = useState('text');
@@ -173,15 +174,34 @@ function ChatInterface({ employeeName, employeeId }) {
       const config = getEmployeeConfig(employeeId);
       setChatConfig(config.chat);
       // Get selected stores from config - loaded from localStorage
-      const stores = config.chat?.selectedStores || [];
-      setSelectedStores(stores);
-      if (stores.length === 0) {
+      const selectedStoreNames = config.chat?.selectedStores || [];
+      setSelectedStores(selectedStoreNames);
+      if (selectedStoreNames.length === 0) {
         setError('No knowledge bases selected. Please select at least one knowledge base in Settings.');
       } else {
         setError(null); // Clear error if stores are available
       }
     }
   }, [employeeId]);
+
+  // Load stores list to get display names
+  useEffect(() => {
+    const loadStores = async () => {
+      try {
+        const response = await listFileStores(20);
+        setStores(response.fileSearchStores || []);
+      } catch (err) {
+        console.error('Failed to load stores:', err);
+      }
+    };
+    loadStores();
+  }, []);
+
+  // Helper to get display name for a store
+  const getStoreDisplayName = (storeName) => {
+    const store = stores.find(s => s.name === storeName);
+    return store?.displayName || storeName.split('/').pop();
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -705,7 +725,7 @@ function ChatInterface({ employeeName, employeeId }) {
           <div className="chat-stores-list">
             {selectedStores.map((store, idx) => (
               <span key={store} className="chat-store-badge">
-                {store.split('/').pop()}
+                {getStoreDisplayName(store)}
               </span>
             ))}
           </div>
