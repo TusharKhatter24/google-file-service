@@ -1516,7 +1516,7 @@ html {
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
   color: var(--color-text-primary, #0f172a);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -1525,18 +1525,20 @@ html {
 .our-story-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  gap: 2.5rem;
   margin-bottom: 0;
 }
 
 .our-story-problem,
 .our-story-solution {
   background: var(--color-surface-elevated, #ffffff);
-  padding: var(--spacing-8, 2rem);
+  padding: var(--spacing-10, 2.5rem);
   border-radius: var(--radius-2xl, 1rem);
   box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.04));
   border: 1px solid var(--color-border, #e2e8f0);
   transition: all var(--transition-base, 200ms);
+  display: flex;
+  flex-direction: column;
 }
 
 .our-story-problem:hover,
@@ -1557,7 +1559,8 @@ html {
 .our-story-subtitle {
   font-size: var(--font-size-2xl, 1.5rem);
   font-weight: var(--font-weight-bold, 700);
-  margin-bottom: var(--spacing-4, 1rem);
+  margin-bottom: var(--spacing-6, 1.5rem);
+  margin-top: 0;
   color: var(--color-text-primary, #0f172a);
   letter-spacing: -0.02em;
 }
@@ -1579,6 +1582,49 @@ html {
 
 .our-story-text:last-child {
   margin-bottom: 0;
+}
+
+.our-story-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 1rem);
+}
+
+.our-story-bullet-item {
+  color: var(--color-text-secondary, #64748b);
+  line-height: var(--line-height-relaxed, 1.75);
+  font-size: var(--font-size-base, 0.9375rem);
+  padding-left: var(--spacing-7, 1.75rem);
+  position: relative;
+  transition: all var(--transition-base, 200ms);
+  margin: 0;
+}
+
+.our-story-bullet-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.25rem;
+  line-height: 1.75;
+  color: var(--color-primary, #4f46e5);
+  font-weight: bold;
+}
+
+.our-story-problem .our-story-bullet-item::before {
+  color: var(--color-danger, #ef4444);
+}
+
+.our-story-solution .our-story-bullet-item::before {
+  color: var(--color-accent, #10b981);
+}
+
+.our-story-bullet-item:hover {
+  color: var(--color-text-primary, #0f172a);
+  transform: translateX(4px);
 }
 
 .landing-features {
@@ -2858,17 +2904,26 @@ html {
 
   .our-story-title {
     font-size: 2rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
 
   .our-story-subtitle {
     font-size: 1.25rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .our-story-problem,
   .our-story-solution {
-    padding: 1.5rem;
+    padding: 2rem;
+  }
+
+  .our-story-bullets {
+    gap: 0.875rem;
+  }
+
+  .our-story-bullet-item {
+    padding-left: 1.5rem;
+    font-size: 0.875rem;
   }
 
   .our-story-text {

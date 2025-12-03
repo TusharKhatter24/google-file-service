@@ -355,7 +355,7 @@ function LandingPage() {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              Our Story
+              Why We Built This
             </motion.button>
           </nav>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -518,7 +518,7 @@ function LandingPage() {
               }
             }}
           >
-            {["AI", "Employees:", "Your", "Helpers", "That", "Never", "Sleep"].map((word, i) => (
+            {["AI", "Employees:", "Always", "Working,", "Always", "Ready"].map((word, i) => (
               <motion.span
                 key={i}
                 style={{ display: 'inline-block', marginRight: '0.3em' }}
@@ -592,7 +592,7 @@ function LandingPage() {
             className="our-story-title"
             variants={fadeInUp}
           >
-            Our Story
+            Why We Built This
           </motion.h2>
           <motion.div 
             className="our-story-content"
@@ -604,22 +604,17 @@ function LandingPage() {
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
               <h3 className="our-story-subtitle">The Problem</h3>
-              <p className="our-story-text">
-                Every day, organizations handle client calls, integrations, implementations, and product 
-                development—all while their knowledge base expands across documents, tickets, meetings, 
-                and internal discussions. Yet finding accurate answers quickly becomes increasingly difficult 
-                as information fragments across multiple systems and conversations.
-              </p>
-              <p className="our-story-text">
-                This knowledge fragmentation slows down client responses, creates inconsistencies, and 
-                impacts overall team efficiency. Support and implementation teams waste valuable time 
-                searching through scattered information instead of delivering fast, confident responses.
-              </p>
-              <p className="our-story-text">
-                Critical information—integration details, product features, standard operating procedures, 
-                past issue resolutions, and client context—exists but isn't instantly accessible when 
-                teams need it most, within their existing workflows.
-              </p>
+              <ul className="our-story-bullets">
+                <li className="our-story-bullet-item">
+                  Knowledge scattered across documents, tickets, and conversations
+                </li>
+                <li className="our-story-bullet-item">
+                  Finding accurate answers quickly becomes difficult
+                </li>
+                <li className="our-story-bullet-item">
+                  Slows down responses and impacts team efficiency
+                </li>
+              </ul>
             </motion.div>
             <motion.div 
               className="our-story-solution"
@@ -627,27 +622,20 @@ function LandingPage() {
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
             >
               <h3 className="our-story-subtitle">Our Solution</h3>
-              <p className="our-story-text">
-                AI Concierges provides instant access to all relevant knowledge—integrations, product 
-                features, SOPs, past issues, and client context—through intelligent AI employees powered 
-                by your knowledge base. Each AI employee can be configured with custom system prompts, 
-                selected knowledge stores, and specialized skills to match your team's needs.
-              </p>
-              <p className="our-story-text">
-                Our platform enables you to build, customize, and deploy AI team members with skills like 
-                meeting assistance, Slack and Jira integrations, email management, document analysis, 
-                research capabilities, and workflow automation. They access your uploaded documents and 
-                knowledge stores to provide accurate, contextual responses based on your company's information.
-              </p>
-              <p className="our-story-text">
-                With pre-built AI employees for support, implementation, and marketing—or the ability to 
-                create custom ones—teams can get started quickly. The AI concierges learn from your knowledge 
-                base, answer questions with source citations, and can be extended with custom workflows. 
-                The result: teams that work smarter, respond faster, and maintain consistency at scale.
-              </p>
+              <ul className="our-story-bullets">
+                <li className="our-story-bullet-item">
+                  Instant access to your knowledge base through AI employees
+                </li>
+                <li className="our-story-bullet-item">
+                  Build custom AI team members with specialized skills
+                </li>
+                <li className="our-story-bullet-item">
+                  Get accurate, contextual responses powered by your company's information
+                </li>
+              </ul>
             </motion.div>
           </motion.div>
-            </div>
+        </div>
       </motion.section>
 
       <motion.section 
