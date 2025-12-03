@@ -4,6 +4,7 @@
   "description": "React app for managing Google File Search Stores",
   "private": true,
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "axios": "^1.6.2",
     "framer-motion": "^12.23.25",
     "html2canvas": "^1.4.1",

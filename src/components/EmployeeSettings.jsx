@@ -17,6 +17,7 @@ import {
   toggleSkill,
 } from '../services/skillAssignmentService';
 import { skills } from '../data/skills';
+import { getIconComponent } from '../utils/iconHelper';
 import './EmployeeSettings.css';
 
 // Tab configuration
@@ -312,7 +313,14 @@ function EmployeeSettings() {
             
             <div className="settings-card">
               <div className="employee-profile-display">
-                <span className="profile-icon">{employee.icon}</span>
+                {(() => {
+                  const IconComponent = getIconComponent(employee.icon);
+                  return IconComponent ? (
+                    <IconComponent className="profile-icon heroicon-profile" style={{ width: '3rem', height: '3rem', color: employee.color }} />
+                  ) : (
+                    <span className="profile-icon">{employee.icon}</span>
+                  );
+                })()}
                 <div className="profile-info">
                   <h3>{employee.name}</h3>
                   <span className="profile-role">{employee.role}</span>
@@ -831,7 +839,14 @@ function EmployeeSettings() {
           Back to {employee.name}
         </button>
         <div className="header-title">
-          <span className="header-icon">{employee.icon}</span>
+          {(() => {
+            const IconComponent = getIconComponent(employee.icon);
+            return IconComponent ? (
+              <IconComponent className="header-icon heroicon-header" style={{ width: '2rem', height: '2rem', color: employee.color }} />
+            ) : (
+              <span className="header-icon">{employee.icon}</span>
+            );
+          })()}
           <div>
             <h1>Settings</h1>
             <span className="header-subtitle">{employee.name}</span>

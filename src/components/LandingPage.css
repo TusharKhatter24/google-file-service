@@ -1676,6 +1676,9 @@ html {
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .employee-showcase-card::before {
@@ -1686,12 +1689,15 @@ html {
   right: 0;
   bottom: 0;
   background: linear-gradient(
-    135deg,
-    rgba(79, 70, 229, 0.05) 0%,
-    rgba(139, 92, 246, 0.05) 100%
+    to bottom,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.60) 30%,
+    rgba(0, 0, 0, 0.55) 60%,
+    rgba(0, 0, 0, 0.65) 100%
   );
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  z-index: 0;
+  border-radius: 1rem;
+  transition: background 0.3s ease;
   pointer-events: none;
 }
 
@@ -1703,7 +1709,13 @@ html {
 }
 
 .employee-showcase-card:hover::before {
-  opacity: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.60) 0%,
+    rgba(0, 0, 0, 0.55) 30%,
+    rgba(0, 0, 0, 0.50) 60%,
+    rgba(0, 0, 0, 0.60) 100%
+  );
 }
 
 .employee-showcase-card:hover .employee-showcase-icon {
@@ -1720,6 +1732,8 @@ html {
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .employee-showcase-header {
@@ -1742,35 +1756,49 @@ html {
   z-index: 1;
 }
 
+.employee-showcase-icon .heroicon-employee {
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .employee-showcase-name {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #0f172a);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: 0.25rem;
   letter-spacing: -0.01em;
+  position: relative;
+  z-index: 2;
 }
 
 .employee-showcase-role {
   font-size: 0.9375rem;
-  color: var(--color-text-secondary, #64748b);
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+  text-shadow: none;
+  position: relative;
+  z-index: 2;
 }
 
 .employee-showcase-description {
-  color: var(--color-text-secondary, #64748b);
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1.6;
   font-size: 0.9375rem;
   margin-bottom: 1.5rem;
   flex: 1;
+  font-weight: 600;
+  text-shadow: none;
+  position: relative;
+  z-index: 2;
 }
 
 .employee-showcase-button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   background: transparent;
-  border: 2px solid;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 0.5rem;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
@@ -1778,33 +1806,15 @@ html {
   width: fit-content;
   position: relative;
   overflow: hidden;
-  z-index: 1;
-}
-
-.employee-showcase-button::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: currentColor;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-  z-index: -1;
+  z-index: 2;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .employee-showcase-button:hover {
-  background: currentColor;
-  color: var(--color-surface-elevated, #ffffff) !important;
-  transform: translateY(-2px) translateX(5px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
-
-.employee-showcase-button:hover::before {
-  width: 300px;
-  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff !important;
+  transform: translateY(-1px);
 }
 
 .feature-card {
@@ -1889,8 +1899,8 @@ html {
 }
 
 .create-employee-card {
-  border: 2px dashed var(--color-border-medium, #cbd5e1);
-  background: var(--color-surface, #f8fafc);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   position: relative;
   text-decoration: none;
@@ -1898,26 +1908,27 @@ html {
 }
 
 .create-employee-card::before {
-  background: var(--color-primary, #4f46e5);
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.60) 30%,
+    rgba(0, 0, 0, 0.55) 60%,
+    rgba(0, 0, 0, 0.60) 100%
+  );
 }
 
 .create-employee-card:hover {
-  border-color: var(--color-primary, #4f46e5);
-  border-style: solid;
-  background: var(--color-primary-light, #eef2ff);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
-.create-employee-card .feature-icon {
-  color: var(--color-primary, #4f46e5);
-  font-size: 3.5rem;
-}
-
-.create-employee-card .feature-name {
-  color: var(--color-primary, #4f46e5);
-}
-
-.create-employee-card .feature-role {
-  color: var(--color-primary, #4f46e5);
+.create-employee-card:hover::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.60) 0%,
+    rgba(0, 0, 0, 0.55) 30%,
+    rgba(0, 0, 0, 0.50) 60%,
+    rgba(0, 0, 0, 0.60) 100%
+  );
 }
 
 .landing-steps {

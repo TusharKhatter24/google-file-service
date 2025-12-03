@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { employees } from '../data/employees';
 import { useTheme } from '../contexts/ThemeContext';
 import ProfileCard from './ProfileCard';
 import Testimonials from './Testimonials';
 import FAQ from './FAQ';
 import FeatureSection from './FeatureSection';
+import { getIconComponent } from '../utils/iconHelper';
 import './LandingPage.css';
 
 // Animation variants
@@ -686,13 +688,21 @@ function LandingPage() {
                 viewport={{ once: true }}
                 style={{ 
                   transformStyle: 'preserve-3d',
-                  perspective: '1000px'
+                  perspective: '1000px',
+                  backgroundImage: employee.backgroundImage ? `url(${employee.backgroundImage})` : undefined,
                 }}
               >
                 <div className="employee-showcase-content">
                   <div className="employee-showcase-header">
                     <div className="employee-showcase-icon" style={{ background: `${employee.color}20` }}>
-                      <span style={{ fontSize: '3rem' }}>{employee.icon}</span>
+                      {(() => {
+                        const IconComponent = getIconComponent(employee.icon);
+                        return IconComponent ? (
+                          <IconComponent className="heroicon-employee" style={{ width: '3rem', height: '3rem', color: employee.color }} />
+                        ) : (
+                          <span style={{ fontSize: '3rem' }}>{employee.icon}</span>
+                        );
+                      })()}
                     </div>
                     <div>
                       <h3 className="employee-showcase-name">{employee.name}</h3>
@@ -716,16 +726,25 @@ function LandingPage() {
             >
             <Link 
               to="/login"
-              className="feature-card create-employee-card"
+              className="employee-showcase-card create-employee-card"
             >
-              <div className="feature-icon-wrapper">
-                <div className="feature-icon">➕</div>
+              <div className="employee-showcase-content">
+                <div className="employee-showcase-header">
+                  <div className="employee-showcase-icon" style={{ background: 'rgba(59, 130, 246, 0.2)' }}>
+                    <PlusIcon className="heroicon-employee" style={{ width: '3rem', height: '3rem', color: '#3b82f6' }} />
+                  </div>
+                  <div>
+                    <h3 className="employee-showcase-name">Build a New Team Member</h3>
+                    <p className="employee-showcase-role">CREATE CUSTOM AI EMPLOYEE</p>
+                  </div>
+                </div>
+                <p className="employee-showcase-description">
+                  Design your own AI team member with custom role, personality, and expertise
+                </p>
+                <div className="employee-showcase-button" style={{ borderColor: 'rgba(255, 255, 255, 0.3)', color: 'rgba(255, 255, 255, 0.9)' }}>
+                  Learn More →
+                </div>
               </div>
-              <h3 className="feature-name">Build a New Team Member</h3>
-              <p className="feature-role">Create Custom AI Employee</p>
-              <p className="feature-description">
-                Design your own AI team member with custom role, personality, and expertise
-              </p>
             </Link>
             </motion.div>
           </motion.div>

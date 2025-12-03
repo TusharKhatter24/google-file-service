@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import GuidedTour from './GuidedTour';
 import { employeeSelectionTour } from '../data/tourSteps';
 import ProfileCard from './ProfileCard';
+import { getIconComponent } from '../utils/iconHelper';
 import './EmployeeSelection.css';
 
 function EmployeeSelection() {
@@ -17,7 +18,7 @@ function EmployeeSelection() {
     name: '',
     role: '',
     description: '',
-    icon: '🦸',
+    icon: 'ShieldCheckIcon',
     color: '#667eea'
   });
   const [showTour, setShowTour] = useState(false);
@@ -84,7 +85,7 @@ function EmployeeSelection() {
       name: '',
       role: '',
       description: '',
-      icon: '🦸',
+      icon: 'ShieldCheckIcon',
       color: '#667eea'
     });
   };
@@ -106,7 +107,26 @@ function EmployeeSelection() {
   const defaultEmployees = employees.filter(emp => emp.id !== 'custom');
   const allEmployees = [...defaultEmployees, ...customEmployees];
 
-  const iconOptions = ['🦸', '🦸‍♀️', '🦸‍♂️', '👨‍💼', '👩‍💼', '🤖', '👾', '🌟', '⭐', '🔥', '💡', '🚀', '⚡', '💪', '🎯'];
+  const iconOptions = [
+    'ShieldCheckIcon',
+    'HeartIcon',
+    'SparklesIcon',
+    'TrophyIcon',
+    'GiftIcon',
+    'PuzzlePieceIcon',
+    'GlobeAltIcon',
+    'RocketLaunchIcon',
+    'BoltIcon',
+    'FireIcon',
+    'StarIcon',
+    'LightBulbIcon',
+    'LifebuoyIcon',
+    'CheckBadgeIcon',
+    'GiftTopIcon',
+    'CommandLineIcon',
+    'HandRaisedIcon',
+    'ChatBubbleLeftRightIcon',
+  ];
   const colorOptions = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#ffecd2', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'];
 
   return (
@@ -321,16 +341,24 @@ function EmployeeSelection() {
               <div className="form-group">
                 <label>Icon</label>
                 <div className="icon-selector">
-                  {iconOptions.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={`icon-option ${newEmployee.icon === icon ? 'selected' : ''}`}
-                      onClick={() => setNewEmployee({ ...newEmployee, icon })}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+                  {iconOptions.map((icon) => {
+                    const IconComponent = getIconComponent(icon);
+                    return (
+                      <button
+                        key={icon}
+                        type="button"
+                        className={`icon-option ${newEmployee.icon === icon ? 'selected' : ''}`}
+                        onClick={() => setNewEmployee({ ...newEmployee, icon })}
+                        title={icon}
+                      >
+                        {IconComponent ? (
+                          <IconComponent style={{ width: '1.5rem', height: '1.5rem', color: 'currentColor' }} />
+                        ) : (
+                          icon
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

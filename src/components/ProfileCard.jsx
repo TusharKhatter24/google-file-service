@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { getIconComponent } from '../utils/iconHelper';
 import './ProfileCard.css';
 
 const ProfileCard = ({
@@ -99,7 +100,14 @@ const ProfileCard = ({
                 className="profile-card-avatar-icon"
                 style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)` }}
               >
-                <span className="profile-card-icon-emoji">{icon || '🤖'}</span>
+                {(() => {
+                  const IconComponent = getIconComponent(icon);
+                  return IconComponent ? (
+                    <IconComponent className="profile-card-icon-heroicon" style={{ width: '2.5rem', height: '2.5rem', color: '#ffffff' }} />
+                  ) : (
+                    <span className="profile-card-icon-emoji">{icon || '🤖'}</span>
+                  );
+                })()}
               </div>
             )}
             {status && (

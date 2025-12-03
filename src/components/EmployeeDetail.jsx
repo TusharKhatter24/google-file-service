@@ -8,6 +8,7 @@ import {
   toggleSkill,
   getSkillConfig 
 } from '../services/skillAssignmentService';
+import { getIconComponent } from '../utils/iconHelper';
 import ChatInterface from './ChatInterface';
 import DocumentUpload from './DocumentUpload';
 import SmartNoteMaker from './SmartNoteMaker';
@@ -209,7 +210,14 @@ function EmployeeDetail() {
             ← Back to Employees
           </button>
           <div className="employee-header-info">
-            <div className="employee-header-icon">{employee.icon}</div>
+            {(() => {
+              const IconComponent = getIconComponent(employee.icon);
+              return IconComponent ? (
+                <IconComponent className="employee-header-icon heroicon-employee-header" style={{ width: '3rem', height: '3rem', color: employee.color }} />
+              ) : (
+                <div className="employee-header-icon">{employee.icon}</div>
+              );
+            })()}
             <div>
               <h1 className="employee-header-name">{employee.name}</h1>
               <p className="employee-header-role">{employee.role}</p>
