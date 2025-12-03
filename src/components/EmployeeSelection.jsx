@@ -257,6 +257,7 @@ function EmployeeSelection() {
                   contactText="Select"
                   icon={employee.icon}
                   color={employee.color}
+                  backgroundImage={employee.backgroundImage}
                   showUserInfo={true}
                   enableTilt={true}
                   enableMobileTilt={false}

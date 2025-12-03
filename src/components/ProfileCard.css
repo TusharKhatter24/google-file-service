@@ -13,6 +13,24 @@
   transform-style: preserve-3d;
 }
 
+.profile-card-with-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.60) 30%,
+    rgba(0, 0, 0, 0.55) 60%,
+    rgba(0, 0, 0, 0.60) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
 .profile-card:hover {
   border-color: var(--card-color, #667eea);
   box-shadow: 
@@ -37,6 +55,13 @@
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+}
+
+.profile-card-with-bg .profile-card-name,
+.profile-card-with-bg .profile-card-title,
+.profile-card-with-bg .profile-card-handle {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: none;
 }
 
 /* Background Gradient */
@@ -88,7 +113,7 @@
   align-items: center;
   justify-content: center;
   font-size: 3.5rem;
-  background: linear-gradient(135deg, var(--card-color, #667eea), var(--card-color, #667eea)dd);
+  background: transparent;
 }
 
 .profile-card:hover .profile-card-avatar,

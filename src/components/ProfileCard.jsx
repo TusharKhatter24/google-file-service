@@ -12,6 +12,7 @@ const ProfileCard = ({
   avatarUrl,
   icon,
   color,
+  backgroundImage,
   showUserInfo = true,
   enableTilt = true,
   enableMobileTilt = false,
@@ -58,10 +59,14 @@ const ProfileCard = ({
   return (
     <div
       ref={cardRef}
-      className={`profile-card ${isSelected ? 'profile-card-selected' : ''}`}
+      className={`profile-card ${isSelected ? 'profile-card-selected' : ''} ${backgroundImage ? 'profile-card-with-bg' : ''}`}
       style={{
         ...tiltStyle,
-        '--card-color': color || '#667eea'
+        '--card-color': color || '#667eea',
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+        backgroundSize: backgroundImage ? 'cover' : undefined,
+        backgroundPosition: backgroundImage ? 'center' : undefined,
+        backgroundRepeat: backgroundImage ? 'no-repeat' : undefined,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -98,12 +103,12 @@ const ProfileCard = ({
             ) : (
               <div 
                 className="profile-card-avatar-icon"
-                style={{ background: `linear-gradient(135deg, ${color}, ${color}dd)` }}
+                style={{ background: 'transparent', border: `3px solid ${color}` }}
               >
                 {(() => {
                   const IconComponent = getIconComponent(icon);
                   return IconComponent ? (
-                    <IconComponent className="profile-card-icon-heroicon" style={{ width: '2.5rem', height: '2.5rem', color: '#ffffff' }} />
+                    <IconComponent className="profile-card-icon-heroicon" style={{ width: '2.5rem', height: '2.5rem', color: color }} />
                   ) : (
                     <span className="profile-card-icon-emoji">{icon || '🤖'}</span>
                   );
