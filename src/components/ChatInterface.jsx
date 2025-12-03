@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { generateContentWithStore, generateAudioWithStore } from '../services/fileStoreService';
+import { generateContentWithStore, generateContentWithReranking, generateAudioWithStore } from '../services/fileStoreService';
 import { getEmployeeConfig } from '../services/employeeConfigService';
 import { uploadFile } from '../services/filesService';
 import './ChatInterface.css';
@@ -466,7 +466,9 @@ function ChatInterface({ employeeName, employeeId }) {
 
       if (outputMode === 'audio') {
         // Step 1: Generate text response first (for grounding)
-        const textResponse = await generateContentWithStore(
+        // Use re-ranking wrapper if enabled in config
+        const generateFn = chatConfig?.enableReranking ? generateContentWithReranking : generateContentWithStore;
+        const textResponse = await generateFn(
           selectedStores,
           currentInput || 'Please analyze the attached files.',
           conversationHistory,
@@ -478,6 +480,10 @@ function ChatInterface({ employeeName, employeeId }) {
             topK: chatConfig?.topK !== undefined ? chatConfig.topK : null,
             maxOutputTokens: chatConfig?.maxOutputTokens !== undefined ? chatConfig.maxOutputTokens : null,
             attachedFiles: filesForAPI,
+            // Re-ranking options
+            enableReranking: chatConfig?.enableReranking || false,
+            rerankingTopK: chatConfig?.rerankingTopK || 5,
+            minRelevanceScore: chatConfig?.minRelevanceScore || 0.3,
           }
         );
 
@@ -489,12 +495,13 @@ function ChatInterface({ employeeName, employeeId }) {
           .map(part => part.text)
           .join('\n') || 'I apologize, but I couldn\'t generate a response.';
 
-        // Extract grounding metadata (sources)
+        // Extract grounding metadata (sources) with relevance scores if re-ranking was applied
         const groundingMetadata = candidate?.groundingMetadata;
         const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
           title: chunk.retrievedContext?.title || 'Unknown',
           text: chunk.retrievedContext?.text || '',
           fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
+          relevanceScore: chunk.relevanceScore, // Include relevance score from re-ranking
         })) || [];
 
         // Step 2: Show text response immediately with "Generating audio..." indicator
@@ -591,8 +598,9 @@ function ChatInterface({ employeeName, employeeId }) {
           ));
         }
       } else {
-        // Generate text response
-        response = await generateContentWithStore(
+        // Generate text response - use re-ranking wrapper if enabled in config
+        const generateFn = chatConfig?.enableReranking ? generateContentWithReranking : generateContentWithStore;
+        response = await generateFn(
           selectedStores,
           currentInput || 'Please analyze the attached files.',
           conversationHistory,
@@ -604,6 +612,10 @@ function ChatInterface({ employeeName, employeeId }) {
             topK: chatConfig?.topK !== undefined ? chatConfig.topK : null,
             maxOutputTokens: chatConfig?.maxOutputTokens !== undefined ? chatConfig.maxOutputTokens : null,
             attachedFiles: filesForAPI,
+            // Re-ranking options
+            enableReranking: chatConfig?.enableReranking || false,
+            rerankingTopK: chatConfig?.rerankingTopK || 5,
+            minRelevanceScore: chatConfig?.minRelevanceScore || 0.3,
           }
         );
 
@@ -616,12 +628,14 @@ function ChatInterface({ employeeName, employeeId }) {
           .map(part => part.text)
           .join('\n') || 'I apologize, but I couldn\'t generate a response.';
 
-        // Extract grounding metadata (sources)
+        // Extract grounding metadata (sources) with relevance scores if re-ranking was applied
         const groundingMetadata = candidate?.groundingMetadata;
+        const rerankingApplied = groundingMetadata?.rerankingApplied || false;
         const sources = groundingMetadata?.groundingChunks?.map((chunk) => ({
           title: chunk.retrievedContext?.title || 'Unknown',
           text: chunk.retrievedContext?.text || '',
           fileSearchStore: chunk.retrievedContext?.fileSearchStore || '',
+          relevanceScore: chunk.relevanceScore, // Include relevance score from re-ranking
         })) || [];
 
         const aiMessage = {
@@ -630,7 +644,8 @@ function ChatInterface({ employeeName, employeeId }) {
           sender: 'ai',
           timestamp: new Date(),
           sources: sources,
-          outputType: 'text'
+          outputType: 'text',
+          rerankingApplied: rerankingApplied, // Track if re-ranking was applied
         };
 
         setMessages(prev => [...prev, aiMessage]);
@@ -769,10 +784,27 @@ function ChatInterface({ employeeName, employeeId }) {
                   </button>
                   {showSources === message.id && (
                     <div className="message-sources">
-                      <div className="sources-header">Sources:</div>
+                      <div className="sources-header">
+                        Sources:
+                        {message.rerankingApplied && (
+                          <span className="reranking-badge" title="Sources have been re-ranked by relevance">
+                            Re-ranked
+                          </span>
+                        )}
+                      </div>
                       {message.sources.map((source, idx) => (
                         <div key={idx} className="source-item">
-                          <span className="source-title">{source.title}</span>
+                          <div className="source-header">
+                            <span className="source-title">{source.title}</span>
+                            {source.relevanceScore !== undefined && source.relevanceScore !== null && (
+                              <span 
+                                className={`relevance-score ${source.relevanceScore >= 0.7 ? 'high' : source.relevanceScore >= 0.5 ? 'medium' : 'low'}`}
+                                title={`Relevance score: ${(source.relevanceScore * 100).toFixed(1)}%`}
+                              >
+                                {(source.relevanceScore * 100).toFixed(0)}%
+                              </span>
+                            )}
+                          </div>
                           {source.text && (
                             <span className="source-preview">{source.text.substring(0, 100)}...</span>
                           )}

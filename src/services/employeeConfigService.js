@@ -14,6 +14,10 @@ const DEFAULT_CONFIG = {
     topK: 40,
     maxOutputTokens: 8192,
     selectedStores: [], // Array of selected knowledge base store names (max 5)
+    // Re-ranking configuration
+    enableReranking: false,      // Toggle for semantic re-ranking of sources
+    rerankingTopK: 5,            // Number of top sources to keep after re-ranking
+    minRelevanceScore: 0.3,      // Minimum relevance score threshold (0.0-1.0)
   },
   upload: {
     chunkingConfig: {

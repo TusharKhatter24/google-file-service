@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_KEY, API_BASE_URL, UPLOAD_API_BASE_URL } from "../config";
+import { rerankSources } from "./embeddingService";
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -487,5 +488,127 @@ export const generateAudioWithStore = async (
     throw new Error(
       error.response?.data?.error?.message || "Failed to generate audio"
     );
+  }
+};
+
+/**
+ * Generate content with post-retrieval semantic re-ranking
+ * This wrapper calls generateContentWithStore and then re-ranks the sources
+ * using embedding-based similarity scoring
+ *
+ * @param {string|Array<string>} storeNames - The FileSearchStore name(s)
+ * @param {string} query - User's query/question
+ * @param {Array} conversationHistory - Optional conversation history for context
+ * @param {Object} options - Optional configuration (same as generateContentWithStore plus re-ranking options)
+ * @param {boolean} options.enableReranking - Whether to enable re-ranking (default: true)
+ * @param {number} options.rerankingTopK - Number of top sources to keep (default: 5)
+ * @param {number} options.minRelevanceScore - Minimum relevance score threshold (default: 0.3)
+ * @returns {Promise<Object>} Generated content response with re-ranked sources
+ */
+export const generateContentWithReranking = async (
+  storeNames,
+  query,
+  conversationHistory = [],
+  options = {}
+) => {
+  const {
+    enableReranking = true,
+    rerankingTopK = 5,
+    minRelevanceScore = 0.3,
+    ...generateOptions
+  } = options;
+
+  // Get the initial response from file search
+  const response = await generateContentWithStore(
+    storeNames,
+    query,
+    conversationHistory,
+    generateOptions
+  );
+
+  // If re-ranking is disabled, return the original response
+  if (!enableReranking) {
+    return response;
+  }
+
+  // Extract grounding chunks (sources) from the response
+  const candidate = response.candidates?.[0];
+  const groundingMetadata = candidate?.groundingMetadata;
+  const groundingChunks = groundingMetadata?.groundingChunks || [];
+
+  // If no sources, return original response
+  if (groundingChunks.length === 0) {
+    return response;
+  }
+
+  // Convert grounding chunks to source objects for re-ranking
+  const sources = groundingChunks.map((chunk) => ({
+    title: chunk.retrievedContext?.title || "Unknown",
+    text: chunk.retrievedContext?.text || "",
+    fileSearchStore: chunk.retrievedContext?.fileSearchStore || "",
+    originalChunk: chunk,
+  }));
+
+  try {
+    // Re-rank the sources using embedding-based similarity
+    const rerankedSources = await rerankSources(query, sources, {
+      topK: rerankingTopK,
+      minRelevanceScore: minRelevanceScore,
+    });
+
+    // Rebuild grounding chunks with re-ranked sources
+    const rerankedGroundingChunks = rerankedSources.map((source) => ({
+      ...source.originalChunk,
+      retrievedContext: {
+        ...source.originalChunk?.retrievedContext,
+        title: source.title,
+        text: source.text,
+        fileSearchStore: source.fileSearchStore,
+      },
+      relevanceScore: source.relevanceScore,
+    }));
+
+    // Create updated response with re-ranked sources
+    const updatedResponse = {
+      ...response,
+      candidates: response.candidates?.map((cand, idx) => {
+        if (idx === 0) {
+          return {
+            ...cand,
+            groundingMetadata: {
+              ...cand.groundingMetadata,
+              groundingChunks: rerankedGroundingChunks,
+              rerankingApplied: true,
+              originalSourceCount: groundingChunks.length,
+              rerankedSourceCount: rerankedGroundingChunks.length,
+            },
+          };
+        }
+        return cand;
+      }),
+    };
+
+    return updatedResponse;
+  } catch (rerankError) {
+    // If re-ranking fails, log error and return original response
+    console.error("Re-ranking failed, returning original sources:", rerankError);
+    
+    // Add error info to metadata but keep original sources
+    return {
+      ...response,
+      candidates: response.candidates?.map((cand, idx) => {
+        if (idx === 0) {
+          return {
+            ...cand,
+            groundingMetadata: {
+              ...cand.groundingMetadata,
+              rerankingApplied: false,
+              rerankingError: rerankError.message,
+            },
+          };
+        }
+        return cand;
+      }),
+    };
   }
 };
