@@ -158,11 +158,74 @@ function EmployeeSelection() {
       </header>
 
       <main className="selection-main">
-        <div className="selection-container">
-          <h2 className="page-title">Choose your employee</h2>
-          <p className="page-subtitle">Select an AI employee to start working with</p>
+        <div className="selection-layout">
+          {/* Left Sidebar - How to use */}
+          <aside className="how-to-use-sidebar">
+            <div className="sidebar-header">
+              <span className="sidebar-icon">💡</span>
+              <h3>How to use</h3>
+            </div>
+            
+            <div className="sidebar-steps">
+              <div className="sidebar-step">
+                <div className="step-badge">1</div>
+                <div className="step-content">
+                  <strong>Select an Employee</strong>
+                  <p>Click any card to start chatting with that AI assistant.</p>
+                </div>
+              </div>
+              
+              <div className="sidebar-step">
+                <div className="step-badge">2</div>
+                <div className="step-content">
+                  <strong>Customize Settings</strong>
+                  <p>Use ⚙️ Settings to configure prompts and knowledge sources.</p>
+                </div>
+              </div>
+              
+              <div className="sidebar-step">
+                <div className="step-badge">3</div>
+                <div className="step-content">
+                  <strong>Create Custom</strong>
+                  <p>Build your own AI employee with custom role and personality.</p>
+                </div>
+              </div>
+            </div>
 
-          <div className="employees-grid" data-tour-target="employees-grid">
+            <div className="sidebar-divider"></div>
+
+            <div className="sidebar-section">
+              <h4>Quick Actions</h4>
+              <button 
+                className="sidebar-action-btn"
+                onClick={() => navigate('/stores')}
+              >
+                <span>📚</span> Knowledge Bases
+              </button>
+              <button 
+                className="sidebar-action-btn"
+                onClick={() => navigate('/organization/settings')}
+              >
+                <span>⚙️</span> Organization Settings
+              </button>
+            </div>
+
+            <div className="sidebar-divider"></div>
+
+            <div className="sidebar-tip">
+              <span className="tip-icon">✨</span>
+              <p><strong>Pro tip:</strong> Start with Donna for support tasks, or create a custom employee for your workflow.</p>
+            </div>
+          </aside>
+
+          {/* Main Content - Employee Cards */}
+          <div className="selection-content">
+            <div className="content-header">
+              <h2 className="page-title">Choose your employee</h2>
+              <p className="page-subtitle">Select an AI employee to start working with</p>
+            </div>
+
+            <div className="employees-grid" data-tour-target="employees-grid">
             {allEmployees.map((employee) => (
               <div key={employee.id} className="employee-card-wrapper" style={{ position: 'relative' }}>
                 <ProfileCard
@@ -202,6 +265,7 @@ function EmployeeSelection() {
                 enableMobileTilt={false}
                 onContactClick={() => setShowCreateModal(true)}
               />
+            </div>
             </div>
           </div>
         </div>

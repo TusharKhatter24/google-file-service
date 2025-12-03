@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Concierge - WizCommerce Hackathon</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #22d3ee;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --wiz-orange: #ff6b35;
+            --wiz-purple: #7c3aed;
+            --dark: #0f0f1a;
+            --darker: #080810;
+            --card: #1a1a2e;
+            --card-border: #2d2d44;
+            --text: #e4e4e7;
+            --text-muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Slide Container */
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 100px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--darker);
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            transform: translateX(-100%);
+        }
+
+        /* Background Effects */
+        .bg-gradient {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .bg-gradient.orange {
+            background: var(--wiz-orange);
+            top: -200px;
+            right: -200px;
+        }
+
+        .bg-gradient.purple {
+            background: var(--wiz-purple);
+            bottom: -200px;
+            left: -200px;
+        }
+
+        .bg-gradient.cyan {
+            background: var(--accent);
+            bottom: -200px;
+            left: -200px;
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 107, 53, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 107, 53, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        /* Typography */
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #fff 0%, #ffd4c4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+
+        h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        p {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            max-width: 700px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--wiz-orange);
+            font-weight: 500;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .hackathon-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 24px;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .slide.active .animate-title {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .slide.active .animate-subtitle {
+            animation: fadeInUp 0.8s ease 0.2s forwards;
+            opacity: 0;
+        }
+
+        .slide.active .animate-text {
+            animation: fadeInUp 0.8s ease 0.4s forwards;
+            opacity: 0;
+        }
+
+        .slide.active .animate-left {
+            animation: fadeInLeft 0.8s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        .slide.active .animate-right {
+            animation: fadeInRight 0.8s ease 0.3s forwards;
+            opacity: 0;
+        }
+
+        .slide.active .animate-scale {
+            animation: scaleIn 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .slide.active .animate-delay-1 { animation-delay: 0.1s; }
+        .slide.active .animate-delay-2 { animation-delay: 0.2s; }
+        .slide.active .animate-delay-3 { animation-delay: 0.3s; }
+        .slide.active .animate-delay-4 { animation-delay: 0.4s; }
+        .slide.active .animate-delay-5 { animation-delay: 0.5s; }
+        .slide.active .animate-delay-6 { animation-delay: 0.6s; }
+        .slide.active .animate-delay-7 { animation-delay: 0.7s; }
+
+        /* Components */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .wiz-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--wiz-orange);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.15);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .feature-card {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .feature-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+        }
+
+        .feature-content p {
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .problem-list {
+            list-style: none;
+            max-width: 800px;
+        }
+
+        .problem-list li {
+            padding: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 1.25rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .problem-list li::before {
+            content: '✕';
+            color: var(--danger);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .solution-list li::before {
+            content: '✓';
+            color: var(--success);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            width: 100%;
+            max-width: 1200px;
+            align-items: center;
+        }
+
+        .demo-window {
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--card-border);
+        }
+
+        .demo-header {
+            background: #1e1e2e;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .demo-dot.red { background: #ff5f57; }
+        .demo-dot.yellow { background: #febc2e; }
+        .demo-dot.green { background: #28c840; }
+
+        .demo-content {
+            padding: 24px;
+        }
+
+        .chat-bubble {
+            background: var(--darker);
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            max-width: 80%;
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            margin-left: auto;
+            color: #fff;
+        }
+
+        .chat-bubble.ai {
+            background: var(--card-border);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .team-card {
+            text-align: center;
+            padding: 24px 16px;
+        }
+
+        .team-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--wiz-purple));
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+            font-size: 1.1rem;
+        }
+
+        .team-role {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .impact-highlight {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(124, 58, 237, 0.15));
+            border: 2px solid var(--wiz-orange);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .impact-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--wiz-orange), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .roadmap-card {
+            padding: 32px;
+            position: relative;
+        }
+
+        .roadmap-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--wiz-orange), var(--wiz-purple));
+            border-radius: 4px 4px 0 0;
+        }
+
+        .roadmap-phase {
+            font-size: 0.85rem;
+            color: var(--wiz-orange);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .persona-card {
+            text-align: center;
+            padding: 32px 24px;
+        }
+
+        .persona-avatar {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .persona-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .persona-role {
+            font-size: 0.9rem;
+            color: var(--wiz-orange);
+            margin-bottom: 12px;
+        }
+
+        .persona-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .tech-stack {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .tech-badge {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quote-block {
+            background: var(--card);
+            border-left: 4px solid var(--wiz-orange);
+            padding: 32px;
+            border-radius: 0 16px 16px 0;
+            max-width: 700px;
+            margin: 32px 0;
+        }
+
+        .quote-text {
+            font-size: 1.5rem;
+            font-style: italic;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .quote-author {
+            color: var(--wiz-orange);
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
+            z-index: 100;
+            background: var(--card);
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: 1px solid var(--card-border);
+        }
+
+        .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: var(--darker);
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: var(--wiz-orange);
+            color: #fff;
+        }
+
+        .slide-counter {
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--wiz-orange), var(--wiz-purple));
+            transition: width 0.3s ease;
+            z-index: 100;
+        }
+
+        .slide-title {
+            text-align: center;
+        }
+
+        .vertical-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .vertical-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 24px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+        }
+
+        .vertical-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: rgba(255, 107, 53, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide {
+                padding: 40px 60px;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            h2 {
+                font-size: 2.25rem;
+            }
+
+            .stats-grid,
+            .feature-grid,
+            .roadmap-grid,
+            .persona-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progress"></div>
+    
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide active" id="slide-1">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="hackathon-badge animate-scale">
+                🏆 WizCommerce Hackathon 2024
+            </div>
+            
+            <div class="logo animate-scale animate-delay-1">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text">AI Concierge</div>
+            </div>
+            
+            <h1 class="animate-title">Making Every Wizzer<br>10x More Productive</h1>
+            
+            <p class="animate-subtitle" style="text-align: center; max-width: 600px;">
+                Instant access to all WizCommerce knowledge — integrations, 
+                products, SOPs, past issues, and client context.
+            </p>
+            
+            <div class="animate-text" style="margin-top: 40px; display: flex; gap: 24px; align-items: center;">
+                <span class="wiz-logo">WizCommerce</span>
+                <span style="color: var(--text-muted);">|</span>
+                <span style="color: var(--text-muted);">December 2024</span>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Challenge -->
+        <div class="slide" id="slide-2">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">The Challenge</p>
+                <h2 class="animate-subtitle">Our Knowledge is Growing.<br>Finding Answers is Getting Harder.</h2>
+            </div>
+            
+            <ul class="problem-list animate-text">
+                <li class="animate-left animate-delay-1">Information scattered across Confluence, Slack, Zendesk, Google Drive</li>
+                <li class="animate-left animate-delay-2">Support team spends 15-30 minutes searching for each answer</li>
+                <li class="animate-left animate-delay-3">Implementation team repeatedly asks the same questions</li>
+                <li class="animate-left animate-delay-4">Senior engineers constantly interrupted for tribal knowledge</li>
+                <li class="animate-left animate-delay-5">New Wizzers take months to become truly productive</li>
+            </ul>
+        </div>
+
+        <!-- Slide 3: Real Impact -->
+        <div class="slide" id="slide-3">
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">The Real Cost</p>
+                <h2 class="animate-subtitle">This Slows Us Down Every Day</h2>
+            </div>
+            
+            <div class="stats-grid animate-text">
+                <div class="stat-card card animate-scale animate-delay-1">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Hours lost daily<br>searching for info</div>
+                </div>
+                <div class="stat-card card animate-scale animate-delay-2">
+                    <div class="stat-number">5-10</div>
+                    <div class="stat-label">Questions per person<br>per day</div>
+                </div>
+                <div class="stat-card card animate-scale animate-delay-3">
+                    <div class="stat-number">30%</div>
+                    <div class="stat-label">Escalations due to<br>missing context</div>
+                </div>
+            </div>
+            
+            <div class="quote-block animate-text animate-delay-4">
+                <div class="quote-text">"I know this information exists somewhere... I just can't find it."</div>
+                <div class="quote-author">— Every Wizzer, at some point</div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Our Solution -->
+        <div class="slide" id="slide-4">
+            <div class="bg-gradient cyan"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">Our Solution</p>
+                <h2 class="animate-subtitle">AI Concierge: Your Knowledge Assistant</h2>
+            </div>
+            
+            <ul class="problem-list solution-list animate-text" style="max-width: 700px;">
+                <li class="animate-right animate-delay-1">Ask questions in natural language, get instant answers</li>
+                <li class="animate-right animate-delay-2">Unified access to ALL WizCommerce knowledge sources</li>
+                <li class="animate-right animate-delay-3">Always cites sources — verify and learn more</li>
+                <li class="animate-right animate-delay-4">Role-specific AI personas for different teams</li>
+                <li class="animate-right animate-delay-5">Can trigger actions — create tickets, send updates</li>
+            </ul>
+        </div>
+
+        <!-- Slide 5: Meet the AI Team -->
+        <div class="slide" id="slide-5">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">Meet the AI Team</p>
+                <h2 class="animate-subtitle">Specialized Assistants for Every Role</h2>
+            </div>
+            
+            <div class="persona-grid animate-text">
+                <div class="persona-card card animate-scale animate-delay-1">
+                    <div class="persona-avatar">👩‍💼</div>
+                    <div class="persona-name">Donna</div>
+                    <div class="persona-role">Support Engineer</div>
+                    <div class="persona-desc">Handles customer queries, troubleshooting, and technical support with all product documentation.</div>
+                </div>
+                <div class="persona-card card animate-scale animate-delay-2">
+                    <div class="persona-avatar">👨‍💻</div>
+                    <div class="persona-name">Max</div>
+                    <div class="persona-role">Implementation Specialist</div>
+                    <div class="persona-desc">Guides integrations, migrations, and client onboarding with SOPs and best practices.</div>
+                </div>
+                <div class="persona-card card animate-scale animate-delay-3">
+                    <div class="persona-avatar">🧙‍♂️</div>
+                    <div class="persona-name">Sage</div>
+                    <div class="persona-role">Product Expert</div>
+                    <div class="persona-desc">Deep knowledge of all WizCommerce products, features, and roadmap.</div>
+                </div>
+            </div>
+            
+            <p class="animate-text animate-delay-4" style="text-align: center; margin-top: 24px; color: var(--text-muted);">
+                Each assistant has customizable prompts, knowledge sources, and skills
+            </p>
+        </div>
+
+        <!-- Slide 6: Live Demo -->
+        <div class="slide" id="slide-6">
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">Live Demo</p>
+                <h2 class="animate-subtitle">See It In Action</h2>
+            </div>
+            
+            <div class="two-column animate-text">
+                <div class="demo-window animate-left">
+                    <div class="demo-header">
+                        <div class="demo-dot red"></div>
+                        <div class="demo-dot yellow"></div>
+                        <div class="demo-dot green"></div>
+                        <span style="margin-left: 12px; color: var(--text-muted); font-size: 0.85rem;">AI Concierge - Donna</span>
+                    </div>
+                    <div class="demo-content">
+                        <div class="chat-bubble user">
+                            How do I set up BigCommerce webhook for order sync?
+                        </div>
+                        <div class="chat-bubble ai">
+                            To set up BigCommerce webhooks for order sync:
+                            <br><br>
+                            1. Go to Store Settings → API Accounts
+                            <br>
+                            2. Create scope with "Orders" read permission
+                            <br>
+                            3. Register webhook endpoint...
+                            <br><br>
+                            <span style="color: var(--wiz-orange);">📄 Source: BigCommerce Integration Guide</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="animate-right animate-delay-2" style="color: var(--wiz-orange);">What Just Happened:</h3>
+                    <ul class="problem-list solution-list" style="margin-top: 16px; border: none;">
+                        <li class="animate-right animate-delay-3" style="border: none; padding: 12px 0;">Searched 5 knowledge bases instantly</li>
+                        <li class="animate-right animate-delay-4" style="border: none; padding: 12px 0;">Re-ranked results by relevance</li>
+                        <li class="animate-right animate-delay-5" style="border: none; padding: 12px 0;">Generated clear, actionable answer</li>
+                        <li class="animate-right animate-delay-6" style="border: none; padding: 12px 0;">Cited source for verification</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Key Features -->
+        <div class="slide" id="slide-7">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">What We Built</p>
+                <h2 class="animate-subtitle">Key Features</h2>
+            </div>
+            
+            <div class="feature-grid animate-text">
+                <div class="feature-card card animate-scale animate-delay-1">
+                    <div class="feature-icon">📚</div>
+                    <div class="feature-content">
+                        <h3>Multi-Source RAG</h3>
+                        <p>Connect multiple knowledge bases — Confluence, Google Drive, uploaded docs</p>
+                    </div>
+                </div>
+                <div class="feature-card card animate-scale animate-delay-2">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-content">
+                        <h3>Smart Re-ranking</h3>
+                        <p>AI-powered relevance scoring ensures best answers surface first</p>
+                    </div>
+                </div>
+                <div class="feature-card card animate-scale animate-delay-3">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-content">
+                        <h3>Role-Based Personas</h3>
+                        <p>Customizable AI assistants with specific knowledge and personality</p>
+                    </div>
+                </div>
+                <div class="feature-card card animate-scale animate-delay-4">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-content">
+                        <h3>Workflow Actions</h3>
+                        <p>n8n integration to trigger automations directly from chat</p>
+                    </div>
+                </div>
+                <div class="feature-card card animate-scale animate-delay-5">
+                    <div class="feature-icon">🔧</div>
+                    <div class="feature-content">
+                        <h3>Full Customization</h3>
+                        <p>Tune model, temperature, chunk size, prompts per assistant</p>
+                    </div>
+                </div>
+                <div class="feature-card card animate-scale animate-delay-6">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-content">
+                        <h3>Source Citations</h3>
+                        <p>Every answer shows sources with relevance scores</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Tech Stack -->
+        <div class="slide" id="slide-8">
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">Under the Hood</p>
+                <h2 class="animate-subtitle">Technology Stack</h2>
+            </div>
+            
+            <div class="two-column animate-text" style="max-width: 1000px;">
+                <div>
+                    <h3 class="animate-left" style="color: var(--wiz-orange); margin-bottom: 24px;">AI & Backend</h3>
+                    <div class="vertical-list">
+                        <div class="vertical-item animate-left animate-delay-1">
+                            <div class="vertical-icon">🧠</div>
+                            <div>
+                                <strong>Gemini 2.5 Flash/Pro</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">Fast, accurate language model</p>
+                            </div>
+                        </div>
+                        <div class="vertical-item animate-left animate-delay-2">
+                            <div class="vertical-icon">📦</div>
+                            <div>
+                                <strong>Google File Store RAG</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">Vector search & retrieval</p>
+                            </div>
+                        </div>
+                        <div class="vertical-item animate-left animate-delay-3">
+                            <div class="vertical-icon">🔄</div>
+                            <div>
+                                <strong>Embedding Re-ranking</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">text-embedding-004 for relevance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="animate-right" style="color: var(--wiz-orange); margin-bottom: 24px;">Frontend & Integrations</h3>
+                    <div class="vertical-list">
+                        <div class="vertical-item animate-right animate-delay-1">
+                            <div class="vertical-icon">⚛️</div>
+                            <div>
+                                <strong>React + Vite</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">Modern, fast UI</p>
+                            </div>
+                        </div>
+                        <div class="vertical-item animate-right animate-delay-2">
+                            <div class="vertical-icon">🔗</div>
+                            <div>
+                                <strong>n8n Workflows</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">Automation & actions</p>
+                            </div>
+                        </div>
+                        <div class="vertical-item animate-right animate-delay-3">
+                            <div class="vertical-icon">💾</div>
+                            <div>
+                                <strong>LocalStorage + API</strong>
+                                <p style="font-size: 0.9rem; margin-top: 4px;">Per-employee config</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Impact -->
+        <div class="slide" id="slide-9">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">Expected Impact</p>
+                <h2 class="animate-subtitle">How This Helps WizCommerce</h2>
+            </div>
+            
+            <div class="stats-grid animate-text">
+                <div class="stat-card card animate-scale animate-delay-1">
+                    <div class="stat-number">25 min</div>
+                    <div class="stat-label">Saved per query</div>
+                </div>
+                <div class="stat-card card animate-scale animate-delay-2">
+                    <div class="stat-number">85%</div>
+                    <div class="stat-label">Faster onboarding</div>
+                </div>
+                <div class="stat-card card animate-scale animate-delay-3">
+                    <div class="stat-number">↓30%</div>
+                    <div class="stat-label">Fewer escalations</div>
+                </div>
+            </div>
+            
+            <div class="impact-highlight animate-scale animate-delay-4" style="margin-top: 40px;">
+                <p style="color: var(--text-muted); margin-bottom: 8px;">Every Wizzer becomes</p>
+                <div class="impact-number">10x Faster</div>
+                <p style="color: #fff; font-size: 1.25rem;">at finding accurate information</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: Roadmap -->
+        <div class="slide" id="slide-10">
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">What's Next</p>
+                <h2 class="animate-subtitle">Roadmap to Full Deployment</h2>
+            </div>
+            
+            <div class="roadmap-grid animate-text">
+                <div class="roadmap-card card animate-scale animate-delay-1">
+                    <div class="roadmap-phase">Phase 1 — Now</div>
+                    <h3 style="font-size: 1.25rem;">Support Team</h3>
+                    <ul style="list-style: none; margin-top: 16px;">
+                        <li style="padding: 8px 0; color: var(--text-muted);">✓ Deploy to 10 support engineers</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">✓ Connect Zendesk knowledge base</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">✓ Measure query accuracy</li>
+                    </ul>
+                </div>
+                <div class="roadmap-card card animate-scale animate-delay-2">
+                    <div class="roadmap-phase">Phase 2 — Q1</div>
+                    <h3 style="font-size: 1.25rem;">Implementation Team</h3>
+                    <ul style="list-style: none; margin-top: 16px;">
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Onboard implementation team</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Add Confluence integration</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Slack bot deployment</li>
+                    </ul>
+                </div>
+                <div class="roadmap-card card animate-scale animate-delay-3">
+                    <div class="roadmap-phase">Phase 3 — Q2</div>
+                    <h3 style="font-size: 1.25rem;">All Teams</h3>
+                    <ul style="list-style: none; margin-top: 16px;">
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Company-wide rollout</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Customer-facing version</li>
+                        <li style="padding: 8px 0; color: var(--text-muted);">○ Advanced analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Team -->
+        <div class="slide" id="slide-11">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="slide-title">
+                <p class="subtitle animate-title">The Team</p>
+                <h2 class="animate-subtitle">Built by Wizzers, for Wizzers</h2>
+            </div>
+            
+            <div class="team-grid animate-text">
+                <div class="team-card card animate-scale animate-delay-1">
+                    <div class="team-avatar">👨‍💻</div>
+                    <div class="team-name">Lokesh</div>
+                    <div class="team-role">Lead Developer</div>
+                </div>
+                <div class="team-card card animate-scale animate-delay-2">
+                    <div class="team-avatar">👩‍💻</div>
+                    <div class="team-name">Team Member</div>
+                    <div class="team-role">Developer</div>
+                </div>
+                <div class="team-card card animate-scale animate-delay-3">
+                    <div class="team-avatar">👨‍🎨</div>
+                    <div class="team-name">Team Member</div>
+                    <div class="team-role">Designer</div>
+                </div>
+                <div class="team-card card animate-scale animate-delay-4">
+                    <div class="team-avatar">👩‍💼</div>
+                    <div class="team-name">Team Member</div>
+                    <div class="team-role">Product</div>
+                </div>
+            </div>
+            
+            <p class="animate-text animate-delay-5" style="text-align: center; margin-top: 32px; color: var(--text-muted);">
+                Built in <span style="color: var(--wiz-orange); font-weight: 600;">48 hours</span> during WizCommerce Hackathon 2024
+            </p>
+        </div>
+
+        <!-- Slide 12: Thank You -->
+        <div class="slide" id="slide-12">
+            <div class="bg-gradient orange"></div>
+            <div class="bg-gradient purple"></div>
+            <div class="bg-grid"></div>
+            
+            <div class="hackathon-badge animate-scale">
+                🏆 WizCommerce Hackathon 2024
+            </div>
+            
+            <div class="logo animate-scale animate-delay-1">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text">AI Concierge</div>
+            </div>
+            
+            <h1 class="animate-title" style="font-size: 3.5rem; margin-bottom: 16px;">Making Every Wizzer<br>Faster & More Confident</h1>
+            
+            <p class="animate-subtitle" style="text-align: center; font-size: 1.5rem; color: var(--text); margin-bottom: 40px;">
+                One AI. All our knowledge. Instant answers.
+            </p>
+            
+            <div class="animate-text animate-delay-3" style="display: flex; gap: 32px; align-items: center;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 8px;">🎯</div>
+                    <div style="color: var(--text-muted);">25 min saved<br>per query</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 8px;">⚡</div>
+                    <div style="color: var(--text-muted);">85% faster<br>onboarding</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 8px;">🚀</div>
+                    <div style="color: var(--text-muted);">10x more<br>productive</div>
+                </div>
+            </div>
+            
+            <div class="animate-text animate-delay-4" style="margin-top: 60px;">
+                <span class="wiz-logo" style="font-size: 2rem;">WizCommerce</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <button class="nav-btn" id="prev-btn">←</button>
+        <div class="slide-counter">
+            <span id="current-slide">1</span>
+            <span>/</span>
+            <span id="total-slides">12</span>
+        </div>
+        <button class="nav-btn" id="next-btn">→</button>
+    </nav>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
+
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentSlideEl = document.getElementById('current-slide');
+        const progress = document.getElementById('progress');
+
+        function updateSlide(newIndex) {
+            if (newIndex < 0 || newIndex >= totalSlides) return;
+
+            slides[currentSlide].classList.remove('active');
+            slides[currentSlide].classList.add('prev');
+
+            currentSlide = newIndex;
+
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            slides[currentSlide].classList.add('active');
+            currentSlideEl.textContent = currentSlide + 1;
+            progress.style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        prevBtn.addEventListener('click', () => updateSlide(currentSlide - 1));
+        nextBtn.addEventListener('click', () => updateSlide(currentSlide + 1));
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                updateSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                updateSlide(currentSlide - 1);
+            }
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) {
+                updateSlide(currentSlide + 1);
+            } else if (touchEndX - touchStartX > 50) {
+                updateSlide(currentSlide - 1);
+            }
+        });
+
+        // Initialize
+        progress.style.width = (1 / totalSlides * 100) + '%';
+    </script>
+</body>
+</html>
